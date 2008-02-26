@@ -199,7 +199,7 @@ void CAccount::GenerateTop20()
 	ptr = localtime(&tm);
 	strftime(tempstring, 100, "%B", ptr);
 	p->Top20 += tempstring;
-	QueryString = "SELECT * FROM tAccounts ORDER BY MonthlyTop20 DESC LIMIT 20";
+	QueryString = "SELECT Account, Points, MonthlyTop20 FROM tAccounts ORDER BY MonthlyTop20 DESC LIMIT 20";
 	p->Top20 += "\r\n";
 	p->Top20 += "\r\n";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
@@ -240,7 +240,7 @@ void CAccount::GenerateTop20()
 
 
 
-	QueryString = "SELECT * FROM tAccounts ORDER BY Points DESC LIMIT 20";
+	QueryString = "SELECT Account, Points FROM tAccounts ORDER BY Points DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
 	TempTop20.clear();
@@ -282,7 +282,7 @@ void CAccount::GenerateTop20()
 
 
 
-	QueryString = "SELECT * FROM tAccounts WHERE Deaths > 100 ORDER BY (CAST(Points as float)/CAST(Deaths as float)) DESC LIMIT 20";
+	QueryString = "SELECT Account, Points, Deaths FROM tAccounts WHERE Deaths > 100 ORDER BY ((Points*10000)/(Deaths)) DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
 	TempTop20.clear();
