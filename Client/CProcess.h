@@ -62,6 +62,8 @@ public:
 	void ProcessAdminEdit(sCMAdminEdit *adminedit);
 	void ProcessClickPlayer(sSMClickPlayer *clickplayer);
 	void ProcessFinance(sSMFinance *finance);
+	void ProcessWhisper(sCMWhisper *whisper);
+
 private:
 	CGame *p;
 protected:
