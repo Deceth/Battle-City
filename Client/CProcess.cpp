@@ -199,6 +199,9 @@ int CProcess::ProcessData(char *TheData)
 		case smClickPlayer:
 			ProcessClickPlayer((sSMClickPlayer *)&TheData[1]);
 			break;
+		case smWhisper:
+			ProcessWhisper((sCMWhisper *)&TheData[1]);
+			break;
 		default:
 			std::ostringstream thing;
 			int i = TheData[0];
@@ -1480,4 +1483,12 @@ void CProcess::ProcessFinance(sSMFinance *finance)
 
 	if (p->Draw->PanelMode == modeFinance)
 		p->InGame->PrintFinanceReport();
+}
+
+void CProcess::ProcessWhisper(sCMWhisper *whisper) {
+	string tmpstring;
+	int Index = whisper->Sender;
+	tmpstring = p->Player[Index]->Name + " (PM): " + whisper->Message;
+
+	p->InGame->AppendChat(tmpstring, RGB(255, 255, 255));
 }
