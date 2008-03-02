@@ -570,3 +570,25 @@ void CSend::SendTheCities(int Index)
 		counter++;
 	}
 }
+
+void CSend::SendWhisper(int WhoSent, sCMWhisper *whisper) {
+	char tmpstring[255];
+	tmpstring[0] = (unsigned char)WhoSent;
+	strcpy(&tmpstring[1], whisper->Message);
+	int length = (int)strlen(whisper->Message);
+	int recipient = (int) whisper->Recipient;
+	string recipientName = p->Player[recipient]->Name;
+	whisper->Sender = WhoSent;
+
+	// Log the message
+	string outputString;
+	outputString = p->Player[WhoSent]->Name;
+	outputString += " (to " + recipientName + "): ";
+	outputString += whisper->Message;
+	cout << outputString << "\n";
+	p->Log->logChat(outputString);
+
+	// Send the message
+	p->Winsock->SendData(whisper->Recipient, smWhisper, (char *)whisper, sizeof(whisper));
+}
+

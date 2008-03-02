@@ -37,6 +37,7 @@ public:
 	void SendTheCities(int Index);
 
 	void SendSector(int Index, int XSector, int YSector);
+	void SendWhisper(int Index, sCMWhisper *whisper);
 
 	CServer *p;
 private:
