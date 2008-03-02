@@ -8,6 +8,7 @@ CInput::CInput(CGame *Game)
 	LastMouseX = 0;
 	LastMouseY = 0;
 	LastShot = 0;
+	LastTankChange = 0;
 	NeedRelease = 0;
 	Tab = 0;
 	MouseOverChat = 0;
@@ -35,115 +36,152 @@ CInput::~CInput()
 	}
 }
 
-void CInput::ProcessKeys(char buffer[256])
-{
-	if (p->Player[p->Winsock->MyIndex]->isDead == true) 
-	{
-		p->Player[p->Winsock->MyIndex]->isMoving = false;
-		p->Player[p->Winsock->MyIndex]->isShooting = false;
-		p->Player[p->Winsock->MyIndex]->isTurning = false;
+void CInput::ProcessKeys(char buffer[256]) {
+
+	// Get the user's index in the player list
+	int me = p->Winsock->MyIndex;
+
+	// If the player is dead, return
+	if (p->Player[me]->isDead == true) {
+		p->Player[me]->isMoving = false;
+		p->Player[me]->isShooting = false;
+		p->Player[me]->isTurning = false;
 		return;
 	}
 
-	int me = p->Winsock->MyIndex;
-
-	if (Tab == 1)
-		if(KEYDOWN(buffer, DIK_TAB)) Tab = 1; else Tab = 0;
-	else
-	{
-		if(KEYDOWN(buffer, DIK_TAB)) Tab = 1; else Tab = 0;
-		if (Tab == 1)
-		{
+	/************************************************
+	 * Tab
+	 ************************************************/
+	// If the user was previously holding TAB, see if TAB is still being held
+	if (Tab == 1) {
+		if (KEYDOWN(buffer, DIK_TAB)) {
+			Tab = 1;
+		}
+		else {
+			Tab = 0;
+		}
+	}
+	// Else, if user is now holding TAB, center the screen
+	else {
+		if (KEYDOWN(buffer, DIK_TAB)) {
+			Tab = 1;
+		}
+		else {
+			Tab = 0;
+		}
+		if (Tab == 1) {
 			p->Draw->PlayerOffsetX = (p->Draw->MaxMapX / 2) - 24;
 			p->Draw->PlayerOffsetY = (p->Draw->MaxMapY / 2) - 24;
 		}
 	}
 
-	if (p->InGame->ShowMap) Tab = 0;
+	// If showing the MiniMap, center the screen
+	if (p->InGame->ShowMap) {
+		Tab = 0;
+	}
 
 	int didTurn = 0;
-	if(KEYDOWN(buffer, DIK_RIGHT))
-	{
-		if (Tab)
-		{
+
+	/************************************************
+	 * Turning
+	 ************************************************/
+	// Key: RIGHT,
+	if (KEYDOWN(buffer, DIK_RIGHT)) {
+		// If holding TAB, move the screen
+		if (Tab) {
 			p->Draw->PlayerOffsetX -= (int)(10 * (p->TimePassed * 0.08));
 			if (p->Draw->PlayerOffsetX < 0) p->Draw->PlayerOffsetX = 0;
 			didTurn = 0;
 		}
-		else
-		{
+		// Else, set isTurning = 1 (RIGHT)
+		else {
 			p->Player[me]->isTurning = 1;
 			didTurn = 1;
 		}
 	}
-	if(KEYDOWN(buffer, DIK_LEFT))
-	{
-		if (Tab)
-		{
+
+	// Key: LEFT
+	if (KEYDOWN(buffer, DIK_LEFT)) {
+		// If holding TAB, move the screen
+		if (Tab) {
 			p->Draw->PlayerOffsetX += (int)(10 * (p->TimePassed * 0.08));
 			if (p->Draw->PlayerOffsetX > (p->Draw->MaxMapX-48)) p->Draw->PlayerOffsetX = (p->Draw->MaxMapX-48);
 			didTurn = 0;
 		}
-		else
-		{
+		// Else, set isTurning = -1 (LEFT)
+		else {
 			p->Player[me]->isTurning = -1;
 			didTurn = 1;
 		}
 	}
-	if (didTurn == 0) p->Player[me]->isTurning = 0;
+	
+	// If the user turned, reset isTurning to 0
+	if (didTurn == 0) {
+		p->Player[me]->isTurning = 0;
+	}
 
+	/************************************************
+	 * Movement
+	 ************************************************/
 	int didMove = 0;
 	int WasMoving = p->Player[me]->isMoving;
-	if(KEYDOWN(buffer, DIK_DOWN)) 
-	{
-		if (Tab)
-		{
+
+	// Key: DOWN
+	if (KEYDOWN(buffer, DIK_DOWN)) {
+		// If holding TAB, move the screen
+		if (Tab) {
 			p->Draw->PlayerOffsetY -= (int)(10 * (p->TimePassed * 0.08));
-			if (p->Draw->PlayerOffsetY < 0) p->Draw->PlayerOffsetY = 0;
+			if (p->Draw->PlayerOffsetY < 0) {
+				p->Draw->PlayerOffsetY = 0;
+			}
 			didMove = 0;
 		}
-		else
-		{
-			if (p->Player[me]->isFrozen)
-			{
+		// Else,
+		else {
+			// If isFrozen, don't move
+			if (p->Player[me]->isFrozen) {
 				didMove = 0;
 			}
-			else
-			{
+			// Else, not isFrozen, set isMoving = -1 (BACKWARD)
+			else {
 				didMove = 1; 
 				p->Player[me]->isMoving = -1;
 			}
 		}
 	}
-	if(KEYDOWN(buffer, DIK_UP)) 
-	{
-		if (Tab)
-		{
+
+	// Key: UP
+	if (KEYDOWN(buffer, DIK_UP)) {
+		// If holding TAB, move the screen
+		if (Tab) {
 			p->Draw->PlayerOffsetY += (int)(10 * (p->TimePassed * 0.08));
-			if (p->Draw->PlayerOffsetY > (p->Draw->MaxMapY-48)) p->Draw->PlayerOffsetY = (p->Draw->MaxMapY-48);
+			if (p->Draw->PlayerOffsetY > (p->Draw->MaxMapY-48)) {
+				p->Draw->PlayerOffsetY = (p->Draw->MaxMapY-48);
+			}
 			didMove = 0;
 		}
-		else
-		{
-			if (p->Player[me]->isFrozen)
-			{
+		// Else,
+		else {
+			// If isFrozen, don't move
+			if (p->Player[me]->isFrozen) {
 				didMove = 0;
 			}
-			else
-			{
+			// Else, not isFrozen, set isMoving = 1 (FORWARD)
+			else {
 				didMove = 1; 
 				p->Player[me]->isMoving = 1;
 			}
 		}
 	}
-	if (didMove == 0) 
-	{
+
+	// If the user did not move,
+	if (didMove == 0)  {
 		p->Player[me]->isMoving = 0;
-		if (WasMoving) 
-		{
+		
+		// If the user was moving before, stop tank sound and stop the player's movement
+		if (WasMoving) {
 			p->Sound->StopWav(12);
 			sCMUpdate packet;
-			int me = p->Winsock->MyIndex;
 			packet.x = (int)p->Player[me]->X;
 			packet.y = (int)p->Player[me]->Y;
 			packet.dir = (unsigned char)p->Player[me]->Direction;
@@ -152,66 +190,107 @@ void CInput::ProcessKeys(char buffer[256])
 			p->Winsock->SendData(cmUpdate, (char *)&packet, sizeof(packet));
 		}
 	}
-	else
-	{
-		if (WasMoving == 0 && p->Options->tanksound == 1) p->Sound->PlayWav(sEngine, 12);
+	// Else, user moved,
+	else {
+		// If the user wasn't moving before (and has tankSound on), play tank sound
+		if (WasMoving == 0 && p->Options->tanksound == 1) {
+			p->Sound->PlayWav(sEngine, 12);
+		}
 	}
 
-	if((KEYDOWN(buffer, DIK_LSHIFT) || KEYDOWN(buffer, DIK_RSHIFT)) && p->InGame->IsChatting == 0) {
-		if (p->Tick > this->LastShot && p->Player[p->Winsock->MyIndex]->isFrozen == 0)
-		{
-			this->LastShot = p->Tick + 650;
-			if (p->Player[p->Winsock->MyIndex]->isAdmin == 2)
-			{
-				float fDir = (float)-p->Player[p->Winsock->MyIndex]->Direction+32;
-				int FlashY = (int)p->Player[p->Winsock->MyIndex]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-				int FlashX = (int)p->Player[p->Winsock->MyIndex]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+	/************************************************
+	 * Switching Tanks
+	 ************************************************/
+	// Key: GRAVE
+	if (KEYDOWN(buffer, DIK_GRAVE)) {
+
+		// If the user has a different tank to switch to,
+		if(	(p->Player[me]->Tank != p->Player[me]->Tank2)
+			||
+			(p->Player[me]->Tank != p->Player[me]->Tank3)
+			||
+			(p->Player[me]->Tank != p->Player[me]->Tank4) ) {
+
+			// If the tank switch timer allows another switch,
+			if (p->Tick > this->LastTankChange) {
+				this->LastTankChange = p->Tick + TIMER_CHANGE_TANK;
+
+				// Tell the server to change your tank (has to be server-side so everyone sees the change)
+				char packet[2];
+				packet[0] = me;
+				packet[1] = 0;
+				p->Winsock->SendData(cmChangeTank, packet, 1);
+			}
+		}
+	}
+
+	/************************************************
+	 * Firing
+	 ************************************************/
+	// Key: SHIFT (and user isn't chatting)
+	if ((KEYDOWN(buffer, DIK_LSHIFT) || KEYDOWN(buffer, DIK_RSHIFT)) && (p->InGame->IsChatting == 0)) {
+
+		// If the firing timer allows another shot (and user isn't frozen)
+		if ((p->Tick > this->LastShot) && (p->Player[me]->isFrozen == 0)) {
+
+			// Weapon: ADMIN
+			if (p->Player[me]->isAdmin == 2) {
+				this->LastShot = p->Tick + TIMER_SHOOT_ADMIN;
+
+				float fDir = (float)-p->Player[me]->Direction+32;
+				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
 				p->Explode->newExplosion(FlashX, FlashY, 3);
 				int adminShot = 2;
-				p->Bullet->newBullet(FlashX, FlashY, adminShot, p->Player[p->Winsock->MyIndex]->Direction, p->Winsock->MyIndex);
+				p->Bullet->newBullet(FlashX, FlashY, adminShot, p->Player[me]->Direction, me);
 				p->Sound->PlayWav(sTurretfire,2);
 				sCMShot shot;
-				shot.dir = p->Player[p->Winsock->MyIndex]->Direction;
+				shot.dir = p->Player[me]->Direction;
 				shot.type = adminShot;
 				shot.x = FlashX;
 				shot.y = FlashY;
 				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
-				this->LastShot -= 600;
 			}
-			if (p->InGame->HasRocket)
-			{
-				if (p->Player[p->Winsock->MyIndex]->isMoving == 0)
-				{
-					float fDir = (float)-p->Player[p->Winsock->MyIndex]->Direction+32;
-					int FlashY = (int)p->Player[p->Winsock->MyIndex]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-					int FlashX = (int)p->Player[p->Winsock->MyIndex]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-					p->Explode->newExplosion(FlashX, FlashY, 3);
-					p->Bullet->newBullet(FlashX, FlashY, 1, p->Player[p->Winsock->MyIndex]->Direction, p->Winsock->MyIndex);
-					p->Sound->PlayWav(sBigturret,2);
-					sCMShot shot;
-					shot.dir = p->Player[p->Winsock->MyIndex]->Direction;
-					shot.type = 1;
-					shot.x = FlashX;
-					shot.y = FlashY;
-					p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
-					return;
-				}
-			}
-			if (p->InGame->HasLaser)
-			{
-				float fDir = (float)-p->Player[p->Winsock->MyIndex]->Direction+32;
-				int FlashY = (int)p->Player[p->Winsock->MyIndex]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-				int FlashX = (int)p->Player[p->Winsock->MyIndex]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+
+			// Weapon: ROCKET (and user isn't moving)
+			else if (p->InGame->HasRocket && (p->Player[me]->isMoving == 0)) {
+				this->LastShot = p->Tick + TIMER_SHOOT_ROCKET;
+
+				float fDir = (float)-p->Player[me]->Direction+32;
+				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
 				p->Explode->newExplosion(FlashX, FlashY, 3);
-				p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[p->Winsock->MyIndex]->Direction, p->Winsock->MyIndex);
+				p->Bullet->newBullet(FlashX, FlashY, 1, p->Player[p->Winsock->MyIndex]->Direction, me);
+				p->Sound->PlayWav(sBigturret,2);
+				sCMShot shot;
+				shot.dir = p->Player[me]->Direction;
+				shot.type = 1;
+				shot.x = FlashX;
+				shot.y = FlashY;
+				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+			}
+
+			// Weapon: LASER
+			else if (p->InGame->HasLaser) {
+				this->LastShot = p->Tick + TIMER_SHOOT_LASER;
+
+				float fDir = (float)-p->Player[me]->Direction+32;
+				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+				p->Explode->newExplosion(FlashX, FlashY, 3);
+				p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[me]->Direction, me);
 				p->Sound->PlayWav(sLaser,1);
 				sCMShot shot;
-				shot.dir = p->Player[p->Winsock->MyIndex]->Direction;
+				shot.dir = p->Player[me]->Direction;
 				shot.type = 0;
 				shot.x = FlashX;
 				shot.y = FlashY;
 				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
-				return;
+			}
+
+			// Weapon: NONE (and Newbie Tips are on)
+			else if (p->Options->newbietips == 1) {
+				p->InGame->NewbieTip = "You cannot fire until you pick up a Laser or Cougar Missle.";
 			}
 		}
 	}
@@ -285,7 +364,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 						NeedRelease = 1;
 
 						if (p->Tick - DemolishTimer < 1000)
-							DemolishTimer = p->Tick + 3000;
+							DemolishTimer = p->Tick + TIMER_DEMOLISH;
 						else
 							DemolishTimer = p->Tick;
 					}
@@ -293,7 +372,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			}
 			else
 			{
-				if (p->InGame->Cash < 500000 && p->Player[p->Winsock->MyIndex]->isAdmin != 2)
+				if (p->InGame->Cash < COST_BUILDING && p->Player[p->Winsock->MyIndex]->isAdmin != 2)
 					return;
 				if (p->InGame->IsBuilding == 0 && p->InGame->Cash < 2000000)
 				{
