@@ -7,6 +7,7 @@ const unsigned char MaxPlayers = 63;
 const unsigned char SectorSize = 16;
 const unsigned char MaxSectors = (512 / SectorSize);
 const short int RadarSize = 1800;
+const int COST_BUILDING = 500000;
 
 #include <stdio.h>
 #include <math.h>
