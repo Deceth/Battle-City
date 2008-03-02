@@ -155,6 +155,12 @@ void CProcess::ProcessData(char *TheData, int Index)
 			case cmClickPlayer:
 				ProcessClickPlayer(Index, TheData[1]);
 				break;
+			case cmChangeTank:
+				ProcessChangeTank(Index);
+				break;
+			case cmWhisper:
+				p->Send->SendWhisper(Index, (sCMWhisper *)&TheData[1]);
+				break;
 		}//(switch)
 
 #ifndef _DEBUG
@@ -183,7 +189,7 @@ void CProcess::ProcessBuild(char *TheData,int Index)
 
 		if (p->City[p->Player[Index]->City]->canBuild[data->type - 1] == 1 || p->Player[Index]->isAdmin == 2)
 		{
-			p->City[p->Player[Index]->City]->cash -= 500000;
+			p->City[p->Player[Index]->City]->cash -= COST_BUILDING;
 
 			bd.City = p->Player[Index]->City;
 			bd.count = 0;
@@ -1083,9 +1089,13 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit)
 {
 	if (p->Player[Index]->isAdmin)
 	{
-		if (p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "ReMoTe") == 0 || 
-			p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
-		{
+		if (
+			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "ReMoTe") == 0)
+			|| 
+			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
+			||
+			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Vindkast") == 0)
+		) {
 			if (p->Account->CheckAccount(adminedit->User) == 1)
 			{
 				string DMLString;
@@ -1232,9 +1242,13 @@ void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *adminedit
 {
 	if (p->Player[Index]->isAdmin)
 	{
-		if (p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "ReMoTe") == 0 || 
-			p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
-		{
+		if (
+			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "ReMoTe") == 0)
+			|| 
+			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
+			||
+			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Vindkast") == 0)
+		) {	
 			try
 			{
 				string QueryString;
@@ -1291,4 +1305,31 @@ void CProcess::ProcessClickPlayer(int Index, int Clicked)
 	clickplayer.Deaths = p->Player[Clicked]->Deaths;
 
 	p->Winsock->SendData(Index, smClickPlayer, (char *)&clickplayer, sizeof(clickplayer));
+}
+
+
+void CProcess::ProcessChangeTank(int Index)
+{
+	unsigned char tank = p->Player[Index]->Tank;
+	unsigned char tank2 = p->Player[Index]->Tank2;
+	unsigned char tank3 = p->Player[Index]->Tank3;
+	unsigned char tank4 = p->Player[Index]->Tank4;
+
+	p->Player[Index]->Tank = tank2;
+	p->Player[Index]->Tank2 = tank3;
+	p->Player[Index]->Tank3 = tank4;
+	p->Player[Index]->Tank4 = tank;
+
+	sSMPlayer player;
+	player.Red = p->Player[Index]->Red;
+	player.Green = p->Player[Index]->Green;
+	player.Blue = p->Player[Index]->Blue;
+	player.Member = p->Player[Index]->Member;
+	player.Index = Index;
+	player.isAdmin = p->Player[Index]->isAdmin;
+	player.Tank = p->Player[Index]->Tank;
+	strcpy(player.Name, p->Player[Index]->Name.c_str());
+	strcpy(player.Town, p->Player[Index]->Town.c_str());
+
+	p->Send->SendAllBut(-1, smPlayerData, (char *)&player, sizeof(player));
 }

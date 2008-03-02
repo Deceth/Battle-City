@@ -48,6 +48,8 @@ private:
 	void ProcessAdminEdit(int Index, sCMAdminEdit *adminedit);
 	void ProcessAdminEditRequest(int Index, sCMAdminEditRequest *admineditrequest);
 	void ProcessClickPlayer(int Index, int Clicked);
+	void ProcessChangeTank(int Index);
+
 protected:
 };
 
