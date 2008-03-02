@@ -15,6 +15,10 @@ public:
 	void SendVersion();
 	void SendAccountEdit();
 	void SendAccountUpdate();
+	void SendWhisper();
+	void SendGlobal();
+	void SendMessage();
+
 private:
 	CGame *p;
 protected:
