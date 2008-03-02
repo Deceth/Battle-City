@@ -62,6 +62,7 @@ enum ServerMessages {
 	smUnderAttack,
 	smAdminEdit,
 	smClickPlayer,
+	smWhisper,
 
 	smCount
 };
@@ -277,6 +278,8 @@ enum ClientMessages {
 	cmAdminEditRequest,
 	cmAdminEdit,
 	cmClickPlayer,
+	cmChangeTank,
+	cmWhisper,
 
 	cmCount
 };
@@ -378,6 +381,13 @@ struct sCMAdminEdit
 	unsigned char Tank3;
 	unsigned char Tank4;
 	unsigned char RentalCity;
+};
+
+struct sCMWhisper
+{
+	char Sender;
+	char Recipient;
+	char Message[128];
 };
 
 #endif
