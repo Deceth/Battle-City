@@ -25,6 +25,7 @@ public:
 	int LastMouseY;
 
 	float LastShot;
+	float LastTankChange;
 
 	char Tab;
 	char MouseOverChat;
