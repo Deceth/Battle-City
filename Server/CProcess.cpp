@@ -1090,8 +1090,6 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit)
 	if (p->Player[Index]->isAdmin)
 	{
 		if (
-			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "ReMoTe") == 0)
-			|| 
 			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
 			||
 			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Vindkast") == 0)
@@ -1243,8 +1241,6 @@ void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *adminedit
 	if (p->Player[Index]->isAdmin)
 	{
 		if (
-			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "ReMoTe") == 0)
-			|| 
 			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
 			||
 			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Vindkast") == 0)
