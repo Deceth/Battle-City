@@ -499,6 +499,38 @@ void CProcess::ProcessShot(sCMShot *data, int Index)
 		p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
 		p->Send->SendRadarNotIndex(Index, smShoot, (char *)&shotsfired, sizeof(sSMShot));
 	}
+
+/*
+	// Possible replacement for code above, once SHOT_TYPE_LASER and SHOT_TYPE_ROCKET are defined
+	bool canShoot = false;
+
+	if (p->Player[Index]->isAdmin == 2) {
+		canShoot == true;
+	}
+	else if (SHOT_TYPE_LASER == data->type) {
+		if( p->Player[Index]->lastShot + TIMER_SHOOT_LASER < p->Tick ) {
+			canShoot = true;
+		}
+	}
+	else if (SHOT_TYPE_ROCKET == data->type) {
+		if( p->Player[Index]->lastShot + TIMER_SHOOT_ROCKET < p->Tick ) {
+			canShoot = true;
+		}
+	}
+
+	if (canShoot) {
+		p->Player[Index]->lastShot = p->Tick;
+		sSMShot shotsfired;
+		shotsfired.id = Index;
+		shotsfired.type = data->type;
+		shotsfired.x = data->x;
+		shotsfired.y = data->y;
+		shotsfired.dir = data->dir;
+		p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
+		p->Send->SendRadarNotIndex(Index, smShoot, (char *)&shotsfired, sizeof(sSMShot));
+	}
+*/
+
 }
 
 void CProcess::ProcessDeath(char *TheData, int Index)
@@ -1183,9 +1215,9 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit)
 				IsAdminConvert << (int)adminedit->IsAdmin;
 				DMLString += IsAdminConvert.str();
 
-				DMLString += " WHERE Account LIKE '";
+				DMLString += " WHERE lower(Account) = lower('";
 				DMLString += adminedit->User;
-				DMLString += "';";
+				DMLString += "');";
 
 				p->Log->logAdmin(DMLString, Index);
 
@@ -1247,10 +1279,9 @@ void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *adminedit
 		) {	
 			try
 			{
-				string QueryString;
-				QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
+				string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('";
 				QueryString += admineditrequest->User;
-				QueryString += "';";
+				QueryString += "');";
 				p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 				if (!p->Database->Query.eof())
 				{
