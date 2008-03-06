@@ -1,442 +1,444 @@
 #include "CAccount.h"
 
-CAccount::CAccount(CServer *Server)
-{
+CAccount::CAccount(CServer *Server) {
 	p = Server;
 }
 
-CAccount::~CAccount()
-{
+CAccount::~CAccount() {
 
 }
 
-int CAccount::CheckAccount(string account)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-		QueryString += account;
-		QueryString += "';";
+int CAccount::CheckAccount(string account) {
+	try {
+		// Select the account from the database, matching by account name
+		string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + account + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (p->Database->Query.eof())
-		{
+		
+		// If the result set has no rows, return 0
+		if (p->Database->Query.eof()) {
 			p->Database->Query.finalize();
 			return 0;
 		}
-		else
-		{
+		// Else, return 1
+		else {
 			p->Database->Query.finalize();
 			return 1;
 		}
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
+		cerr << "CAccount::CheckAccount : " << e.errorCode() << " : " << e.errorMessage() << endl;
+		return 0;
+    }
+}
+
+int CAccount::CheckEmail(string email) {
+	try {
+		// Select the account from the database, matching by email address
+		string QueryString = "SELECT * FROM tAccounts WHERE lower(Email) = lower('" + email + "');";
+		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
+
+		// If the result set has no rows, return 0
+		if (p->Database->Query.eof()) {
+			p->Database->Query.finalize();
+			return 0;
+		}
+		// Else, return 1
+		else {
+			p->Database->Query.finalize();
+			return 1;
+		}
+	}
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return 0;
     }
 }
 
-int CAccount::CheckEmail(string email)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Email LIKE '";
-		QueryString += email;
-		QueryString += "';";
+int CAccount::CompareEmail(string email, int Index) {
+	try {
+		// Select the account from the database, matching by name
+		string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (p->Database->Query.eof())
-		{
-			p->Database->Query.finalize();
-			return 0;
-		}
-		else
-		{
-			p->Database->Query.finalize();
-			return 1;
-		}
-	}
-    catch (CppSQLite3Exception& e)
-    {
-        cerr << e.errorCode() << ":" << e.errorMessage() << endl;
-		return 0;
-    }
-}
 
-int CAccount::CompareEmail(string email, int Index)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-		QueryString += p->Player[Index]->Name;
-		QueryString += "';";
-		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (!p->Database->Query.eof())
-		{
-			if (p->PlatformCaseCompare(p->Database->Query.getStringField("Email"), email.c_str()) == 0)
-			{
+		// If the result set has any rows,
+		if (!p->Database->Query.eof()) {
+
+			// If the Email field matches the player's email, return 1
+			if (p->PlatformCaseCompare(p->Database->Query.getStringField("Email"), email.c_str()) == 0) {
 				p->Database->Query.finalize();
 				return 1;
 			}
-			else
-			{
-				p->Database->Query.finalize();
-				return 0;
-			}
 		}
-		else
-		{
-			p->Database->Query.finalize();
-			return 0;
-		}
+
+		// Else (no match), return 0
+		p->Database->Query.finalize();
+		return 0;
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return 0;
     }
 }
 
-int CAccount::CheckPassword(string account, string password)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-		QueryString += account;
-		QueryString += "';";
+int CAccount::CheckPassword(string account, string password) {
+	try {
+		// Select the account from the database, matching by name
+		string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + account + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (!p->Database->Query.eof())
-		{
-			if (p->PlatformCaseCompare(p->Database->Query.getStringField("Password"), password.c_str()) == 0) 
-			{
+
+		// If the result set has any rows,
+		if (!p->Database->Query.eof()) {
+
+			// If the passwords match, return 2
+			if (p->PlatformCaseCompare(p->Database->Query.getStringField("Password"), password.c_str()) == 0)  {
 				p->Database->Query.finalize();
 				return 2;
 			}
 		}
 
+		// Else (no match), return 0
 		p->Database->Query.finalize();
 		return 0;
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return 0;
     }
 }
 
-int CAccount::NewAccount(string account, string password, string email, string fullname, string town, string state)
-{
-	if (this->CheckAccount(account) == 0)
-	{
-		if (this->CheckEmail(email) == 0)
-		{
-			try
-			{
-				string DMLString;
-				DMLString = "INSERT INTO tAccounts (Account, Password, Email, Fullname, Town, State) VALUES ('";
-				DMLString += account;
-				DMLString += "', '";
-				DMLString += password;
-				DMLString += "', '";
-				DMLString += email;
-				DMLString += "', '";
-				DMLString += fullname;
-				DMLString += "', '";
-				DMLString += town;
-				DMLString += "', '";
-				DMLString += state;
-				DMLString += "');";
+int CAccount::NewAccount(string account, string password, string email, string fullname, string town, string state) {
+
+	// If the account name isn't already in use,
+	if (this->CheckAccount(account) == 0) {
+
+		// If the email isn't already in use,
+		if (this->CheckEmail(email) == 0) {
+
+
+			try {
+				// Build the insert statement
+				string DMLString = "INSERT INTO tAccounts (Account, Password, Email, Fullname, Town, State) ";
+				DMLString += "VALUES ('" + account + "', '" + password + "', '" + email +"', '" + fullname + "', '" + town + "', '" + state + "');";
+
+				// Insert the new account
 				p->Database->Database.execDML(DMLString.c_str());
 				cout << "NewAccount::" << account << endl;
 
+				// Send the welcome email
 				p->EMail->SendWelcome(email.c_str());
 				return 1;
 			}
-			catch (CppSQLite3Exception& e)
-			{
+			catch (CppSQLite3Exception& e) {
 				cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 				return 0;
 			}
 		}
-		else
-		{
+
+		// Else (email is in use), return -1
+		else {
 			return -1;
 		}
 	}
-	else return 0;
+
+	// Else (account name is in use), return 0
+	else {
+		return 0;
+	}
 }
 
-void CAccount::GenerateTop20()
-{
+void CAccount::GenerateTop20() {
+	string QueryString;
+	string TempTop20;
+	int Top20Pos = 1;
+	stringstream Convert;
+	float Points;
+	float Deaths;
+	char monthString[100];
+	time_t tm = time(NULL);
+	struct tm *ptr = localtime(&tm);
+
+	/************************************************
+	 * Header and News
+	 ************************************************/
+	// Clear the top 20
 	p->Top20.clear();
 
+	// Write the month to monthString
+	strftime(monthString, 100, "%B", ptr);
+
+	// Add the version
 	p->Top20 += "BattleCity ";
 	p->Top20 += VERSION;
 	p->Top20 += ".\r\n\r\n";
-	
-	string StringUsers;
-	stringstream ConvertUsers;
-	ConvertUsers << p->TotalPlayers();
-	StringUsers = "There are currently ";
-	StringUsers += ConvertUsers.str();
-	StringUsers += " players on the battlefield!\r\n\r\n";
-	p->Top20 += StringUsers;
 
+	// Add the player count
+	Convert.str("");
+	Convert << p->TotalPlayers();
+	p->Top20 += "There are currently " + Convert.str() + " players on the battlefield!\r\n\r\n";
+
+	// Add the news
 	p->Top20 += p->News;
 
-	string QueryString;
-	
-	// Monthly Top 20
-	p->Top20 += "Monthly Top 20 for ";
-
-	char tempstring[100];
-	struct tm *ptr;
-	time_t tm;
-	tm = time(NULL);
-	ptr = localtime(&tm);
-	strftime(tempstring, 100, "%B", ptr);
-	p->Top20 += tempstring;
+	/************************************************
+	 * Top 20 - Month
+	 ************************************************/
+	// Get the top 20 accounts from the database
 	QueryString = "SELECT Account, Points, MonthlyTop20 FROM tAccounts ORDER BY MonthlyTop20 DESC LIMIT 20";
-	p->Top20 += "\r\n";
-	p->Top20 += "\r\n";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
-	string TempTop20;
-	int Top20Pos = 1;
+	// Select the top 20 accounts for Monthly Top 20
+	QueryString = "SELECT Account, Points, MonthlyTop20 FROM tAccounts ORDER BY MonthlyTop20 DESC LIMIT 20";
+	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
-	while (!p->Database->Query.eof())
-	{
-		string Top20Generate;
-		stringstream Convert;
+	// Start the Monthly Top 20
+	p->Top20 += "Monthly Top 20 for ";
+	p->Top20 += monthString;
+	p->Top20 += "\r\n\r\n";
+
+	// For each account,
+	while (!p->Database->Query.eof()) {
+
+		// Add the monthly position
+		Convert.str("");
 		Convert << Top20Pos;
+		p->Top20 += Convert.str() + ". ";
 
-		int Points = p->Database->Query.getIntField("MonthlyTop20");
-		Top20Generate = Convert.str();
-		Top20Generate += ". ";
-		Top20Generate += p->Account->ReturnRank(p->Database->Query.getIntField("Points"));
-		Top20Generate += " ";			
-		Top20Generate += p->Database->Query.getStringField("Account");
-		Top20Generate += " (";
-		stringstream Convert2;
-		Convert2.clear();
-		Convert2 << Points;
-		Top20Generate += Convert2.str();
-		Top20Generate += ")";
+		// Add the rank and name
+		p->Top20 += p->Account->ReturnRank(p->Database->Query.getIntField("Points")) + " " + p->Database->Query.getStringField("Account") + " ";
 
-		TempTop20 += Top20Generate;
-		TempTop20 += "\r\n";
+		// Add the monthly points
+		Points = p->Database->Query.getIntField("MonthlyTop20");
+		Convert.str("");
+		Convert << Points;
+		p->Top20 += "(" + Convert.str() + ")";
+		p->Top20 += "\r\n";
 
+		// Get the next row
 		Top20Pos += 1;
 		p->Database->Query.nextRow();
 	}
 
+	// Finish the Monthly Top 20
 	p->Database->Query.finalize();
-	p->Top20 += TempTop20;
 	p->Top20 += "\r\n";
-	//
-
-
-
+	
+	/************************************************
+	 * Top 20 - Overall
+	 ************************************************/
+	// Select the top 20 accounts for Top 20
 	QueryString = "SELECT Account, Points FROM tAccounts ORDER BY Points DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
-	TempTop20.clear();
+	// Start the Top 20 
 	Top20Pos = 1;
-	p->Top20 += "Overall Top 20:";
-	p->Top20 += "\r\n";
-	p->Top20 += "\r\n";
+	p->Top20 += "Overall Top 20:\r\n\r\n";
 
-	while (!p->Database->Query.eof())
-	{
-		string Top20Generate;
-		stringstream Convert;
+	// For each account,
+	while (!p->Database->Query.eof()) {
+
+		// Add the monthly position
+		Convert.str("");
 		Convert << Top20Pos;
+		p->Top20 += Convert.str() + ". ";
 
-		int Points = p->Database->Query.getIntField("Points");
-		Top20Generate = Convert.str();
-		Top20Generate += ". ";
-		Top20Generate += p->Account->ReturnRank(Points);
-		Top20Generate += " ";			
-		Top20Generate += p->Database->Query.getStringField("Account");
-		Top20Generate += " (";
-		stringstream Convert2;
-		Convert2.clear();
-		Convert2 << Points;
-		Top20Generate += Convert2.str();
-		Top20Generate += ")";
+		// Add the rank and name
+		p->Top20 += p->Account->ReturnRank(p->Database->Query.getIntField("Points")) + " " + p->Database->Query.getStringField("Account") + " ";
 
-		TempTop20 += Top20Generate;
-		TempTop20 += "\r\n";
+		// Add the points
+		Points = p->Database->Query.getIntField("Points");
+		Convert.str("");
+		Convert << Points;
+		p->Top20 += "(" + Convert.str() + ")";
+		p->Top20 += "\r\n";
 
+		// Get the next row
 		Top20Pos += 1;
 		p->Database->Query.nextRow();
 	}
 
+	// Finish the Top 20
 	p->Database->Query.finalize();
-
-	p->Top20 += TempTop20;
 	p->Top20 += "\r\n";
 
-
-
+	/************************************************
+	 * Top 20 - Points Per Death
+	 ************************************************/
+	// Select the top 20 accounts for PPD
 	QueryString = "SELECT Account, Points, Deaths FROM tAccounts WHERE Deaths > 100 ORDER BY ((Points*10000)/(Deaths)) DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
-	TempTop20.clear();
+	// Start the Top 20 PPD
 	Top20Pos = 1;
-	p->Top20 += "Top 20 Points Per Death:";
-	p->Top20 += "\r\n";
-	p->Top20 += "\r\n";
+	p->Top20 += "Top 20 Points Per Death:\r\n\r\n";
 
-	while (!p->Database->Query.eof())
-	{
-		string Top20Generate;
-		stringstream Convert;
+	// For each account,
+	while (!p->Database->Query.eof()) {
+
+		// Add the monthly position
+		Convert.str("");
 		Convert << Top20Pos;
+		p->Top20 += Convert.str() + ". ";
 
-		float Points = p->Database->Query.getIntField("Points");
-		float Deaths = p->Database->Query.getIntField("Deaths");
-		Top20Generate = Convert.str();
-		Top20Generate += ". ";
-		Top20Generate += p->Account->ReturnRank(Points);
-		Top20Generate += " ";			
-		Top20Generate += p->Database->Query.getStringField("Account");
-		Top20Generate += " (";
-		stringstream Convert2;
-		Convert2.clear();
-		Convert2 << Points/Deaths;
-		Top20Generate += Convert2.str();
-		Top20Generate += ")";
+		// Add the rank and name
+		p->Top20 += p->Account->ReturnRank(p->Database->Query.getIntField("Points")) + " " + p->Database->Query.getStringField("Account") + " ";
 
-		TempTop20 += Top20Generate;
-		TempTop20 += "\r\n";
+		// Add the PPD
+		Points = p->Database->Query.getIntField("Points");
+		Deaths = p->Database->Query.getIntField("Deaths");
+		Convert.str("");
+		Convert << Points/Deaths;
+		p->Top20 += "(" + Convert.str() + ")";
+		p->Top20 += "\r\n";
 
+		// Get the next row
 		Top20Pos += 1;
 		p->Database->Query.nextRow();
 	}
 
+	// Finish the Top 20 PPD
 	p->Database->Query.finalize();
-
-	p->Top20 += TempTop20;
 	p->Top20 += "\r\n";
 
 	cout << "Top20::Updated" << endl;
 
-	if (this->MonthHasChanged() == true)
-	{
+	// If the month has changed,
+	if (this->MonthHasChanged() == true) {
 		cout << "Month has changed -- Top 20 is being rebuilt." << endl;
-		string DMLString;
-		DMLString = "UPDATE tAccounts SET MonthlyTop20 = 0;";
-		p->Database->Database.execDML(DMLString.c_str());
 
+		// Update all monthly points to 0
+		QueryString = "UPDATE tAccounts SET MonthlyTop20 = 0;";
+		p->Database->Database.execDML(QueryString.c_str());
+
+		// Update finalmonthlytop20.txt
 		ofstream Top20File ("finalmonthlytop20.txt");
 		Top20File.write(p->Top20.c_str(), (int)p->Top20.length());
 		Top20File.close();
 
+		// Write the monthString to month.txt
 		ofstream MonthFile ("month.txt");
-
-		char tempstring[100];
-		memset(tempstring, 0, sizeof(tempstring));
-		struct tm *ptr;
-		time_t tm;
-		tm = time(NULL);
-		ptr = localtime(&tm);
-		strftime(tempstring, 100, "%B", ptr);
-
-		MonthFile.write(tempstring, (int)strlen(tempstring));
+		MonthFile.write(monthString, (int)strlen(monthString));
 		MonthFile.close();
 
-		for (int i = 0; i < MaxPlayers; i++)
-		{
+		// Reset the monthly points of every player in game
+		for (int i = 0; i < MaxPlayers; i++) {
 			p->Player[i]->MonthlyPoints = 0;
 		}
 
+		// Re-run the Top20
 		GenerateTop20();
 	}
 }
 
-bool CAccount::MonthHasChanged()
-{
-	char tempstring[100];
+bool CAccount::MonthHasChanged() {
+	char monthString[100];
 	struct tm *ptr;
 	time_t tm;
 	tm = time(NULL);
 	ptr = localtime(&tm);
-	strftime(tempstring, 100, "%B", ptr);
-	
 	char buffer[256];
-	ifstream MonthFile ("month.txt");
-	if (! MonthFile.is_open()) return true;
 
+	// Write the month to monthString
+	strftime(monthString, 100, "%B", ptr);
+
+	// Open the file
+	ifstream MonthFile ("month.txt");
+
+	// If the file can't be opened (missing), return true
+	if (! MonthFile.is_open()) {
+		return true;
+	}
+
+	// Read the first line of MonthFile into buffer
 	MonthFile.getline (buffer,100);
-	if (strcmp(buffer, tempstring) == 0)
-	{
+
+	// If buffer does not equal monthString, return 0
+	if (strcmp(buffer, monthString) == 0) {
 		return false;
 	}
 
+	// Else (buffer equals monthString), return true
 	return true;
 }
 
-string CAccount::ReturnRank(int Points)
-{
+string CAccount::ReturnRank(int Points) {
 	string rank;
 
-	if (Points < 100)
+	if (Points < 100) {
 		rank = "Private";
-	if (Points >= 100 && Points < 200)
+	}
+	else if (Points < 200) {
 		rank = "Corporal";
-	if (Points >= 200 && Points < 500)
+	}
+	else if (Points < 500) {
 		rank = "Sergeant";
-	if (Points >= 500 && Points < 1000)
+	}
+	else if (Points < 1000) {
 		rank = "Sergeant Major";
-	if (Points >= 1000 && Points < 2000)
+	}
+	else if (Points < 2000) {
 		rank = "Lieutenant";
-	if (Points >= 2000 && Points < 4000)
+	}
+	else if (Points < 4000) {
 		rank = "Captain";
-	if (Points >= 4000 && Points < 8000)
+	}
+	else if (Points < 8000) {
 		rank = "Major";
-	if (Points >= 8000 && Points < 16000)
+	}
+	else if (Points < 16000) {
 		rank = "Colonel";
-	if (Points >= 15000 && Points < 30000)
+	}
+	else if (Points < 30000) {
 		rank = "Brigadier";
-	if (Points >= 30000 && Points < 45000)
+	}
+	else if (Points < 45000) {
 		rank = "General";
-	if (Points >= 45000 && Points < 60000)
+	}
+	else if (Points < 60000) {
 		rank = "Baron";
-	if (Points >= 60000 && Points < 80000)
+	}
+	else if (Points < 80000) {
 		rank = "Earl";
-	if (Points >= 80000 && Points < 100000)
+	}
+	else if (Points < 100000) {
 		rank = "Count";
-	if (Points >= 100000 && Points < 125000)
+	}
+	else if (Points < 125000) {
 		rank = "Duke";
-	if (Points >= 125000 && Points < 150000)
+	}
+	else if (Points < 150000) {
 		rank = "Archduke";
-	if (Points >= 150000 && Points < 200000)
+	}
+	else if (Points < 200000) {
 		rank = "Grand Duke";
-	if (Points >= 200000 && Points < 250000)
+	}
+	else if (Points < 250000) {
 		rank = "Lord";
-	if (Points >= 250000 && Points < 300000)
+	}
+	else if (Points < 300000) {
 		rank = "Chancellor";
-	if (Points >= 300000 && Points < 350000)
+	}
+	else if (Points < 350000) {
 		rank = "Royaume";
-	if (Points >= 350000 && Points < 400000)
+	}
+	else if (Points < 400000) {
 		rank = "Emperor";
-	if (Points >= 400000 && Points < 500000)
+	}
+	else if (Points < 500000) {
 		rank = "Auror";
-	if (Points >= 500000)
+	}
+	else {
 		rank = "King";
+	}
 
 	return rank;
 }
 
-void CAccount::AddPoints(int Index, int points)
-{
+void CAccount::AddPoints(int Index, int points) {
+	// Add points to the players's Points and MonthlyPoints values
 	p->Player[Index]->Points += points;
 	p->Player[Index]->MonthlyPoints += points;
 
+	// Send an update to all players on the server
 	sSMPoints pts;
 	pts.Index = Index;
 	pts.Points = p->Player[Index]->Points;
@@ -447,13 +449,20 @@ void CAccount::AddPoints(int Index, int points)
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
-void CAccount::Sub2Points(int Index)
-{
+void CAccount::Sub2Points(int Index) {
+	// Subtract 2 points from the players's Points and MonthlyPoints values
 	p->Player[Index]->Points -= 2;
 	p->Player[Index]->MonthlyPoints -= 2;
-	if (p->Player[Index]->Points < 0) p->Player[Index]->Points = 0;
-	if (p->Player[Index]->MonthlyPoints < 0) p->Player[Index]->MonthlyPoints = 0;
 
+	// If either value is now negative, set the value to 0
+	if (p->Player[Index]->Points < 0) {
+		p->Player[Index]->Points = 0;
+	}
+	if (p->Player[Index]->MonthlyPoints < 0) {
+		p->Player[Index]->MonthlyPoints = 0;
+	}
+
+	// Send an update to all players on the server
 	sSMPoints pts;
 	pts.Index = Index;
 	pts.Points = p->Player[Index]->Points;
@@ -464,234 +473,230 @@ void CAccount::Sub2Points(int Index)
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
-int CAccount::GetMonthlyTop20(int Index)
-{
-	string QueryString;
-	QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-	QueryString += p->Player[Index]->Name;
-	QueryString += "';";
+int CAccount::GetMonthlyTop20(int Index) {
+	// Select the account from the database, matching by name
+	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-	if (!p->Database->Query.eof())
-	{
+	
+	// If the player is found, return the player's monthly points
+	if (!p->Database->Query.eof()) {
 		int i = p->Database->Query.getIntField("MonthlyTop20");
 		p->Database->Query.finalize();
 		return i;
 	}
 
+	// Else (player not found), return 0
 	p->Database->Query.finalize();
 	return 0;
 }
 
 
-int CAccount::CheckBan(string UniqID, string IPAddress)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tBans WHERE UniqID = '";
-		QueryString += UniqID;
-		QueryString += "';";
+int CAccount::CheckBan(string UniqID, string IPAddress) {
+	try {
+		// Select the bans from the database, matching by ID
+		string QueryString = "SELECT * FROM tBans WHERE UniqID = '" + UniqID + "';";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (!p->Database->Query.eof())
-		{
+
+		// If a ban was found for this ID, return 1
+		if (!p->Database->Query.eof()) {
 			p->Database->Query.finalize();
 			return 1;
 		}
 
+		// Else, continue with the method
 		p->Database->Query.finalize();
 
-		QueryString = "SELECT * FROM tBans WHERE IPAddress = '";
-		QueryString += IPAddress;
-		QueryString += "';";
+		// Select the bans from the database, matching by IP
+		QueryString = "SELECT * FROM tBans WHERE IPAddress = '" + IPAddress + "';";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (!p->Database->Query.eof())
-		{
+
+		// If a ban was found for this ID, return 1
+		if (!p->Database->Query.eof()) {
 			p->Database->Query.finalize();
 			return 1;
 		}
 
+		// Else (no bans found), return 0
 		p->Database->Query.finalize();
-
 		return 0;
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return 1;
     }
 }
 
-int CAccount::CheckAccountBan(string account)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tBans WHERE Account LIKE '";
-		QueryString += account;
-		QueryString += "';";
+int CAccount::CheckAccountBan(string account) {
+	try {
+		// Select the bans from the database, matching by account name
+		string QueryString = "SELECT * FROM tBans WHERE lower(Account) = lower('" + account + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (!p->Database->Query.eof())
-		{
+
+		// If a ban was found for this account name, return 1
+		if (!p->Database->Query.eof()) {
 			p->Database->Query.finalize();
 			return 1;
 		}
 
+		// Else (no ban found), return 0
 		p->Database->Query.finalize();
-
 		return 0;
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return 1;
     }
 }
 
-void CAccount::SendAccountInformation(int Index)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-		QueryString += p->Player[Index]->Name;
-		QueryString += "';";
+void CAccount::SendAccountInformation(int Index) {
+	try {
+		// Select the account from the database, matching by account name
+		string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (!p->Database->Query.eof())
-		{
-				char LoginData[240];
-				memset(LoginData, 0, 240);
 
-				char tmpUser[16];
-				char tmpPass[16];
-				char tmpEmail[51];
-				char tmpFullName[21];
-				char tmpTown[16];
-				char tmpState[16];
-				memset(tmpUser, 0, 16);
-				memset(tmpPass, 0, 16);
-				memset(tmpEmail, 0, 51);
-				memset(tmpFullName, 0, 21);
-				memset(tmpTown, 0, 16);
-				memset(tmpState, 0, 16);
+		// If an account was found,
+		if (!p->Database->Query.eof()) {
+			char LoginData[240];
+			char tmpUser[16];
+			char tmpPass[16];
+			char tmpEmail[51];
+			char tmpFullName[21];
+			char tmpTown[16];
+			char tmpState[16];
 
-				strcpy(tmpPass, p->Database->Query.getStringField("Password"));
-				strcpy(tmpUser, p->Database->Query.getStringField("Account"));
-				strcpy(tmpTown, p->Database->Query.getStringField("Town"));
-				strcpy(tmpState, p->Database->Query.getStringField("State"));
-				strcpy(tmpEmail, p->Database->Query.getStringField("Email"));
-				strcpy(tmpFullName, p->Database->Query.getStringField("Fullname"));
-				for (int k = 0; k < 15; k++)
-				{
-					if (tmpUser[k] == 0) tmpUser[k] = 1;
-					if (tmpPass[k] == 0) tmpPass[k] = 1;
-					if (tmpTown[k] == 0) tmpTown[k] = 1;
-					if (tmpState[k] == 0) tmpState[k] = 1;
+			memset(LoginData, 0, 240);
+			memset(tmpUser, 0, 16);
+			memset(tmpPass, 0, 16);
+			memset(tmpEmail, 0, 51);
+			memset(tmpFullName, 0, 21);
+			memset(tmpTown, 0, 16);
+			memset(tmpState, 0, 16);
+
+			// Copy the account information into temporary char[]s
+			strcpy_s(tmpPass, sizeof(tmpPass), p->Database->Query.getStringField("Password"));
+			strcpy_s(tmpUser, sizeof(tmpUser),p->Database->Query.getStringField("Account"));
+			strcpy_s(tmpTown, sizeof(tmpTown),p->Database->Query.getStringField("Town"));
+			strcpy_s(tmpState, sizeof(tmpState),p->Database->Query.getStringField("State"));
+			strcpy_s(tmpEmail, sizeof(tmpEmail),p->Database->Query.getStringField("Email"));
+			strcpy_s(tmpFullName, sizeof(tmpFullName),p->Database->Query.getStringField("Fullname"));
+
+			// Replace all 0s with 1s
+			for (int k = 0; k < 15; k++) {
+				if (tmpUser[k] == 0) {
+					tmpUser[k] = 1;
 				}
-				for (int k = 0; k < 20; k++)
-				{
-					if (tmpFullName[k] == 0) tmpFullName[k] = 1;
+				if (tmpPass[k] == 0) {
+					tmpPass[k] = 1;
 				}
-				for (int k = 0; k < 50; k++)
-				{
-					if (tmpEmail[k] == 0) tmpEmail[k] = 1;
+				if (tmpTown[k] == 0) {
+					tmpTown[k] = 1;
 				}
+				if (tmpState[k] == 0) {
+					tmpState[k] = 1;
+				}
+			}
+			for (int k = 0; k < 20; k++) {
+				if (tmpFullName[k] == 0) {
+					tmpFullName[k] = 1;
+				}
+			}
+			for (int k = 0; k < 50; k++) {
+				if (tmpEmail[k] == 0) {
+					tmpEmail[k] = 1;
+				}
+			}
 
-				strcpy(LoginData, tmpUser);
-				strcpy(&LoginData[strlen(LoginData)], tmpPass);
-				strcpy(&LoginData[strlen(LoginData)], tmpEmail);
-				strcpy(&LoginData[strlen(LoginData)], tmpFullName);
-				strcpy(&LoginData[strlen(LoginData)], tmpTown);
-				strcpy(&LoginData[strlen(LoginData)], tmpState);
+			// Copy the temp char[]s into LoginData
+			strcpy_s(LoginData, sizeof(tmpUser), tmpUser);
+			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpPass), tmpPass);
+			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpEmail), tmpEmail);
+			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpFullName), tmpFullName);
+			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpTown), tmpTown);
+			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpState), tmpState);
 
-				p->Winsock->SendData(Index, smEditAccount, LoginData);
+			// Send LoginData
+			p->Winsock->SendData(Index, smEditAccount, LoginData);
 		}
 
 		p->Database->Query.finalize();
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
     }
 }
 
-int CAccount::UpdateAccount(int Index, string password, string email, string fullname, string town, string state)
-{
-	if (this->CheckAccount(p->Player[Index]->Name) == 1)
-	{
-		try
-		{
-			string DMLString;
-			DMLString = "UPDATE tAccounts SET Password = '";
-			DMLString += password;
-			DMLString += "', Fullname = '";
-			DMLString += fullname;
-			DMLString += "', Email = '";
-			DMLString += email;
-			DMLString += "', Town = '";
-			DMLString += town;
-			DMLString += "', State = '";
-			DMLString += state;
-			DMLString += "' WHERE Account LIKE '";
-			DMLString += p->Player[Index]->Name;
-			DMLString += "';";
-			p->Database->Database.execDML(DMLString.c_str());
+int CAccount::UpdateAccount(int Index, string password, string email, string fullname, string town, string state) {
+	string QueryString;
+
+	// If an account with this name exists,
+	if (this->CheckAccount(p->Player[Index]->Name) == 1) {
+		
+		try {
+			// Build the update statement
+			cout << "Saving account: " << p->Player[Index]->Name << endl;
+
+			QueryString = "UPDATE tAccounts SET";
+			QueryString += "Password = '" + password + "', ";
+			QueryString += "Fullname = '" + fullname + "', ";
+			QueryString += "Email = '" + email + "', ";
+			QueryString += "Town = '" + town + "', ";
+			QueryString += "State = '" + state + "' ";
+			QueryString += "WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
+
+			// Execute the update statement, return 1
+			//p->Database->Database.execDML(QueryString.c_str());
 			cout << "UpdateAccount::" << p->Player[Index]->Name << endl;
-
 			return 1;
 		}
-		catch (CppSQLite3Exception& e)
-		{
+		catch (CppSQLite3Exception& e) {
 			cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 			return 0;
 		}
 	}
-	else return 0;
+	
+	// Else (no account found), return 0
+	return 0;
 }
 
-int CAccount::RecoverAccount(int Index, string Email)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Email LIKE '";
-		QueryString += Email;
-		QueryString += "';";
+int CAccount::RecoverAccount(int Index, string Email) {
+	try {
+		// Select the account from the database, matching by email
+		string QueryString = "SELECT * FROM tAccounts WHERE lower(Email) = lower('" + Email + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (p->Database->Query.eof())
-		{
+
+		// If no account was found, return 0
+		if (p->Database->Query.eof()) {
 			p->Database->Query.finalize();
 			return 0;
 		}
-		else
-		{
+		// Else (account was found), sent the password
+		else {
 			p->EMail->SendPassword(Email, p->Database->Query.getStringField("Account"), p->Database->Query.getStringField("Password"));
 			p->Database->Query.finalize();
 			return 1;
 		}
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return 0;
     }
 }
 
-void CAccount::GetLoginData(int Index)
-{
-	try
-	{
-		string QueryString;
-		QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-		QueryString += p->Player[Index]->Name;
-		QueryString += "';";
+void CAccount::GetLoginData(int Index) {
+	try {
+		// Select the account from the database, matching by account name
+		string QueryString= "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-		if (p->Database->Query.eof())
-		{
+		
+		// If no account was found, return
+		if (p->Database->Query.eof()) {
 			p->Database->Query.finalize();
 			return;
 		}
-		else
-		{
+
+		// Else (account was found),
+		else {
+			// Set the login data on the player, then return
 			p->Player[Index]->isAdmin = p->Database->Query.getIntField("IsAdmin");
 			p->Player[Index]->Town = p->Database->Query.getStringField("Town");
 			p->Player[Index]->Tank = p->Database->Query.getIntField("Tank");
@@ -707,17 +712,17 @@ void CAccount::GetLoginData(int Index)
 			return;
 		}
 	}
-    catch (CppSQLite3Exception& e)
-    {
+    catch (CppSQLite3Exception& e) {
         cerr << e.errorCode() << ":" << e.errorMessage() << endl;
 		return;
     }
 }
 
-void CAccount::AddDeath(int Index)
-{
+void CAccount::AddDeath(int Index) {
+	// Add a death to the player
 	p->Player[Index]->Deaths++;
 
+	// Send an update to all players on the server
 	sSMPoints pts;
 	pts.Index = Index;
 	pts.Points = p->Player[Index]->Points;
@@ -728,10 +733,11 @@ void CAccount::AddDeath(int Index)
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
-void CAccount::AddOrb(int Index)
-{
+void CAccount::AddOrb(int Index) {
+	// Add an orb to the player
 	p->Player[Index]->Orbs++;
 
+	// Send an update to all players on the server
 	sSMPoints pts;
 	pts.Index = Index;
 	pts.Points = p->Player[Index]->Points;
@@ -742,10 +748,11 @@ void CAccount::AddOrb(int Index)
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
-void CAccount::AddAssist(int Index)
-{
+void CAccount::AddAssist(int Index) {
+	// Add an assist to the player
 	p->Player[Index]->Assists++;
 
+	// Send an update to all players on the server
 	sSMPoints pts;
 	pts.Index = Index;
 	pts.Points = p->Player[Index]->Points;
@@ -756,69 +763,64 @@ void CAccount::AddAssist(int Index)
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
-int CAccount::GetDeaths(int Index)
-{
-	string QueryString;
-	QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-	QueryString += p->Player[Index]->Name;
-	QueryString += "';";
+int CAccount::GetDeaths(int Index) {
+	// Select the account from the database, matching by account name
+	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-	if (!p->Database->Query.eof())
-	{
+
+	// If the account was found, return the Deaths column
+	if (!p->Database->Query.eof()) {
 		int i = p->Database->Query.getIntField("Deaths");
 		p->Database->Query.finalize();
 		return i;
 	}
 
+	// Else (no account found), return 0
 	p->Database->Query.finalize();
 	return 0;
 }
 
-int CAccount::GetOrbs(int Index)
-{
-	string QueryString;
-	QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-	QueryString += p->Player[Index]->Name;
-	QueryString += "';";
+int CAccount::GetOrbs(int Index) {
+	// Select the account from the database, matching by account name
+	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-	if (!p->Database->Query.eof())
-	{
+
+	// If the account was found, return the Orbs column
+	if (!p->Database->Query.eof()) {
 		int i = p->Database->Query.getIntField("Orbs");
 		p->Database->Query.finalize();
 		return i;
 	}
 
+	// Else (no account found), return 0
 	p->Database->Query.finalize();
 	return 0;
 }
 
-int CAccount::GetAssists(int Index)
-{
-	string QueryString;
-	QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-	QueryString += p->Player[Index]->Name;
-	QueryString += "';";
+int CAccount::GetAssists(int Index) {
+	// Select the account from the database, matching by account name
+	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-	if (!p->Database->Query.eof())
-	{
+	
+	// If the account was found, return the Assists column
+	if (!p->Database->Query.eof()) {
 		int i = p->Database->Query.getIntField("Assists");
 		p->Database->Query.finalize();
 		return i;
 	}
 
+	// Else (account not found), return 0
 	p->Database->Query.finalize();
 	return 0;
 }
 
-void CAccount::GetStats(int Index)
-{
-	string QueryString;
-	QueryString = "SELECT * FROM tAccounts WHERE Account LIKE '";
-	QueryString += p->Player[Index]->Name;
-	QueryString += "';";
+void CAccount::GetStats(int Index) {
+	// Select the account from the database, matching by account name
+	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-	if (!p->Database->Query.eof())
-	{
+
+	// If the account was found, set the stats on the players
+	if (!p->Database->Query.eof()) {
 		p->Player[Index]->Points = p->Database->Query.getIntField("Points");
 		p->Player[Index]->MonthlyPoints = p->Database->Query.getIntField("MonthlyTop20");
 		p->Player[Index]->Orbs = p->Database->Query.getIntField("Orbs");
@@ -830,37 +832,35 @@ void CAccount::GetStats(int Index)
 	p->Database->Query.finalize();
 }
 
-void CAccount::SaveStats(int Index)
-{
-	string DMLString;
+void CAccount::SaveStats(int Index) {
+	string QueryString;
+	std::ostringstream Converter;
 
-	DMLString = "UPDATE tAccounts SET Deaths = ";
-	std::ostringstream DeathsConvert;
-	DeathsConvert << p->Player[Index]->Deaths;
-	DMLString += DeathsConvert.str();
+	// Build the update statement
+	QueryString = "UPDATE tAccounts SET ";
+	
+	Converter.str("");
+	Converter << p->Player[Index]->Deaths;
+	QueryString += "Deaths = " + Converter.str() + ", ";
 
-	DMLString += ", Orbs = ";
-	std::ostringstream OrbsConvert;
-	OrbsConvert << p->Player[Index]->Orbs;
-	DMLString += OrbsConvert.str();
+	Converter.str("");
+	Converter << p->Player[Index]->Orbs;
+	QueryString += "Orbs = " + Converter.str() + ", ";
 
-	DMLString += ", Assists = ";
-	std::ostringstream AssistsConvert;
-	AssistsConvert << p->Player[Index]->Assists;
-	DMLString += AssistsConvert.str();
+	Converter.str("");
+	Converter << p->Player[Index]->Assists;
+	QueryString += "Assists = " + Converter.str() + ", ";
 
-	DMLString += ", Points = ";
-	std::ostringstream PointsConvert;
-	PointsConvert << p->Player[Index]->Points;
-	DMLString += PointsConvert.str();
+	Converter.str("");
+	Converter << p->Player[Index]->Points;
+	QueryString += "Points = " + Converter.str() + ", ";
 
-	DMLString += ", MonthlyTop20 = ";
-	std::ostringstream MonthlyConvert;
-	MonthlyConvert << p->Player[Index]->MonthlyPoints;
-	DMLString += MonthlyConvert.str();
+	Converter.str("");
+	Converter << p->Player[Index]->MonthlyPoints;
+	QueryString += "MonthlyTop20 = " + Converter.str() + " ";
 
-	DMLString += " WHERE Account LIKE '";
-	DMLString += p->Player[Index]->Name;
-	DMLString += "';";
-	p->Database->Database.execDML(DMLString.c_str());
+	QueryString += " WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
+
+	// Execute the update statement
+	p->Database->Database.execDML(QueryString.c_str());
 }
