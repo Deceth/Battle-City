@@ -140,7 +140,7 @@ void CSocket::TCPCycle()
 	{
 		if (p->Player[i]->State > State_Disconnected)
 		{
-			if (p->Player[i]->isDead == true && ((p->Tick - p->Player[i]->timeDeath) > 10000))
+			if (p->Player[i]->isDead == true && ((p->Tick - p->Player[i]->timeDeath) > TIMER_RESPAWN))
 			{
 				p->Player[i]->lastMove = p->Tick;
 				sSMStateGame game;
