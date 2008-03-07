@@ -185,36 +185,49 @@ void CBuildingList::DestroyCity(char theCity)
 #endif
 }
 
-int CBuildingList::inRange()
-{
-#ifndef _DEBUG
-	try {
-#endif
-	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) return 1;
+
+int CBuildingList::inRange() {
+
+	// If the player is an admin, return 1
+	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+		return 1;
+	}
+
+	// Else, normal player...
 
 	CBuilding *bld = buildings;
-	if (!bld)
+
+	// If there are no buildings, return 0
+	if (!bld) {
 		return 0;
+	}
 
-	while (bld->prev)
+	// Move the pointer to the first building in the linked list
+	while (bld->prev) {
 		bld = bld->prev;
+	}
 
-	while (bld)
-	{
-		if (bld->City == p->Player[p->Winsock->MyIndex]->City)
-		{
-			if ((abs((bld->X*48) - p->Player[p->Winsock->MyIndex]->X) < 500) && (abs((bld->Y*48) - p->Player[p->Winsock->MyIndex]->Y) < 500))
-			{
-				return 1;
+	// For each building in the list,
+	while (bld) {
+
+		// If the building belongs to the builder's city,
+		if (bld->City == p->Player[p->Winsock->MyIndex]->City) {
+
+			// If the building is the CC,
+			if (bld->Type == 6) {
+
+				//If the building's location is close enough to the player's location, return 1
+				if ((abs((bld->X*48) - p->Player[p->Winsock->MyIndex]->X) < DISTANCE_MAX_FROM_CC) && (abs((bld->Y*48) - p->Player[p->Winsock->MyIndex]->Y) < DISTANCE_MAX_FROM_CC)) {
+					return 1;
+				}
 			}
 		}
+
+		// Get the next building
 		bld = bld->next;
 	}
 
+	// If no building was found in range, return 0
+	p->InGame->NewbieTip = "You cannot build this far away from your City Center!";
 	return 0;
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "Building:inRange"); p->Engine->logerror("Building:inRange");}
-#endif
 }
