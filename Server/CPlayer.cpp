@@ -213,13 +213,13 @@ void CPlayer::LeaveGame(int showmessage)
 			}
 			if (p->City[City]->Mayor == id)
 			{
-				if (p->Build->GetOrbBuildingCount(City) < 11)
+				if (p->Build->GetOrbBuildingCount(City) < ORBABLE_SIZE)
 				{
 					p->City[City]->destroy();
 				}
 				else
 				{
-					p->City[City]->DestructTimer = p->Tick + 120000;
+					p->City[City]->DestructTimer = p->Tick + TIMER_CITY_DESTRUCT;
 					p->City[City]->Mayor = -1;
 					p->City[City]->notHiring = 0;
 				}
