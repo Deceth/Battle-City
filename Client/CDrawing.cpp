@@ -173,7 +173,7 @@ void CDrawing::DrawTank()
 		p->DDraw->DTextOut(220, 270, "You have been blown up!", RGB(255, 255, 255));
 		p->DDraw->DTextOut(220, 285, "You will respawn in: ", RGB(255, 255, 255));
 		std::ostringstream convert;
-		int timeleft = (int)(((int)(p->InGame->timeDeath + 10000) - p->Tick) / 1000);
+		int timeleft = (int)(((int)(p->InGame->timeDeath + TIMER_RESPAWN) - p->Tick) / 1000);
 		if (timeleft < 0) timeleft = 0;
 		convert << timeleft;
 		p->DDraw->DTextOut(387, 285, convert.str(), RGB(255, 255, 255));
