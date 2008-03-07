@@ -179,18 +179,21 @@ void CProcess::ProcessData(char *TheData, int Index)
 #endif
 } 
 
-void CProcess::ProcessBuild(char *TheData,int Index)
-{
-	if (p->Player[Index]->Mayor && p->Player[Index]->State == State_Game && p->Player[Index]->isDead == false)
-	{
+void CProcess::ProcessBuild(char *TheData,int Index) {
+
+	// If the player is Mayor, In Game, and not Dead
+	if ( (p->Player[Index]->Mayor) && (p->Player[Index]->State == State_Game) && (p->Player[Index]->isDead == false) ) {
 		sCMBuild *data;
 		sSMBuild bd;
 		data = (sCMBuild *)TheData;
 
-		if (p->City[p->Player[Index]->City]->canBuild[data->type - 1] == 1 || p->Player[Index]->isAdmin == 2)
-		{
+		// If the player can build the requested building (or is an admin)
+		if ( (p->City[p->Player[Index]->City]->canBuild[data->type - 1] == 1) || (p->Player[Index]->isAdmin == 2) ) {
+
+			// Subtract the cost of the building,
 			p->City[p->Player[Index]->City]->cash -= COST_BUILDING;
 
+			// Create the building with the next ID, add it to the server linked list
 			bd.City = p->Player[Index]->City;
 			bd.count = 0;
 			bd.type = data->type;
@@ -201,19 +204,28 @@ void CProcess::ProcessBuild(char *TheData,int Index)
 			bd.pop = 0;
 			p->Build->newBuilding(data->x,data->y,data->type,p->Player[Index]->City, bd.id);
 
-			if (p->Build->bldID > 30000)
+			// HACK: If the ID is over 30000, cycle around to 1
+			if (p->Build->bldID > 30000) {
 				p->Build->bldID = 1;
+			}
 
+			// Tell everyone in the sector about the new building
 			p->Send->SendSectorArea(data->x*48, data->y*48,(unsigned char)smNewBuilding,(char *)&bd,sizeof(bd));
 
-			if ((unsigned char)data->type > 2) // not houses, not hospitals
-			{
+			// If the building is not a House,
+			if ((unsigned char)data->type != 2) {
+
+				// Set canBuild for the building type to "already has"
 				p->City[p->Player[Index]->City]->setCanBuild((unsigned char)data->type - 1,2);
 
-				if ((unsigned char)data->type % 2) // research centers
-				{
-					if (p->City[p->Player[Index]->City]->research[(data->type - 3) / 2] != -1)
-						p->City[p->Player[Index]->City]->research[(data->type - 3) / 2] = p->Tick + 20000;
+				// If the building is a Research,
+				if ((unsigned char)data->type % 2) {
+
+					// If research is not finished, set the research timer to 0
+					// The CBuilding.cycle() Research timer will start the research when the building is populated
+					if (p->City[p->Player[Index]->City]->research[(data->type - 3) / 2] != -1) {
+						p->City[p->Player[Index]->City]->research[(data->type - 3) / 2] = 0;
+					}
 				}
 			}
 		}
