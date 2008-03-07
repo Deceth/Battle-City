@@ -573,12 +573,12 @@ void CAccount::SendAccountInformation(int Index) {
 			memset(tmpState, 0, 16);
 
 			// Copy the account information into temporary char[]s
-			strcpy_s(tmpPass, sizeof(tmpPass), p->Database->Query.getStringField("Password"));
-			strcpy_s(tmpUser, sizeof(tmpUser),p->Database->Query.getStringField("Account"));
-			strcpy_s(tmpTown, sizeof(tmpTown),p->Database->Query.getStringField("Town"));
-			strcpy_s(tmpState, sizeof(tmpState),p->Database->Query.getStringField("State"));
-			strcpy_s(tmpEmail, sizeof(tmpEmail),p->Database->Query.getStringField("Email"));
-			strcpy_s(tmpFullName, sizeof(tmpFullName),p->Database->Query.getStringField("Fullname"));
+			strcpy(tmpPass, p->Database->Query.getStringField("Password"));
+			strcpy(tmpUser, p->Database->Query.getStringField("Account"));
+			strcpy(tmpTown, p->Database->Query.getStringField("Town"));
+			strcpy(tmpState, p->Database->Query.getStringField("State"));
+			strcpy(tmpEmail, p->Database->Query.getStringField("Email"));
+			strcpy(tmpFullName, p->Database->Query.getStringField("Fullname"));
 
 			// Replace all 0s with 1s
 			for (int k = 0; k < 15; k++) {
@@ -607,12 +607,12 @@ void CAccount::SendAccountInformation(int Index) {
 			}
 
 			// Copy the temp char[]s into LoginData
-			strcpy_s(LoginData, sizeof(tmpUser), tmpUser);
-			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpPass), tmpPass);
-			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpEmail), tmpEmail);
-			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpFullName), tmpFullName);
-			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpTown), tmpTown);
-			strcpy_s(&LoginData[strlen(LoginData)], sizeof(tmpState), tmpState);
+			strcpy(LoginData, tmpUser);
+			strcpy(&LoginData[strlen(LoginData)], tmpPass);
+			strcpy(&LoginData[strlen(LoginData)], tmpEmail);
+			strcpy(&LoginData[strlen(LoginData)], tmpFullName);
+			strcpy(&LoginData[strlen(LoginData)], tmpTown);
+			strcpy(&LoginData[strlen(LoginData)], tmpState);
 
 			// Send LoginData
 			p->Winsock->SendData(Index, smEditAccount, LoginData);
