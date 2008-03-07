@@ -46,7 +46,7 @@ public:
 
 	char HasLaser;
 	char HasRocket;
-	char HasWalkie;
+	char HasUpLink;
 	char ShowMap;
 	float timeDeath;
 	float timeLastAttack;

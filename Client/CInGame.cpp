@@ -20,6 +20,7 @@ CInGame::CInGame(CGame *game)
 	Successor = 0;
 	HasLaser = 0;
 	HasRocket = 0;
+	HasUpLink = 0;
 	updateTick = 0;
 	lastTick = 0;
 	hospTick = 0;

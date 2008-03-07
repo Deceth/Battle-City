@@ -450,7 +450,7 @@ void CInventory::ItemCheck()
 	{
 		p->InGame->HasLaser = 0;
 		p->InGame->HasRocket = 0;
-		p->InGame->HasWalkie = 0;
+		p->InGame->HasUpLink = 0; 
 		return;
 	}
 
@@ -459,7 +459,7 @@ void CInventory::ItemCheck()
 
 	int hasLaser = 0;
 	int hasRocket = 0;
-	int hasWalkie = 0;
+	int hasUpLink = 0;
 
 	while (itm)
 	{
@@ -472,7 +472,7 @@ void CInventory::ItemCheck()
 				hasRocket = 1;
 				break;
 			case 6:
-				hasWalkie = 1;
+				hasUpLink = 1;
 				break;
 		}
 		itm = itm->next;
@@ -480,7 +480,7 @@ void CInventory::ItemCheck()
 
 	if (hasLaser == 1) p->InGame->HasLaser = 1; else p->InGame->HasLaser = 0;
 	if (hasRocket == 1) p->InGame->HasRocket = 1; else p->InGame->HasRocket = 0;
-	if (hasWalkie == 1) p->InGame->HasWalkie = 1; else p->InGame->HasWalkie = 0;
+	if (hasUpLink == 1) p->InGame->HasUpLink = 1; else p->InGame->HasUpLink = 0;
 #ifndef _DEBUG
 	}
 	catch (...) {p->Winsock->SendData(cmCrash, "ItemCheck"); p->Engine->logerror("ItemCheck");}
