@@ -27,7 +27,7 @@ void CItem::drop(int x, int y, int owner)
 					if (CalcX >= 0 && CalcX <= 2 && CalcY == 2)
 					{
 						int j = p->Build->GetOrbBuildingCount(i);
-						if (j >= 11) //Is Orbable
+						if (j >= ORBABLE_SIZE) //Is Orbable
 						{
 							p->Log->logOrb(owner, i, j);
 							p->City[p->Player[owner]->City]->didOrb(i, owner);
