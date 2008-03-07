@@ -72,6 +72,7 @@ void CSend::SendAccountEdit()
 	p->Winsock->SendData(cmEditAccount, (char *)&LoginData, sizeof(LoginData));
 }
 
+// Send Private Messages
 void CSend::SendWhisper() {	
 	string tmpString;
 	char Recipient[100];
@@ -84,6 +85,7 @@ void CSend::SendWhisper() {
 	string recipientName;
 	string playerNameStr;
 	sCMWhisper whisper;
+	memset(&whisper, 0, sizeof(whisper));
 
 	// Parse the ChatLine, assuming "/pm recipient message" format
 	recipientStartIndex = p->InGame->ChatLine.find(" ",0) + 1;
