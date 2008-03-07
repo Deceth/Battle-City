@@ -171,16 +171,9 @@ void CSend::SendMessage() {
 	strcpy(SendString, p->InGame->ChatLine.c_str());
 	tmpString = p->Player[p->Winsock->MyIndex]->Name + ": " + p->InGame->ChatLine;
 
-	// Send the message
-	// If sent by user with WALKIE, send as cmWalkie
-	if (p->InGame->HasWalkie == 1) {
-		p->Winsock->SendData(cmWalkie, SendString);
-	}
-	// Else, NO WALKIE, send as cmChatMessage
-	else {
-		p->Winsock->SendData(cmChatMessage, SendString);
-	}
-
+	// Send the message as cmWalkie meaning to team and everyone on radar
+	p->Winsock->SendData(cmWalkie, SendString);
+	
 	// Append the message to the sender's chat
 	// If sent by ADMIN player, show Admin color
 	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
