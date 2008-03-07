@@ -55,7 +55,7 @@ void CCity::destroy()
 
 	Orbs = 0;
 
-	cash = 95000000;
+	cash = MONEY_STARTING_VALUE;
 	income = 0;
 	itemproduction = 0;
 	cashresearch = 0;
@@ -135,8 +135,8 @@ void CCity::cycle()
 		//if (cash < 0)
 		//	cash = 0;
 
-		if (cash > 95000000)
-			cash = 95000000;
+		if (cash > MONEY_MAX_VALUE)
+			cash = MONEY_MAX_VALUE;
 		if (cash < 0)
 		{
 			cash = 0;
@@ -150,7 +150,7 @@ void CCity::cycle()
 			{
 				cash = 2000000;
 			}
-		}		
+		}
 
 		moneyCycle = p->Tick + 7000;
 		
