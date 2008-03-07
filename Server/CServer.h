@@ -1,7 +1,7 @@
 #ifndef _CSERVER
 #define _CSERVER
 
-#define VERSION "3.4.6"
+#define VERSION "3.4.7"
 
 const unsigned char MaxPlayers = 63;
 const unsigned char SectorSize = 16;
