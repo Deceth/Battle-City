@@ -130,24 +130,26 @@ void CSend::SendChatMessage(int WhoSent, char Message[255], char global)
 	cout << outputString << "\n";
 	p->Log->logChat(outputString);
 
-	switch (p->Player[WhoSent]->State)
-	{
+	switch (p->Player[WhoSent]->State){
 		case State_Chat:
-			for (int i = 0; i < MaxPlayers; i++)
-			{
-				if (p->Player[i]->State == State_Chat && i != WhoSent)
+			for (int i = 0; i < MaxPlayers; i++){
+				if (p->Player[i]->State == State_Chat && i != WhoSent){
 					p->Winsock->SendData(i, cmChatMessage, tmpstring, length + 1);
+				}
 			}	
 			break;
 		case State_Game:
 			switch (global)
 			{
+				// Global chat - All players receive message
 				case 1:
 					p->Send->SendGameAllBut(WhoSent, smGlobal, tmpstring, length + 1);
 					break;
+				// Normal chat - Teamates and players on radar receive message
 				case 2:
 					p->Send->SendRadarAndTeam(WhoSent, cmChatMessage, tmpstring, length + 1);
 					break;
+				// Disrupted chat - Only players on radar receive message
 				case 0:
 					p->Send->SendRadarNotIndex(WhoSent, cmChatMessage, tmpstring, length + 1);
 					break;

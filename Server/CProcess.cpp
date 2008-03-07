@@ -26,13 +26,13 @@ void CProcess::ProcessData(char *TheData, int Index)
 			case cmNewAccount: //***New Account
 				ProcessNewAccount((sCMNewAccount *)&TheData[1], Index);
 				break;
-			case cmChatMessage: //***Chat Message
+			case cmChatMessage: //***Chat Message to radar
 				p->Send->SendChatMessage((unsigned char)Index, &TheData[1], 0);
 				break;
-			case cmGlobal: //***Chat Message
+			case cmGlobal: //***Chat Message to all
 				p->Send->SendChatMessage((unsigned char)Index, &TheData[1], 1);
 				break;
-			case cmWalkie:
+			case cmWalkie: // Chat message to team and radar
 				p->Send->SendChatMessage((unsigned char)Index, &TheData[1], 2);
 				break;
 			case cmSetState: //***Player changing state
