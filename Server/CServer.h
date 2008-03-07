@@ -7,7 +7,18 @@ const unsigned char MaxPlayers = 63;
 const unsigned char SectorSize = 16;
 const unsigned char MaxSectors = (512 / SectorSize);
 const short int RadarSize = 1800;
+
+const int MONEY_MAX_VALUE = 95000000;
+const int MONEY_STARTING_VALUE = 95000000;
 const int COST_BUILDING = 500000;
+const int COST_ITEM = 750000;
+const int COST_INCOME_POPULATION = 10000;
+const int COST_UPKEEP_RESEARCH = 2000000;
+const int COST_UPKEEP_HOSPITAL = 2000000;
+const int TIMER_CITY_DESTRUCT = 120000;
+const int TIMER_RESEARCH = 10000;
+const int TIMER_RESPAWN = 10000;
+const int ORBABLE_SIZE = 11;
 
 #include <stdio.h>
 #include <math.h>
