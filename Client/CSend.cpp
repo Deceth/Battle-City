@@ -74,16 +74,23 @@ void CSend::SendAccountEdit()
 
 // Send Private Messages
 void CSend::SendWhisper() {	
-	string tmpString;
-	char Recipient[100];
-	memset(Recipient, 0, 100);
 	int recipientStartIndex = 0;
 	int recipientEndIndex = 0;
+	int recipientLength = 0;
 	int messageStartIndex = 0;
-	char recipient[20];
-	char playerName[20];
+	int messageLength = 0;
+	string tmpString;
 	string recipientName;
 	string playerNameStr;
+	bool recipientTooLong = false;
+	bool messageTooLong = false;
+
+	char recipient[20];
+	memset(recipient, 0, 20);
+
+	char playerName[20];
+	memset(playerName, 0, 20);
+
 	sCMWhisper whisper;
 	memset(&whisper, 0, sizeof(whisper));
 
@@ -94,35 +101,44 @@ void CSend::SendWhisper() {
 
 	// If the command is properly formatted (has recipient and message),
 	if( (recipientStartIndex>0) && (recipientEndIndex>0) ) {
-	
-		// Get the recipient
-		memset(recipient, '\0', 20);
-		memset(playerName, '\0', 20);
-		memset(whisper.Message, '\0', 128);
-		p->InGame->ChatLine.copy(recipient, recipientEndIndex - recipientStartIndex, recipientStartIndex);
-		p->InGame->ChatLine.copy(whisper.Message, tmpString.length() - recipientEndIndex, messageStartIndex);
+		recipientLength = recipientEndIndex - recipientStartIndex;
+		messageLength = tmpString.length() - recipientEndIndex;
 
-		// Lowercase the recipient
-		_strlwr(recipient);
-		recipientName = recipient;
+		// If the recipient name and message lengths name are within the required bounds,
+		if (recipientLength > 20) {
+			recipientTooLong = true;
+		}
+		if (messageLength > 128) {
+			messageTooLong = true;
+		}
+		else {
 
-		// Loop through the players, looking for the recipient
-		for (int i = 0; i < MaxPlayers; i++) {
-			
-			// If the player isn't the person sending the whisper,
-			if (i != p->Winsock->MyIndex ) {
+			// Get the recipient and message
+			p->InGame->ChatLine.copy(recipient, recipientLength, recipientStartIndex);
+			p->InGame->ChatLine.copy(whisper.Message, messageLength, messageStartIndex);
 
-				// If the name isn't empty, lowercase it for comparison
-				playerNameStr = p->Player[i]->Name;
-				if ( ! playerNameStr.empty() ) {
-					playerNameStr.copy(playerName, playerNameStr.length());
-					_strlwr(playerName);
-					playerNameStr = playerName;
+			// Lowercase the recipient
+			_strlwr(recipient);
+			recipientName = recipient;
 
-					// If the player name starts with the recipient name, send and break
-					if (playerNameStr.find(recipientName) == 0) {
-						whisper.Recipient = i;
-						break;
+			// Loop through the players, looking for the recipient
+			for (int i = 0; i < MaxPlayers; i++) {
+				
+				// If the player isn't the person sending the whisper,
+				if (i != p->Winsock->MyIndex ) {
+
+					// If the name isn't empty, lowercase it for comparison
+					playerNameStr = p->Player[i]->Name;
+					if ( ! playerNameStr.empty() ) {
+						playerNameStr.copy(playerName, playerNameStr.length());
+						_strlwr(playerName);
+						playerNameStr = playerName;
+
+						// If the player name starts with the recipient name, send and break
+						if (playerNameStr.find(recipientName) == 0) {
+							whisper.Recipient = i;
+							break;
+						}
 					}
 				}
 			}
@@ -137,9 +153,18 @@ void CSend::SendWhisper() {
 		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
 		p->Winsock->SendData(cmWhisper,(char *)&whisper,sizeof(whisper));
 	}
+	// Else if the recipient name was too long,
+	else if (recipientTooLong) {
+		tmpString = "Player not found: try adding more letters to the name!";
+		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
+	}
+	// Else if the message was too long, (note that this is impossible because the client cuts messages shorter than this)
+	else if (messageTooLong) {
+		tmpString = "tl;dr";
+		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
+	}
 	// Else, recipient wasn't found,
 	else {
-		// Print an error
 		tmpString = "Player not found: " + recipientName;
 		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
 	}
