@@ -118,7 +118,7 @@ int CProcess::ProcessData(char *TheData)
 			ProcessOrbed((sSMOrbedCity *)&TheData[1]);
 			break;
 		case smGlobal:
-			ProcessChatMessage(TheData, 1);
+			ProcessGlobal(TheData);
 			break;
 		case smShoot:
 			ProcessShot((sSMShot *)&TheData[1]);
@@ -200,7 +200,7 @@ int CProcess::ProcessData(char *TheData)
 			ProcessClickPlayer((sSMClickPlayer *)&TheData[1]);
 			break;
 		case smWhisper:
-			ProcessWhisper((sCMWhisper *)&TheData[1]);
+			ProcessWhisper(TheData);
 			break;
 		default:
 			std::ostringstream thing;
@@ -1485,10 +1485,16 @@ void CProcess::ProcessFinance(sSMFinance *finance)
 		p->InGame->PrintFinanceReport();
 }
 
-void CProcess::ProcessWhisper(sCMWhisper *whisper) {
-	string tmpstring;
-	int Index = whisper->Sender;
-	tmpstring = p->Player[Index]->Name + " (PM): " + whisper->Message;
+void CProcess::ProcessWhisper(char *TheData) {
+	int Index = (unsigned char)TheData[1];
+	string tmpstring = p->Player[Index]->Name + " (PM): " + &TheData[2];
 
 	p->InGame->AppendChat(tmpstring, RGB(255, 255, 255));
+}
+
+void CProcess::ProcessGlobal(char *TheData) {
+	int Index = (unsigned char)TheData[1];
+	string tmpstring = p->Player[Index]->Name + " (Global): " + &TheData[2];
+
+	p->InGame->AppendChat(tmpstring, RGB(255, 165, 0));
 }
