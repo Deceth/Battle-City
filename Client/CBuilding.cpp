@@ -185,8 +185,42 @@ void CBuildingList::DestroyCity(char theCity)
 #endif
 }
 
+int CBuildingList::inRange()
+{
+#ifndef _DEBUG
+	try {
+#endif
+	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) return 1;
 
-int CBuildingList::inRange() {
+	CBuilding *bld = buildings;
+	if (!bld)
+		return 0;
+
+	while (bld->prev)
+		bld = bld->prev;
+
+	while (bld)
+	{
+		if (bld->City == p->Player[p->Winsock->MyIndex]->City)
+		{
+			if ((abs((bld->X*48) - p->Player[p->Winsock->MyIndex]->X) < 500) && (abs((bld->Y*48) - p->Player[p->Winsock->MyIndex]->Y) < 500))
+			{
+				return 1;
+			}
+		}
+		bld = bld->next;
+	}
+
+	return 0;
+
+#ifndef _DEBUG
+	}
+	catch (...) {p->Winsock->SendData(cmCrash, "Building:inRange"); p->Engine->logerror("Building:inRange");}
+#endif
+}
+
+// New version of inRangeNew, to be implemented in a future release.
+int CBuildingList::inRangeNew() {
 
 	// If the player is an admin, return 1
 	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
@@ -229,5 +263,19 @@ int CBuildingList::inRange() {
 
 	// If no building was found in range, return 0
 	p->InGame->NewbieTip = "You cannot build this far away from your City Center!";
+
+	// DUMMY CODE FOR PADDING-- REMOVE AFTER IMPLEMENTING
+	if (true) {
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+		cout << "x" << endl;
+	}
+
 	return 0;
 }
