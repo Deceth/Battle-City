@@ -8,13 +8,15 @@ const unsigned char SectorSize = 16;
 const unsigned char MaxSectors = (512 / SectorSize);
 const short int RadarSize = 2400;
 
-const short int TIMER_RELOAD_SURFACES = 3000;
-const short int TIMER_CHANGE_TANK = 1000;
-const short int TIMER_DEMOLISH = 3000;
-const short int TIMER_SHOOT_ADMIN = 50;
-const short int TIMER_SHOOT_LASER = 650;
-const short int TIMER_SHOOT_ROCKET = 650;
 const int COST_BUILDING = 500000;
+const int DISTANCE_MAX_FROM_CC = 1400;
+const int TIMER_CHANGE_TANK = 1000;
+const int TIMER_DEMOLISH = 3000;
+const int TIMER_RELOAD_SURFACES = 3000;
+const int TIMER_RESPAWN = 10000;
+const int TIMER_SHOOT_ADMIN = 50;
+const int TIMER_SHOOT_LASER = 650;
+const int TIMER_SHOOT_ROCKET = 650;
 
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
