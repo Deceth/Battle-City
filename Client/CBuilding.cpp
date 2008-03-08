@@ -220,6 +220,7 @@ int CBuildingList::inRange()
 }
 
 // New version of inRangeNew, to be implemented in a future release.
+/*
 int CBuildingList::inRangeNew() {
 
 	// If the player is an admin, return 1
@@ -279,3 +280,4 @@ int CBuildingList::inRangeNew() {
 
 	return 0;
 }
+*/
