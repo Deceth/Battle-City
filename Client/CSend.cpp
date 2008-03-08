@@ -108,7 +108,7 @@ void CSend::SendWhisper() {
 		if (recipientLength > 20) {
 			recipientTooLong = true;
 		}
-		if (messageLength > 128) {
+		else if (messageLength > 128) {
 			messageTooLong = true;
 		}
 		else {
@@ -125,7 +125,7 @@ void CSend::SendWhisper() {
 			for (int i = 0; i < MaxPlayers; i++) {
 				
 				// If the player isn't the person sending the whisper,
-				if (i != p->Winsock->MyIndex ) {
+//				if (i != p->Winsock->MyIndex ) {
 
 					// If the name isn't empty, lowercase it for comparison
 					playerNameStr = p->Player[i]->Name;
@@ -140,7 +140,7 @@ void CSend::SendWhisper() {
 							break;
 						}
 					}
-				}
+//				}
 			}
 		}
 	}
