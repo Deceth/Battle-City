@@ -661,9 +661,11 @@ void CBuildingList::cycle() {
 						p->City[bld->City]->setCanBuild(bld->type, 1);
 						
 						// If this building is a Med Research (type 9), set canBuild on Hospital (type is really 1... setCanBuild does type++)
+						
+						/* Temporarily commenting out because building hospital gives 5 extra plasmas!
 						if (bld->type == 9) {
 							p->City[bld->City]->setCanBuild(0, 1);
-						}
+						}*/
 
 						// For each building in the build tree,
 						for (int l = 0;l < 12; l++) {
