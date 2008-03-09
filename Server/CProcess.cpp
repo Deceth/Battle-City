@@ -219,7 +219,7 @@ void CProcess::ProcessBuild(char *TheData,int Index) {
 				p->City[p->Player[Index]->City]->setCanBuild((unsigned char)data->type - 1,2);
 
 				// If the building is a Research,
-				if ((unsigned char)data->type % 2) {
+				if ( ((data->type % 2)==1) && (data->type>2) ) {
 
 					// If research is not finished, set the research timer to 0
 					// The CBuilding.cycle() Research timer will start the research when the building is populated
