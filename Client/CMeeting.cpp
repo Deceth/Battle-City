@@ -224,6 +224,7 @@ void CMeeting::AppendNews(string TheData)
 	SetDlgItemText(this->hWnd, IDNEWS, this->News.c_str());
 }
 
+// Create list of available cities to be displayed in the Meeting Room
 void CMeeting::AddCity(int City, int Mayor)
 {
 	int i = FreeCity();
@@ -241,16 +242,18 @@ void CMeeting::AddCity(int City, int Mayor)
 			p->Meeting->City[i].Index = index;
 			tmpString = "<Double click to become mayor of this city>";
 			SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
+			tmpString = "----------------------------------------------------------------------------------------------";
+			SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
 		}
 		else
 		{
-			tmpString = "Commando required for city of ";
+			tmpString = "Mayor " + p->Player[p->Meeting->City[i].Mayor]->Name + " of ";
 			tmpString += CityList[p->Meeting->City[i].RealCity];
 			int index = (int)SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
 			p->Meeting->City[i].Index = index;
-			tmpString = "Mayor " + p->Player[p->Meeting->City[i].Mayor]->Name;
-			tmpString += " of ";
-			tmpString += p->Player[p->Meeting->City[i].Mayor]->Town;
+			tmpString = "<Double click to apply for a job>";			
+			SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
+			tmpString = "----------------------------------------------------------------------------------------------";
 			SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
 		}
 	}
