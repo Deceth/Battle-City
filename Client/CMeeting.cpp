@@ -247,17 +247,18 @@ void CMeeting::AddCity(int City, int Mayor)
 		}
 		else
 		{
-			tmpString = "Mayor " + p->Player[p->Meeting->City[i].Mayor]->Name + " of ";
+			tmpString = "Commando required for city of "; 
 			tmpString += CityList[p->Meeting->City[i].RealCity];
 			int index = (int)SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
 			p->Meeting->City[i].Index = index;
-			tmpString = "<Double click to apply for a job>";			
+			tmpString = "Mayor " + p->Player[p->Meeting->City[i].Mayor]->Name; 
+			tmpString += " of "; 
+			tmpString += p->Player[p->Meeting->City[i].Mayor]->Town; 
 			SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
 			tmpString = "----------------------------------------------------------------------------------------------";
 			SendDlgItemMessage(p->Meeting->hWnd, IDAPPLYLIST, LB_ADDSTRING, 0, (LPARAM)tmpString.c_str());
 		}
 	}
-
 }
 
 int CMeeting::FreeCity()
