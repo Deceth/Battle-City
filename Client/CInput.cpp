@@ -287,11 +287,30 @@ void CInput::ProcessKeys(char buffer[256]) {
 				shot.y = FlashY;
 				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
 			}
+			
+			// Ability to shoot laser even without having the item.
+			else {
+				this->LastShot = p->Tick + TIMER_SHOOT_LASER;
 
+				float fDir = (float)-p->Player[me]->Direction+32;
+				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+				p->Explode->newExplosion(FlashX, FlashY, 3);
+				p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[me]->Direction, me);
+				p->Sound->PlayWav(sLaser,1);
+				sCMShot shot;
+				shot.dir = p->Player[me]->Direction;
+				shot.type = 0;
+				shot.x = FlashX;
+				shot.y = FlashY;
+				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+			}
+
+			/* Commented out while testing ability to always have laser
 			// Weapon: NONE (and Newbie Tips are on)
 			else if (p->Options->newbietips == 1) {
 				p->InGame->NewbieTip = "You cannot fire until you pick up a Laser or Cougar Missle.";
-			}
+			}*/
 		}
 	}
 }
