@@ -184,7 +184,7 @@ void CBuildingList::DestroyCity(char theCity)
 	catch (...) {p->Winsock->SendData(cmCrash, "Building:DestroyCity"); p->Engine->logerror("Building-DestroyCity");}
 #endif
 }
-
+/*Old inRange
 int CBuildingList::inRange()
 {
 #ifndef _DEBUG
@@ -217,11 +217,9 @@ int CBuildingList::inRange()
 	}
 	catch (...) {p->Winsock->SendData(cmCrash, "Building:inRange"); p->Engine->logerror("Building:inRange");}
 #endif
-}
+}*/
 
-// New version of inRangeNew, to be implemented in a future release.
-/*
-int CBuildingList::inRangeNew() {
+int CBuildingList::inRange() {
 
 	// If the player is an admin, return 1
 	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
@@ -280,4 +278,3 @@ int CBuildingList::inRangeNew() {
 
 	return 0;
 }
-*/
