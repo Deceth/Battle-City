@@ -158,10 +158,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 
 	// Building: RESEARCH
 	else if (((buildingToDelete->type % 2) == 1) && (buildingToDelete->type > 2)) {
-
-
-// TODO: uncomment to implement "losing research means you can't build the factory"
-/*
+	/*
 		// Tell the city it can NOT build this Research's Factory (setCanBuild does its own index++)
 		p->City[buildingToDelete->City]->setCanBuild((unsigned char)buildingToDelete->type, 0);
 
@@ -172,7 +169,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 		if (buildingToDelete->type == 9) {
 			p->City[buildingToDelete->City]->setCanBuild(0, 0);
 		}
-*/
+	*/
 	}
 
 	// Building: ALL
