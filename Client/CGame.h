@@ -1,7 +1,7 @@
 #ifndef _CGAME
 #define _CGAME
 
-#define VERSION "3.4.7"
+#define VERSION "3.4.8"
 
 const unsigned char MaxPlayers = 63;
 const unsigned char SectorSize = 16;
