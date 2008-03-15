@@ -5,46 +5,49 @@
 
 class CGame;
 
-class CInput
-{
-public:
-	CInput(CGame *game);
-	~CInput();
+class CInput {
 
-	void ProcessKeys(char buffer[256]);
-	void MouseMove(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]);
-	void MouseUp(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]);
-	void MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]);
-	void StartDInput();
-	void Cycle();
+	public:
+		CInput(CGame *game);
+		~CInput();
 
-	void InfoButton();
-	void PointsButton();
+		void StartDInput();
+		void Cycle();
+		void InfoButton();
+		void PointsButton();
 
-	int LastMouseX;
-	int LastMouseY;
+		char MouseOverChat;
+		float lastRefresh;
+		int LastMouseX;
+		int LastMouseY;
+		int HasFocus;
 
-	float LastShot;
-	float LastTankChange;
+	private:
+		CGame *p;
 
-	char Tab;
-	char MouseOverChat;
+		LPDIRECTINPUT8         lpDI;
+		LPDIRECTINPUTDEVICE8   m_Keyboard;
+		LPDIRECTINPUTDEVICE8   m_Mouse;
+		POINT Mouse;
+		POINT oMouse;
+		DIMOUSESTATE oMouseState;
 	
-	POINT Mouse;
-	POINT oMouse;
-	DIMOUSESTATE oMouseState;
-	int NeedRelease;
-	int HasFocus;
+		float LastShot;
+		float LastTankChange;
+		char Tab;
+		int NeedRelease;
+		float DemolishTimer;
 
-	float lastRefresh;
-	float DemolishTimer;
-private:
-	CGame *p;
+		void ProcessKeys(char buffer[256]);
+		void MouseMove(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]);
+		void MouseUp(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]);
+		void MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]);
+		void endMouseDown(DIMOUSESTATE mouse_state);
+		void endMouseDown(DIMOUSESTATE mouse_state, bool setNeedRelease);
 
-	LPDIRECTINPUT8         lpDI;
-	LPDIRECTINPUTDEVICE8   m_Keyboard;
-	LPDIRECTINPUTDEVICE8   m_Mouse;
-protected:
+		void ChangeTank(int tankNumber);
+
+	protected:
 
 };
 
