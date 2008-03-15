@@ -127,7 +127,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	 * Handle items and build-tree
 	 ************************************************/
 	// Building: FACTORY
-	if ((buildingToDelete->type % 2) == 0 && buildingToDelete->type > 2) {
+	if (buildingToDelete->isFactory()) {
 
 		// If there are items in the item linked list,
 		if (p->Item->items) {
@@ -157,7 +157,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	}
 
 	// Building: RESEARCH
-	else if (((buildingToDelete->type % 2) == 1) && (buildingToDelete->type > 2)) {
+	else if (buildingToDelete->isResearch()) {
 	/*
 		// Tell the city it can NOT build this Research's Factory (setCanBuild does its own index++)
 		p->City[buildingToDelete->City]->setCanBuild((unsigned char)buildingToDelete->type, 0);
@@ -181,7 +181,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	 * Handle building-house relationships
 	 ************************************************/
 	// Building: HOUSE
-	if (buildingToDelete->type == 2) {
+	if (buildingToDelete->isHouse()) {
 
 		// If the House has a building in slot 1,
 		if (buildingToDelete->AttachedID > 0) {
@@ -345,6 +345,116 @@ CBuilding::~CBuilding() {
 }
 
 /***************************************************************
+ * Function:	hasFullPopulation
+ *
+ * @return Returns true if this building is at its max population
+ **************************************************************/
+bool CBuilding::hasMaxPopulation() {
+	if (this->isHouse()) {
+		return this->pop == POPULATION_MAX_HOUSE;
+	}
+	else {
+		return this->pop == POPULATION_MAX_NON_HOUSE;
+	}
+}
+
+/***************************************************************
+ * Function:	isCC
+ *
+ * @return Returns true if this building is a CC
+ **************************************************************/
+bool CBuilding::isCC() {
+	return this->isCC(this->type);
+}
+/***************************************************************
+ * Function:	isCC
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a CC
+ **************************************************************/
+bool CBuilding::isCC(int buildingType) {
+	return (buildingType == 0);
+}
+
+/***************************************************************
+ * Function:	isFactory
+ *
+ * @return Returns true if this building is a Factory
+ **************************************************************/
+bool CBuilding::isFactory() {
+	return this->isFactory(this->type);
+}
+/***************************************************************
+ * Function:	isFactory
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a Factory
+ **************************************************************/
+bool CBuilding::isFactory(int buildingType) {
+	return
+		((buildingType % 2)==0)
+		&&
+		(buildingType > 2);
+}
+
+/***************************************************************
+ * Function:	isHospital
+ *
+ * @return Returns true if this building is a Hospital
+ **************************************************************/
+bool CBuilding::isHospital() {
+	return this->isHospital(this->type);
+}
+/***************************************************************
+ * Function:	isHospital
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a House
+ **************************************************************/
+bool CBuilding::isHospital(int buildingType) {
+	return (buildingType == 1);
+}
+
+/***************************************************************
+ * Function:	isHouse
+ *
+ * @return Returns true if this building is a House
+ **************************************************************/
+bool CBuilding::isHouse() {
+	return this->isHouse(this->type);
+}
+/***************************************************************
+ * Function:	isHouse
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a House
+ **************************************************************/
+bool CBuilding::isHouse(int buildingType) {
+	return (buildingType == 2);
+}
+
+/***************************************************************
+ * Function:	isResearch
+ *
+ * @return Returns true if this building is a Research
+ **************************************************************/
+bool CBuilding::isResearch() {
+	return this->isResearch(this->type);
+}
+/***************************************************************
+ * Function:	isResearch
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a Research
+ **************************************************************/
+bool CBuilding::isResearch(int buildingType) {
+	return
+		((buildingType % 2)==1)
+		&&
+		(buildingType > 2);
+}
+
+/***************************************************************
  * Function:	GetBuildingCount
  *
  * @param theCity
@@ -491,14 +601,14 @@ void CBuildingList::cycle() {
 			bld->PopulationTick = p->Tick + 250;
 
 			// If the building doesn't have full population and is not a House
-			if (bld->pop != 50 && bld->type != 2) {
+			if ((! bld->hasMaxPopulation()) && (! bld->isHouse())) {
 				
 				// If the building is attached to a House,
 				if (bld->AttachedID > 0) {
 
-					// Add 5 population to the building, and cap it at 50
-					if ((bld->pop + 5) > 50) {
-						bld->pop = 50;
+					// Add 5 population to the building, and cap it at POPULATION_MAX_NON_HOUSE
+					if ((bld->pop + 5) > POPULATION_MAX_NON_HOUSE) {
+						bld->pop = POPULATION_MAX_NON_HOUSE;
 					}
 					else {
 						bld->pop += 5;
@@ -604,7 +714,7 @@ void CBuildingList::cycle() {
 			bld->MoneyTick = p->Tick + 7000;
 
 			// Building: HOUSE
-			if (bld->type == 2) {
+			if (bld->isHouse()) {
 
 				// Add COST_INCOME_POPULATION cash per population
 				p->City[bld->City]->cash += bld->pop * COST_INCOME_POPULATION;
@@ -612,7 +722,7 @@ void CBuildingList::cycle() {
 			}
 
 			// Building: RESEARCH (full population)
-			else if (bld->type % 2 && bld->type > 2 && bld->pop == 50) {
+			else if (bld->isResearch() && bld->hasMaxPopulation()) {
 
 				// Subtract research upkeep
 				p->City[bld->City]->cash -= COST_ITEM;
@@ -620,7 +730,7 @@ void CBuildingList::cycle() {
 			}
 
 			// Building: HOSPITAL
-			else if (bld->type == 1) {
+			else if (bld->isHospital()) {
 
 				// Subtract hospital upkeep
 				p->City[bld->City]->cash -= COST_UPKEEP_HOSPITAL;
@@ -638,13 +748,13 @@ void CBuildingList::cycle() {
 			bld->ResearchTick = p->Tick + 1000;
 
 			// If the building is a Research,
-			if ( (bld->type % 2) && (bld->type > 2) ) {
+			if ( bld->isResearch() ) {
 
 				// If research is in progress,
 				if (p->City[bld->City]->research[(bld->type - 3) / 2] > 0) {
 
 					// If the population isn't full, abort research
-					if (bld->pop != 50) {
+					if (! bld->hasMaxPopulation()) {
 						p->City[bld->City]->research[(bld->type - 3) / 2] = 0;
 					}
 
@@ -679,7 +789,7 @@ void CBuildingList::cycle() {
 				else if (p->City[bld->City]->research[(bld->type - 3) / 2] == 0) {
 					
 					// If the population is full, start research
-					if (bld->pop == 50) {
+					if (bld->hasMaxPopulation()) {
 						p->City[bld->City]->research[(bld->type - 3) / 2] = p->Tick + TIMER_RESEARCH;
 					}
 				}
@@ -692,8 +802,8 @@ void CBuildingList::cycle() {
 		// If the item production timer is up,
 		if (p->Tick > bld->ProduceTick) {
 
-			// If the building is a functioning Factory (full population, type%2==0, type>2),
-			if ((bld->type % 2) == 0 && bld->type > 2 && bld->pop == 50) {
+			// If the building is a functioning Factory (full population),
+			if (bld->isFactory() && bld->hasMaxPopulation()) {
 
 				// Get the type of item produced by this Factory
 				item.type = itemTypes[(bld->type - 2) / 2 - 1];
@@ -764,3 +874,4 @@ void CBuildingList::cycle() {
 		bld = bld->next;
 	}
 }
+

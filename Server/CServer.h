@@ -19,6 +19,8 @@ const int TIMER_CITY_DESTRUCT = 120000;
 const int TIMER_RESEARCH = 10000;
 const int TIMER_RESPAWN = 10000;
 const int ORBABLE_SIZE = 11;
+const int POPULATION_MAX_HOUSE = 100;
+const int POPULATION_MAX_NON_HOUSE = 50;
 
 #include <stdio.h>
 #include <math.h>

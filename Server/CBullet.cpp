@@ -155,31 +155,41 @@ void CBulletList::cycle()
 			}
 		}
 
-		if (blt->life > 0)
-		{
-			CBuilding *bld = p->Build->buildings;
-			if (bld)
-				while(bld->prev)
-					bld = bld->prev;
 
-			while (bld)
-			{
+		// If the bullet has life left,
+		if (blt->life > 0) {
+
+			CBuilding *bld = p->Build->buildings;
+			if (bld) {
+				while(bld->prev) {
+					bld = bld->prev;
+				}
+			}
+
+			while (bld) {
 				rp.x = (bld->x-3)*48;
 				rp.y = (bld->y-3)*48;
 				rp.w = 144;
 				rp.h = 144;
-				if (((bld->type % 2) == 0 || bld->type == 1) && bld->type != 2)
-				{
+
+				// If the building is a Factory or Hospital (anything with a bay?),
+				if (bld->isFactory() || bld->isHospital()) {
 					rp.y = (bld->y-2)*48;
 					rp.h = 96;
 				}
-				else
-				{
+				else {
 					bld->type = bld->type;
 				}
-				if (p->Collision->checkCollision(rp,rb))
-				{
-					if (bld->type != 0 && bld->pop <= 0) bld = p->Build->delBuilding(bld);
+
+				// If the bullet hits a building,
+				if (p->Collision->checkCollision(rp,rb)) {
+
+					// If that building is not a CC and has 0 (or less) life,
+					if ((! bld->isCC()) && bld->pop <= 0) {
+
+						// Destroy the building
+						bld = p->Build->delBuilding(bld);
+					}
 					blt->life = -1;
 					break;
 				}

@@ -335,14 +335,16 @@ void CSend::SendSector(int Index, int XSector, int YSector)
 	CBuilding *bld;
 	bld = p->Build->buildings;
 
-	if (bld)
-		while (bld->prev)
+	if (bld) {
+		while (bld->prev) {
 			bld = bld->prev;
+		}
+	}
 
-	while (bld)
-	{
-		if ((bld->x / SectorSize) == XSector && (bld->y / SectorSize) == YSector && bld->type != 0)
-		{
+	while (bld) {
+
+		// If the building is in the sector and is not a CC,
+		if ((bld->x / SectorSize) == XSector && (bld->y / SectorSize) == YSector && (! bld->isCC())) {
 			sSMBuild packet;
 			packet.x = bld->x;
 			packet.y = bld->y;
@@ -355,8 +357,8 @@ void CSend::SendSector(int Index, int XSector, int YSector)
 
 			packet.City = bld->City;
 
-			if ((bld->type % 2) == 0 && bld->type > 2)
-			{
+			// If the building is a factory,
+			if (bld->isFactory()) {
 				packet.count = maxItems[(bld->type - 2) / 2 - 1] - (unsigned char)p->City[bld->City]->itemC[(bld->type - 2) / 2 - 1];
 			}
 
@@ -439,14 +441,16 @@ void CSend::SendMiniMap(unsigned char Index)
 	CBuilding *bld;
 	bld = p->Build->buildings;
 
-	if (bld)
-		while (bld->prev)
+	if (bld) {
+		while (bld->prev) {
 			bld = bld->prev;
+		}
+	}
 
-	while (bld)
-	{
-		if (abs(XSector - (bld->x / SectorSize)) < 4 && abs(YSector - (bld->y / SectorSize)) < 4 && bld->type != 0)
-		{
+	while (bld) {
+
+		// If the building is in the sector and is not a CC,
+		if (abs(XSector - (bld->x / SectorSize)) < 4 && abs(YSector - (bld->y / SectorSize)) < 4 && (! bld->isCC())) { 
 			sSMBuild packet;
 			packet.x = bld->x;
 			packet.y = bld->y;
@@ -459,8 +463,8 @@ void CSend::SendMiniMap(unsigned char Index)
 
 			packet.City = bld->City;
 
-			if ((bld->type % 2) == 0 && bld->type > 2)
-			{
+			// If the building is a factory,
+			if (bld->isFactory()) {
 				packet.count = maxItems[(bld->type - 2) / 2 - 1] - (unsigned char)p->City[bld->City]->itemC[(bld->type - 2) / 2 - 1];
 			}
 

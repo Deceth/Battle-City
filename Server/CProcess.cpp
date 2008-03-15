@@ -213,13 +213,13 @@ void CProcess::ProcessBuild(char *TheData,int Index) {
 			p->Send->SendSectorArea(data->x*48, data->y*48,(unsigned char)smNewBuilding,(char *)&bd,sizeof(bd));
 
 			// If the building is not a House,
-			if ((unsigned char)data->type != 2) {
+			if (! CBuilding::isHouse(data->type)) {
 
 				// Set canBuild for the building type to "already has"
 				p->City[p->Player[Index]->City]->setCanBuild((unsigned char)data->type - 1,2);
 
 				// If the building is a Research,
-				if ( ((data->type % 2)==1) && (data->type>2) ) {
+				if (CBuilding::isResearch(data->type)) {
 
 					// If research is not finished, set the research timer to 0
 					// The CBuilding.cycle() Research timer will start the research when the building is populated
