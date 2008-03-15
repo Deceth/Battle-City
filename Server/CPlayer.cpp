@@ -20,10 +20,16 @@ CPlayer::CPlayer(CServer *Server)
 	shutdown(this->Socket, 2);
 
 	isAdmin = 1;
+	displayTank = 0;
 	Tank = 0;
 	Tank2 = 0;
 	Tank3 = 0;
 	Tank4 = 0;
+	Tank5 = 0;
+	Tank6 = 0;
+	Tank7 = 0;
+	Tank8 = 0;
+	Tank9 = 0;
 	Red = 0;
 	Green = 0;
 	Blue = 0;

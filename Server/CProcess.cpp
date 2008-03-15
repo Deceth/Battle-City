@@ -156,7 +156,7 @@ void CProcess::ProcessData(char *TheData, int Index)
 				ProcessClickPlayer(Index, TheData[1]);
 				break;
 			case cmChangeTank:
-				ProcessChangeTank(Index);
+				ProcessChangeTank(Index, TheData[1]);
 				break;
 			case cmWhisper:
 				p->Send->SendWhisper(Index, (sCMWhisper *)&TheData[1]);
@@ -1268,7 +1268,7 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit)
 						player.Member = p->Player[i]->Member;
 						player.Index = i;
 						player.isAdmin = p->Player[i]->isAdmin;
-						player.Tank = p->Player[i]->Tank;
+						player.Tank = p->Player[i]->displayTank;
 						strcpy(player.Name, p->Player[i]->Name.c_str());
 						strcpy(player.Town, p->Player[i]->Town.c_str());
 
@@ -1347,17 +1347,54 @@ void CProcess::ProcessClickPlayer(int Index, int Clicked)
 }
 
 
-void CProcess::ProcessChangeTank(int Index)
-{
-	unsigned char tank = p->Player[Index]->Tank;
-	unsigned char tank2 = p->Player[Index]->Tank2;
-	unsigned char tank3 = p->Player[Index]->Tank3;
-	unsigned char tank4 = p->Player[Index]->Tank4;
+void CProcess::ProcessChangeTank(int Index, int tankIndex) {
+	unsigned char tank;
+	
+	cout << "Changing tank: player(" << Index << "), tank(" << tankIndex << ")\n";
 
-	p->Player[Index]->Tank = tank2;
-	p->Player[Index]->Tank2 = tank3;
-	p->Player[Index]->Tank3 = tank4;
-	p->Player[Index]->Tank4 = tank;
+	if (tankIndex == 0) {
+		tank = 0;
+	}
+	else if (tankIndex == 1) {
+		tank = p->Player[Index]->Tank;
+	}
+	else if (tankIndex == 2) {
+		tank = p->Player[Index]->Tank2;
+	}
+	else if (tankIndex == 3) {
+		tank = p->Player[Index]->Tank3;
+	}
+	else if (tankIndex == 4) {
+		tank = p->Player[Index]->Tank4;
+	}
+	else if (tankIndex == 5) {
+		tank = p->Player[Index]->Tank5;
+	}
+	else if (tankIndex == 6) {
+		tank = p->Player[Index]->Tank6;
+	}
+	else if (tankIndex == 7) {
+		tank = p->Player[Index]->Tank7;
+	}
+	else if (tankIndex == 8) {
+		tank = p->Player[Index]->Tank8;
+	}
+	else if (tankIndex == 9) {
+		tank = p->Player[Index]->Tank9;
+	}
+
+	cout << "Wants to set tank(" << tank << ")\n";
+
+	// If the player is already using this tank as the displayTank, return
+	if (tank == p->Player[Index]->displayTank) {
+		cout << "Already using that tank!\n";
+		return;
+	}
+
+	cout << "Setting...\n";
+
+	// Else, change the player's displayTank, and notify all players
+	p->Player[Index]->displayTank = tank;
 
 	sSMPlayer player;
 	player.Red = p->Player[Index]->Red;
@@ -1366,7 +1403,7 @@ void CProcess::ProcessChangeTank(int Index)
 	player.Member = p->Player[Index]->Member;
 	player.Index = Index;
 	player.isAdmin = p->Player[Index]->isAdmin;
-	player.Tank = p->Player[Index]->Tank;
+	player.Tank = p->Player[Index]->displayTank;
 	strcpy(player.Name, p->Player[Index]->Name.c_str());
 	strcpy(player.Town, p->Player[Index]->Town.c_str());
 

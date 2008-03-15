@@ -186,7 +186,7 @@ void CSend::SendCurrentPlayers(int Index)
 			player.Green = p->Player[i]->Green;
 			player.Blue = p->Player[i]->Blue;
 			player.Member = p->Player[i]->Member;
-			player.Tank = p->Player[i]->Tank;
+			player.Tank = p->Player[i]->displayTank;
 			p->Winsock->SendData(Index, smPlayerData, (char *)&player, sizeof(player));
 			sSMPoints points;
 			points.Index = i;
