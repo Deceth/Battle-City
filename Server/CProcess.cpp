@@ -1196,6 +1196,31 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit)
 				std::ostringstream Tank4Convert;
 				Tank4Convert << (int)adminedit->Tank4;
 				DMLString += Tank4Convert.str();
+				
+				DMLString += ", Tank5 = ";
+				std::ostringstream Tank5Convert;
+				Tank5Convert << (int)adminedit->Tank5;
+				DMLString += Tank5Convert.str();
+								
+				DMLString += ", Tank6 = ";
+				std::ostringstream Tank6Convert;
+				Tank6Convert << (int)adminedit->Tank6;
+				DMLString += Tank6Convert.str();
+								
+				DMLString += ", Tank7 = ";
+				std::ostringstream Tank7Convert;
+				Tank7Convert << (int)adminedit->Tank7;
+				DMLString += Tank7Convert.str();
+								
+				DMLString += ", Tank8 = ";
+				std::ostringstream Tank8Convert;
+				Tank8Convert << (int)adminedit->Tank8;
+				DMLString += Tank8Convert.str();
+								
+				DMLString += ", Tank9 = ";
+				std::ostringstream Tank9Convert;
+				Tank9Convert << (int)adminedit->Tank9;
+				DMLString += Tank9Convert.str();
 
 				DMLString += ", Red = ";
 				std::ostringstream RedConvert;
@@ -1320,6 +1345,11 @@ void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *adminedit
 					newedit.Tank2 = p->Database->Query.getIntField("Tank2");
 					newedit.Tank3 = p->Database->Query.getIntField("Tank3");
 					newedit.Tank4 = p->Database->Query.getIntField("Tank4");
+					newedit.Tank5 = p->Database->Query.getIntField("Tank5");
+					newedit.Tank6 = p->Database->Query.getIntField("Tank6");
+					newedit.Tank7 = p->Database->Query.getIntField("Tank7");
+					newedit.Tank8 = p->Database->Query.getIntField("Tank8");
+					newedit.Tank9 = p->Database->Query.getIntField("Tank9");
 					newedit.RentalCity = p->Database->Query.getIntField("RentalCity");
 
 					p->Winsock->SendData(Index, smAdminEdit, (char *)&newedit, sizeof(newedit));
@@ -1349,8 +1379,6 @@ void CProcess::ProcessClickPlayer(int Index, int Clicked)
 
 void CProcess::ProcessChangeTank(int Index, int tankIndex) {
 	unsigned char tank;
-	
-	cout << "Changing tank: player(" << Index << "), tank(" << tankIndex << ")\n";
 
 	if (tankIndex == 0) {
 		tank = 0;
@@ -1383,15 +1411,10 @@ void CProcess::ProcessChangeTank(int Index, int tankIndex) {
 		tank = p->Player[Index]->Tank9;
 	}
 
-	cout << "Wants to set tank(" << tank << ")\n";
-
 	// If the player is already using this tank as the displayTank, return
 	if (tank == p->Player[Index]->displayTank) {
-		cout << "Already using that tank!\n";
 		return;
 	}
-
-	cout << "Setting...\n";
 
 	// Else, change the player's displayTank, and notify all players
 	p->Player[Index]->displayTank = tank;

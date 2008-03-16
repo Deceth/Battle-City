@@ -36,6 +36,7 @@ void CDatabase::LoadDatabase()
 		//Accounts Table
 		Database.execDML("CREATE TABLE tAccounts(AccountID INT PRIMARY KEY, Account CHAR(15), Password CHAR(15), Email CHAR(50), Fullname CHAR(20), Town char(15), State CHAR(15), Points INT DEFAULT 0, MonthlyTop20 INT DEFAULT 0, Orbs INT DEFAULT 0, Assists INT DEFAULT 0, Deaths INT DEFAULT 0, Member INT DEFAULT 0, IsAdmin INT DEFAULT 0);");
 		Database.execDML("CREATE INDEX idxPoints ON tAccounts (Points DESC);");
+		Database.execDML("CREATE UNIQUE INDEX idxName ON tAccounts (Account);");
 
 		//Bans Table
 		cout << "Database::Create::Bans" << endl;

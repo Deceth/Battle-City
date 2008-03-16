@@ -703,6 +703,11 @@ void CAccount::GetLoginData(int Index) {
 			p->Player[Index]->Tank2 = p->Database->Query.getIntField("Tank2");
 			p->Player[Index]->Tank3 = p->Database->Query.getIntField("Tank3");
 			p->Player[Index]->Tank4 = p->Database->Query.getIntField("Tank4");
+			p->Player[Index]->Tank5 = p->Database->Query.getIntField("Tank5");
+			p->Player[Index]->Tank6 = p->Database->Query.getIntField("Tank6");
+			p->Player[Index]->Tank7 = p->Database->Query.getIntField("Tank7");
+			p->Player[Index]->Tank8 = p->Database->Query.getIntField("Tank8");
+			p->Player[Index]->Tank9 = p->Database->Query.getIntField("Tank9");
 			p->Player[Index]->Red = p->Database->Query.getIntField("Red");
 			p->Player[Index]->Green = p->Database->Query.getIntField("Green");
 			p->Player[Index]->Blue = p->Database->Query.getIntField("Blue");
