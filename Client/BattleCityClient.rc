@@ -1,13 +1,14 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include <resource.h>
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afXres.h"
+#include <windows.h>
+#define IDC_STATIC -1
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -34,7 +35,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afXres.h""\r\n"
+    "#include <windows.h>\r\n"
     "\0"
 END
 
@@ -137,8 +138,6 @@ BEGIN
                     179,23,44,11
     CONTROL         "Member",IDC_MEMBER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,179,32,67,11
-    LTEXT           "Tank:",IDC_STATIC,178,128,25,12
-    EDITTEXT        IDTANK,203,126,15,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "Get",IDGET,179,7,50,14
     LTEXT           "Deaths:",IDC_STATIC8,7,132,32,12
     EDITTEXT        IDDEATHS,43,130,128,14,ES_AUTOHSCROLL
@@ -146,17 +145,24 @@ BEGIN
     EDITTEXT        IDORBS,43,147,128,14,ES_AUTOHSCROLL
     LTEXT           "Assists:",IDC_STATIC10,7,167,32,12
     EDITTEXT        IDASSISTS,43,164,128,14,ES_AUTOHSCROLL
-    LTEXT           "Rental City:",IDC_STATIC,178,145,49,12
-    EDITTEXT        IDRENTAL,220,143,23,14,ES_AUTOHSCROLL
-    EDITTEXT        IDRED,220,78,23,14,ES_AUTOHSCROLL
-    EDITTEXT        IDGREEN,220,94,23,14,ES_AUTOHSCROLL
-    EDITTEXT        IDBLUE,220,110,23,14,ES_AUTOHSCROLL
-    LTEXT           "Red:",IDC_STATIC,178,80,25,12
-    LTEXT           "Green:",IDC_STATIC,178,96,25,12
-    LTEXT           "Blue:",IDC_STATIC,178,111,25,12
+    LTEXT           "Red:",IDC_STATIC,178,64,25,12
+    EDITTEXT        IDRED,220,62,23,14,ES_AUTOHSCROLL
+    LTEXT           "Green:",IDC_STATIC,178,80,25,12
+    EDITTEXT        IDGREEN,220,78,23,14,ES_AUTOHSCROLL
+    LTEXT           "Blue:",IDC_STATIC,178,96,25,12
+    EDITTEXT        IDBLUE,220,94,23,14,ES_AUTOHSCROLL
+    LTEXT           "Rental City:",IDC_STATIC,178,112,49,12
+    EDITTEXT        IDRENTAL,220,110,23,14,ES_AUTOHSCROLL
+    LTEXT           "Tanks:",IDC_STATIC,178,128,25,12
+    EDITTEXT        IDTANK,203,126,15,14,ES_AUTOHSCROLL
     EDITTEXT        IDTANK2,220,126,15,14,ES_AUTOHSCROLL
     EDITTEXT        IDTANK3,237,126,15,14,ES_AUTOHSCROLL
     EDITTEXT        IDTANK4,254,126,15,14,ES_AUTOHSCROLL
+    EDITTEXT        IDTANK5,271,126,15,14,ES_AUTOHSCROLL
+    EDITTEXT        IDTANK6,203,142,15,14,ES_AUTOHSCROLL
+    EDITTEXT        IDTANK7,220,142,15,14,ES_AUTOHSCROLL
+    EDITTEXT        IDTANK8,237,142,15,14,ES_AUTOHSCROLL
+    EDITTEXT        IDTANK9,254,142,15,14,ES_AUTOHSCROLL
 END
 
 ID_MEMBER DIALOGEX 0, 0, 226, 137
