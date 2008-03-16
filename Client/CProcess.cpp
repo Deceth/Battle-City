@@ -1412,11 +1412,16 @@ void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit)
 	SetDlgItemInt(p->AdminEdit->hWnd, IDDEATHS, adminedit->Deaths, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDORBS, adminedit->Orbs, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDASSISTS, adminedit->Assists, false);
+	SetDlgItemInt(p->AdminEdit->hWnd, IDRENTAL, adminedit->RentalCity, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK, adminedit->Tank, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK2, adminedit->Tank2, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK3, adminedit->Tank3, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK4, adminedit->Tank4, false);
-	SetDlgItemInt(p->AdminEdit->hWnd, IDRENTAL, adminedit->RentalCity, false);
+	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK5, adminedit->Tank5, false);
+	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK6, adminedit->Tank6, false);
+	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK7, adminedit->Tank7, false);
+	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK8, adminedit->Tank8, false);
+	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK9, adminedit->Tank9, false);
 
 	CheckDlgButton(p->AdminEdit->hWnd, IDC_ADMIN, adminedit->IsAdmin);
 	CheckDlgButton(p->AdminEdit->hWnd, IDC_MEMBER, adminedit->Member);

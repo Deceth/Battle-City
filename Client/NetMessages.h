@@ -380,6 +380,11 @@ struct sCMAdminEdit
 	unsigned char Tank2;
 	unsigned char Tank3;
 	unsigned char Tank4;
+	unsigned char Tank5;
+	unsigned char Tank6;
+	unsigned char Tank7;
+	unsigned char Tank8;
+	unsigned char Tank9;
 	unsigned char RentalCity;
 };
 

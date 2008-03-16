@@ -35,6 +35,11 @@ public:
 	char tank2;
 	char tank3;
 	char tank4;
+	char tank5;
+	char tank6;
+	char tank7;
+	char tank8;
+	char tank9;
 	unsigned char red;
 	unsigned char green;
 	unsigned char blue;

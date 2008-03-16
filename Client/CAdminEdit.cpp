@@ -38,6 +38,11 @@ int CALLBACK AdminEditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 					p->AdminEdit->tank2 = GetDlgItemInt(hwnd, IDTANK2, NULL, 0);
 					p->AdminEdit->tank3 = GetDlgItemInt(hwnd, IDTANK3, NULL, 0);
 					p->AdminEdit->tank4 = GetDlgItemInt(hwnd, IDTANK4, NULL, 0);
+					p->AdminEdit->tank5 = GetDlgItemInt(hwnd, IDTANK5, NULL, 0);
+					p->AdminEdit->tank6 = GetDlgItemInt(hwnd, IDTANK6, NULL, 0);
+					p->AdminEdit->tank7 = GetDlgItemInt(hwnd, IDTANK7, NULL, 0);
+					p->AdminEdit->tank8 = GetDlgItemInt(hwnd, IDTANK8, NULL, 0);
+					p->AdminEdit->tank9 = GetDlgItemInt(hwnd, IDTANK9, NULL, 0);
 					p->AdminEdit->admin = IsDlgButtonChecked(hwnd, IDC_ADMIN);
 					p->AdminEdit->member = IsDlgButtonChecked(hwnd, IDC_MEMBER);
 					p->AdminEdit->rentalcity = GetDlgItemInt(hwnd, IDRENTAL, NULL, 0);
@@ -68,6 +73,11 @@ int CALLBACK AdminEditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 					AdminEdit.Tank2 = p->AdminEdit->tank2;
 					AdminEdit.Tank3 = p->AdminEdit->tank3;
 					AdminEdit.Tank4 = p->AdminEdit->tank4;
+					AdminEdit.Tank5 = p->AdminEdit->tank5;
+					AdminEdit.Tank6 = p->AdminEdit->tank6;
+					AdminEdit.Tank7 = p->AdminEdit->tank7;
+					AdminEdit.Tank8 = p->AdminEdit->tank8;
+					AdminEdit.Tank9 = p->AdminEdit->tank9;
 					AdminEdit.IsAdmin = p->AdminEdit->admin;
 					AdminEdit.Member = p->AdminEdit->member;
 					AdminEdit.Red = p->AdminEdit->red;

@@ -81,6 +81,11 @@
 #define IDTANK2                         1061
 #define IDTANK3                         1062
 #define IDTANK4                         1063
+#define IDTANK5                         1064
+#define IDTANK6                         1065
+#define IDTANK7                         1066
+#define IDTANK8                         1067
+#define IDTANK9                         1068
 
 // Next default values for new objects
 // 
