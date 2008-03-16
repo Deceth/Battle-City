@@ -327,3 +327,211 @@ void CGame::Restructure()
 	if (SilentCheckFile("img//imgTurretBase.bmp") == 1) rename("img//imgTurretBase.bmp", "imgTurretBase.bmp");
 	if (SilentCheckFile("img//imgTurretHead.bmp") == 1) rename("img//imgTurretHead.bmp", "imgTurretHead.bmp");
 }
+
+/***************************************************************
+ * Function:	handleKey
+ *
+ * @param wParam
+ **************************************************************/
+void CGame::handleKey(WPARAM wParam) {
+
+	// If the player is in game,
+	if (this->State == STATE_GAME) {
+		
+		// If the player is chatting,
+		if (this->InGame->IsChatting == 1) {
+			this->handleChatKey(wParam);
+		}
+		// Else (player is not chatting),
+		else {
+			this->handleGameKey(wParam);
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	handleKey
+ *
+ * @param wParam
+ **************************************************************/
+void CGame::handleChatKey(WPARAM wParam) {
+
+	// Key: ENTER
+	if (wParam == 13) {
+
+		// Clear out of chat
+		this->InGame->IsChatting = 0;
+
+		// If there was text to send,
+		if (this->InGame->ChatLine.length() > 0) {
+
+			// If GLOBAL and ADMIN,
+			if ((this->InGame->ChatLine.find("/g",0) == 0) && (this->Player[this->Winsock->MyIndex]->isAdmin == 2)) {
+				this->Send->SendGlobal();
+			}
+
+			// Else, if PM,
+			else if (this->InGame->ChatLine.find("/pm",0) == 0) {
+				this->Send->SendWhisper();
+			}
+
+			// Else, NORMAL,
+			else {
+				this->Send->SendMessage();
+			}
+			// Clear the chat line
+			this->InGame->ChatLine.clear();
+		}
+	}
+
+	// KEY: backspace
+	else if (wParam == 8) {
+		// If there is more than one char, delete the last
+		if (this->InGame->ChatLine.length() > 1) {
+			this->InGame->ChatLine.erase(this->InGame->ChatLine.length() - 1, 1);
+		}
+		// Else, clear the only char in the chatline
+		else {
+			this->InGame->ChatLine.clear();
+		}
+	}
+
+	// Key: ESCAPE
+	else if (wParam == 27) {
+		// Clear and close the chat
+		this->InGame->IsChatting = 0;
+		this->InGame->ChatLine.clear();
+	}
+
+	// KEY: any
+	else {
+		// Append the key to the chat line
+		char blargh[2];
+		blargh[1] = 0;
+		blargh[0] = (char)wParam;
+
+		// TODO: test that the char is alphanumeric
+
+		if (this->InGame->ChatLine.length() < 100) {
+			this->InGame->ChatLine.append(blargh);
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	handleGameKey
+ *
+ * @param wParam
+ **************************************************************/
+void CGame::handleGameKey(WPARAM wParam) {
+
+	// KEY: Enter
+	if (wParam == 13) {
+		// Open chat
+		this->InGame->IsChatting = 1;
+	}
+
+	// KEY: u or F6 (and user isn't frozen)
+	if (((wParam == 85) || (wParam == 117)) && (this->Player[this->Winsock->MyIndex]->isFrozen == 0)) {
+
+		// Get the item under the user's current position
+		CItem *item = this->Item->findItembyLocation(((int)this->Player[this->Winsock->MyIndex]->X + 24) / 48, ((int)this->Player[this->Winsock->MyIndex]->Y + 24) / 48);
+
+		// If found, send a command to pick it up
+		if (item) {
+			sCMItem ii;
+			ii.id = item->id;
+			ii.active = item->active;
+			ii.type = item->Type;
+			this->Winsock->SendData(cmItemUp,(char *)&ii,sizeof(ii));
+		}
+	}
+
+	// KEY: i or NUMPAD9
+	else if ((wParam == 73) || (wParam == 105)) {
+		// Trigger the info button
+		this->Input->InfoButton();
+	}
+
+	// KEY: o or NUMPAD/
+	else if ((wParam == 79) || (wParam == 111)) {
+		// Get an orb from the user's inventory
+		CItem *itm = this->Inventory->findItembyType(5);
+		// If found, send a command to drop it 
+		if (itm) {
+			sCMItem ii;
+			ii.id = itm->id;
+			ii.active = itm->active;
+			ii.type = itm->Type;
+			this->Winsock->SendData(cmItemDrop,(char *)&ii,sizeof(ii));
+		}
+	}
+
+	// KEY: b or NUMPAD2
+	else if ((wParam == 66) || (wParam == 98)) {
+		// Get a bomb from the user's inventory
+		CItem *itm = this->Inventory->findItembyType(3);
+		// If found, activate it then send a command to drop it
+		if (itm) {
+			sCMItem ii;
+			ii.id = itm->id;
+			ii.active = 1;
+			ii.type = itm->Type;
+			this->Winsock->SendData(cmItemDrop,(char *)&ii,sizeof(ii));
+		}
+	}
+
+	// KEY: h or NUMPAD8
+	else if ((wParam == 72) || (wParam == 104) ) {
+		// Get a health pack from the user's inventory
+		CItem *itm = this->Inventory->findItembyType(2);
+		// If found, send a command to use it
+		if (itm) {
+			this->Winsock->SendData(cmMedKit, (char *)&itm->id, sizeof(itm->id));
+		}
+	}
+
+	// KEY: b or NUMPAD4 
+	else if ((wParam == 68) || (wParam == 100)) {
+		// Drop the selected item
+		this->Inventory->Drop();
+	}
+
+	// KEY: [
+	else if ((wParam == 123) || (wParam == 91)) {
+		//Refresh Data
+		//this->Player[this->Winsock->MyIndex]->timeFrozen = this->Timer->GetTime() + 60000;
+		//this->Player[this->Winsock->MyIndex]->isFrozen = 1;
+	}
+
+	// KEY: ]
+	else if ((wParam == 93) || wParam == 125) {
+		// Reload Surfaces
+		if (this->Tick > this->Input->lastRefresh) {
+			this->Input->lastRefresh = this->Tick + TIMER_RELOAD_SURFACES;
+			this->DDraw->LoadSurfaces();
+			this->DDraw->DirectDraw->RestoreAllSurfaces();
+			this->InGame->AppendChat("The game's surfaces were reloaded.", RGB(255, 165, 0));
+		}
+	}
+
+	// KEY: m or NUMPAD-
+	else if ((wParam == 77) || (wParam == 109)) {
+		// Center the player, freeze the player
+		this->Draw->PlayerOffsetX = 276;
+		this->Draw->PlayerOffsetY = 276;
+		this->Player[this->Winsock->MyIndex]->isMoving = 0;
+
+		// Toggle the minimap, and request it if it is now open
+		this->InGame->ShowMap = 1 - this->InGame->ShowMap;
+		if (this->InGame->ShowMap == 1) {
+			this->Winsock->SendData(cmMiniMap, " ");
+		}
+	}
+
+	// KEY: p or F1
+	else if ((wParam == 80) || (wParam == 112)) {
+		// Trigger the points button
+		this->Input->PointsButton();
+	}
+}

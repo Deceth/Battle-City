@@ -143,6 +143,10 @@ public:
 	void Restructure();
 
 	void Cycle();
+	void handleKey(WPARAM wParam);
+	void handleChatKey(WPARAM wParam);
+	void handleGameKey(WPARAM wParam);
+
 	int running;
 	int State;
 	HWND hWnd;
