@@ -1,6 +1,52 @@
 #include "CBuilding.h"
 
 /***************************************************************
+ * Constructor:	CBuilding
+ *
+ * @param x
+ * @param y
+ * @param type
+ * @param City
+ * @param id
+ * @param Server
+ **************************************************************/
+CBuilding::CBuilding(int x, int y, int type, int City, unsigned short id, CServer *Server) {
+	p = Server;
+	prev = 0;
+	next = 0;
+	this->x = x;
+	this->y = y;
+	this->City = City;
+	this->type = type;
+	this->id = id;
+
+	this->pop = 0;
+	this->AttachedID = 0;
+	this->AttachedID2 = 0;
+	this->AttachedPop = 0;
+	this->AttachedPop2 = 0;
+
+	this->ProduceTick = 0;
+	this->CashTick = 0;
+	this->PopulationTick = 0;
+	this->MoneyTick = 0;
+	this->ResearchTick = 0;
+}
+
+/***************************************************************
+ * Destroyer:	CBuilding
+ *
+ **************************************************************/
+CBuilding::~CBuilding() {
+	// Tell the surrounding buildings to bypass this building in the list
+	if (next) {
+		next->prev = prev;
+	}
+	if (prev) {
+		prev->next = next;
+	}
+}
+/***************************************************************
  * Function:	findBuilding
  *
  * @param id
@@ -295,53 +341,6 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	
 	// Return the linked list pointer
 	return buildings;
-}
-
-/***************************************************************
- * Constructor:	CBuilding
- *
- * @param x
- * @param y
- * @param type
- * @param City
- * @param id
- * @param Server
- **************************************************************/
-CBuilding::CBuilding(int x, int y, int type, int City, unsigned short id, CServer *Server) {
-	p = Server;
-	prev = 0;
-	next = 0;
-	this->x = x;
-	this->y = y;
-	this->City = City;
-	this->type = type;
-	this->id = id;
-
-	this->pop = 0;
-	this->AttachedID = 0;
-	this->AttachedID2 = 0;
-	this->AttachedPop = 0;
-	this->AttachedPop2 = 0;
-
-	this->ProduceTick = 0;
-	this->CashTick = 0;
-	this->PopulationTick = 0;
-	this->MoneyTick = 0;
-	this->ResearchTick = 0;
-}
-
-/***************************************************************
- * Destroyer:	CBuilding
- *
- **************************************************************/
-CBuilding::~CBuilding() {
-	// Tell the surrounding buildings to bypass this building in the list
-	if (next) {
-		next->prev = prev;
-	}
-	if (prev) {
-		prev->next = next;
-	}
 }
 
 /***************************************************************
