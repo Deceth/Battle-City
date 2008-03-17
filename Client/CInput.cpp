@@ -60,33 +60,36 @@ void CInput::ProcessKeys(char buffer[256]) {
 	/************************************************
 	 * Tab
 	 ************************************************/
-	// If the user was previously holding TAB, see if TAB is still being held
-	if (Tab == 1) {
-		if (KEYDOWN(buffer, DIK_TAB)) {
-			Tab = 1;
-		}
-		else {
-			Tab = 0;
-		}
-	}
-	// Else, if user is now holding TAB, center the screen
-	else {
-		if (KEYDOWN(buffer, DIK_TAB)) {
-			Tab = 1;
-		}
-		else {
-			Tab = 0;
-		}
-		if (Tab == 1) {
-			p->Draw->PlayerOffsetX = (p->Draw->MaxMapX / 2) - 24;
-			p->Draw->PlayerOffsetY = (p->Draw->MaxMapY / 2) - 24;
-		}
-	}
+//	// Only allow Tab if not in 1024 mode
+//	if( ! p->Options->resolution1024 ) {
 
-	// If showing the MiniMap, center the screen
-	if (p->InGame->ShowMap) {
-		Tab = 0;
-	}
+		// If the user was previously holding TAB, see if TAB is still being held
+		if (Tab == 1) {
+			if (KEYDOWN(buffer, DIK_TAB)) {
+				Tab = 1;
+			}
+			else {
+				Tab = 0;
+			}
+		}
+		// Else, if user is now holding TAB, center the screen
+		else {
+			if (KEYDOWN(buffer, DIK_TAB)) {
+				Tab = 1;
+			}
+			else {
+				Tab = 0;
+			}
+			if (Tab == 1) {
+				p->Draw->resetPlayerOffset();
+			}
+		}
+	
+		// If showing the MiniMap, center the screen
+		if (p->InGame->ShowMap) {
+			Tab = 0;
+		}
+//	}
 
 	int didTurn = 0;
 
@@ -207,127 +210,133 @@ void CInput::ProcessKeys(char buffer[256]) {
 	}
 
 	/************************************************
-	 * Switching Tanks
+	 * If Player Is Not Chatting
 	 ************************************************/
-	// Keys: 0-9
-	if (KEYDOWN(buffer, DIK_0)) {
-		this->ChangeTank(0);
-	}
-	else if (KEYDOWN(buffer, DIK_1)) {
-		this->ChangeTank(1);
-	}
-	else if (KEYDOWN(buffer, DIK_2)) {
-		this->ChangeTank(2);
-	}
-	else if (KEYDOWN(buffer, DIK_3)) {
-		this->ChangeTank(3);
-	}
-	else if (KEYDOWN(buffer, DIK_4)) {
-		this->ChangeTank(4);
-	}
-	else if (KEYDOWN(buffer, DIK_5)) {
-		this->ChangeTank(5);
-	}
-	else if (KEYDOWN(buffer, DIK_6)) {
-		this->ChangeTank(6);
-	}
-	else if (KEYDOWN(buffer, DIK_7)) {
-		this->ChangeTank(7);
-	}
-	else if (KEYDOWN(buffer, DIK_8)) {
-		this->ChangeTank(8);
-	}
-	else if (KEYDOWN(buffer, DIK_9)) {
-		this->ChangeTank(9);
-	}
+	if (p->InGame->IsChatting == 0) {
 
-	/************************************************
-	 * Firing
-	 ************************************************/
-	// Key: SHIFT (and user isn't chatting)
-	if ((KEYDOWN(buffer, DIK_LSHIFT) || KEYDOWN(buffer, DIK_RSHIFT)) && (p->InGame->IsChatting == 0)) {
+		/************************************************
+		 * Switching Tanks
+		 ************************************************/
+		// Keys: 0-9
+		if (KEYDOWN(buffer, DIK_0)) {
+			this->ChangeTank(0);
+		}
+		else if (KEYDOWN(buffer, DIK_1)) {
+			this->ChangeTank(1);
+		}
+		else if (KEYDOWN(buffer, DIK_2)) {
+			this->ChangeTank(2);
+		}
+		else if (KEYDOWN(buffer, DIK_3)) {
+			this->ChangeTank(3);
+		}
+		else if (KEYDOWN(buffer, DIK_4)) {
+			this->ChangeTank(4);
+		}
+		else if (KEYDOWN(buffer, DIK_5)) {
+			this->ChangeTank(5);
+		}
+		else if (KEYDOWN(buffer, DIK_6)) {
+			this->ChangeTank(6);
+		}
+		else if (KEYDOWN(buffer, DIK_7)) {
+			this->ChangeTank(7);
+		}
+		else if (KEYDOWN(buffer, DIK_8)) {
+			this->ChangeTank(8);
+		}
+		else if (KEYDOWN(buffer, DIK_9)) {
+			this->ChangeTank(9);
+		}
 
-		// If the firing timer allows another shot (and user isn't frozen)
-		if ((p->Tick > this->LastShot) && (p->Player[me]->isFrozen == 0)) {
+		/************************************************
+		 * Firing
+		 ************************************************/
+		// Key: SHIFT (and user isn't chatting)
+		if ((KEYDOWN(buffer, DIK_LSHIFT) || KEYDOWN(buffer, DIK_RSHIFT))) {
 
-			// Weapon: ADMIN
-			if (p->Player[me]->isAdmin == 2) {
-				this->LastShot = p->Tick + TIMER_SHOOT_ADMIN;
+			// If the firing timer allows another shot (and user isn't frozen)
+			if ((p->Tick > this->LastShot) && (p->Player[me]->isFrozen == 0)) {
 
-				float fDir = (float)-p->Player[me]->Direction+32;
-				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-				p->Explode->newExplosion(FlashX, FlashY, 3);
-				int adminShot = 2;
-				p->Bullet->newBullet(FlashX, FlashY, adminShot, p->Player[me]->Direction, me);
-				p->Sound->PlayWav(sTurretfire,2);
-				sCMShot shot;
-				shot.dir = p->Player[me]->Direction;
-				shot.type = adminShot;
-				shot.x = FlashX;
-				shot.y = FlashY;
-				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+				// Weapon: ADMIN
+				if (p->Player[me]->isAdmin == 2) {
+					this->LastShot = p->Tick + TIMER_SHOOT_ADMIN;
+
+					float fDir = (float)-p->Player[me]->Direction+32;
+					int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+					int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+					p->Explode->newExplosion(FlashX, FlashY, 3);
+					int adminShot = 2;
+					p->Bullet->newBullet(FlashX, FlashY, adminShot, p->Player[me]->Direction, me);
+					p->Sound->PlayWav(sTurretfire,2);
+					sCMShot shot;
+					shot.dir = p->Player[me]->Direction;
+					shot.type = adminShot;
+					shot.x = FlashX;
+					shot.y = FlashY;
+					p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+				}
+
+				// Weapon: ROCKET (and user isn't moving)
+				else if (p->InGame->HasRocket && (p->Player[me]->isMoving == 0)) {
+					this->LastShot = p->Tick + TIMER_SHOOT_ROCKET;
+
+					float fDir = (float)-p->Player[me]->Direction+32;
+					int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+					int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+					p->Explode->newExplosion(FlashX, FlashY, 3);
+					p->Bullet->newBullet(FlashX, FlashY, 1, p->Player[p->Winsock->MyIndex]->Direction, me);
+					p->Sound->PlayWav(sBigturret,2);
+					sCMShot shot;
+					shot.dir = p->Player[me]->Direction;
+					shot.type = 1;
+					shot.x = FlashX;
+					shot.y = FlashY;
+					p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+				}
+
+				// Weapon: LASER
+				else if (p->InGame->HasLaser) {
+					this->LastShot = p->Tick + TIMER_SHOOT_LASER;
+
+					float fDir = (float)-p->Player[me]->Direction+32;
+					int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+					int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+					p->Explode->newExplosion(FlashX, FlashY, 3);
+					p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[me]->Direction, me);
+					p->Sound->PlayWav(sLaser,1);
+					sCMShot shot;
+					shot.dir = p->Player[me]->Direction;
+					shot.type = 0;
+					shot.x = FlashX;
+					shot.y = FlashY;
+					p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+				}
+				
+				// Ability to shoot laser even without having the item.
+				else {
+					this->LastShot = p->Tick + TIMER_SHOOT_LASER;
+
+					float fDir = (float)-p->Player[me]->Direction+32;
+					int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+					int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+					p->Explode->newExplosion(FlashX, FlashY, 3);
+					p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[me]->Direction, me);
+					p->Sound->PlayWav(sLaser,1);
+					sCMShot shot;
+					shot.dir = p->Player[me]->Direction;
+					shot.type = 0;
+					shot.x = FlashX;
+					shot.y = FlashY;
+					p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+				}
+
+				/* Commented out while testing ability to always have laser
+				// Weapon: NONE (and Newbie Tips are on)
+				else if (p->Options->newbietips == 1) {
+					p->InGame->NewbieTip = "You cannot fire until you pick up a Laser or Cougar Missle.";
+				}*/
 			}
-
-			// Weapon: ROCKET (and user isn't moving)
-			else if (p->InGame->HasRocket && (p->Player[me]->isMoving == 0)) {
-				this->LastShot = p->Tick + TIMER_SHOOT_ROCKET;
-
-				float fDir = (float)-p->Player[me]->Direction+32;
-				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-				p->Explode->newExplosion(FlashX, FlashY, 3);
-				p->Bullet->newBullet(FlashX, FlashY, 1, p->Player[p->Winsock->MyIndex]->Direction, me);
-				p->Sound->PlayWav(sBigturret,2);
-				sCMShot shot;
-				shot.dir = p->Player[me]->Direction;
-				shot.type = 1;
-				shot.x = FlashX;
-				shot.y = FlashY;
-				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
-			}
-
-			// Weapon: LASER
-			else if (p->InGame->HasLaser) {
-				this->LastShot = p->Tick + TIMER_SHOOT_LASER;
-
-				float fDir = (float)-p->Player[me]->Direction+32;
-				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-				p->Explode->newExplosion(FlashX, FlashY, 3);
-				p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[me]->Direction, me);
-				p->Sound->PlayWav(sLaser,1);
-				sCMShot shot;
-				shot.dir = p->Player[me]->Direction;
-				shot.type = 0;
-				shot.x = FlashX;
-				shot.y = FlashY;
-				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
-			}
-			
-			// Ability to shoot laser even without having the item.
-			else {
-				this->LastShot = p->Tick + TIMER_SHOOT_LASER;
-
-				float fDir = (float)-p->Player[me]->Direction+32;
-				int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-				int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-				p->Explode->newExplosion(FlashX, FlashY, 3);
-				p->Bullet->newBullet(FlashX, FlashY, 0, p->Player[me]->Direction, me);
-				p->Sound->PlayWav(sLaser,1);
-				sCMShot shot;
-				shot.dir = p->Player[me]->Direction;
-				shot.type = 0;
-				shot.x = FlashX;
-				shot.y = FlashY;
-				p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
-			}
-
-			/* Commented out while testing ability to always have laser
-			// Weapon: NONE (and Newbie Tips are on)
-			else if (p->Options->newbietips == 1) {
-				p->InGame->NewbieTip = "You cannot fire until you pick up a Laser or Cougar Missle.";
-			}*/
 		}
 	}
 }
@@ -380,6 +389,14 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 		return;
 	}
 
+	int me = p->Winsock->MyIndex;
+	int myX = (int)p->Player[me]->X / 48;
+	int myY = (int)p->Player[me]->Y / 48;
+	int tX = p->Input->LastMouseX / 48;
+	int tY = p->Input->LastMouseY / 48;
+	int Xloc = myX - tX + p->Draw->clickOffsetX;
+	int Yloc = myY - tY + p->Draw->clickOffsetY;
+
 	/************************************************
 	 * Button: LEFT
 	 ************************************************/
@@ -387,20 +404,6 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 
 		// If the player is building/demolishing,
 		if (p->InGame->IsBuilding != 0) {
-			int Xloc, Yloc;
-
-			int me = p->Winsock->MyIndex;
-			int mYX = (int)p->Player[me]->X / 48;
-			int mYY = (int)p->Player[me]->Y / 48;
-			int tX = p->Input->LastMouseX / 48;
-			int tY = p->Input->LastMouseY / 48;
-			/*1024
-			Xloc = mYX - tX + 7;
-			Yloc = mYY - tY + 7;
-			*/
-
-			Xloc = mYX - tX + 6;
-			Yloc = mYY - tY + 6;
 
 			/************************************************
 			* Demolishing
@@ -410,35 +413,32 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 				// If the demolish timer is up,
 				if (p->Tick > DemolishTimer) {
 					CBuilding *TestBuilding;
-					int foundbuilding = 0;
 
 					// Check whether there is a building under the cursor
 					for (int j = 0; j < 3; j++) {
 						for (int k = 0; k < 3; k++) {
-							if (foundbuilding == 0)  {
-								TestBuilding = p->Build->findBuildingbyLocation(Xloc + j, Yloc + k);
+							TestBuilding = p->Build->findBuildingbyLocation((Xloc-1) + j, (Yloc-1) + k);
 
-								// If there is a building under the cursor,
-								if (TestBuilding) {
-									
-									// Tell the server to demolish the building
-									sCMDemolish d_packet;
- 									d_packet.id = TestBuilding->id;
-									p->Winsock->SendData(cmDemolish,(char *)&d_packet,sizeof(d_packet));
-									NeedRelease = 1;
+							// If there is a building under the cursor,
+							if (TestBuilding) {
+								
+								// Tell the server to demolish the building
+								sCMDemolish d_packet;
+								d_packet.id = TestBuilding->id;
+								p->Winsock->SendData(cmDemolish,(char *)&d_packet,sizeof(d_packet));
+								NeedRelease = 1;
 
-									// Reset the demolish timer
-									if (p->Tick - DemolishTimer < 1000) {
-										DemolishTimer = p->Tick + TIMER_DEMOLISH;
-									}
-									else {
-										DemolishTimer = p->Tick;
-									}
-
-									// Save the mouse state and return
-									this->endMouseDown(mouse_state);
-									return;
+								// Reset the demolish timer
+								if (p->Tick - DemolishTimer < 1000) {
+									DemolishTimer = p->Tick + TIMER_DEMOLISH;
 								}
+								else {
+									DemolishTimer = p->Tick;
+								}
+
+								// Save the mouse state and return
+								this->endMouseDown(mouse_state);
+								return;
 							}
 						}
 					}
@@ -499,8 +499,8 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 
 			// If the player clicked inside the build menu,
 			if (X > p->Draw->BuildMenuX-26 && X < p->Draw->BuildMenuX+180 && Y < p->Draw->BuildMenuY+16) {
-				p->Draw->PlayerOffsetX = (p->Draw->MaxMapX / 2) - 24;
-				p->Draw->PlayerOffsetY = (p->Draw->MaxMapY / 2) - 24;
+				p->Draw->resetPlayerOffset();
+
 				int Ym = p->Draw->BuildMenuY+16;
 
 				// If the player clicked DEMOLISH,
@@ -754,25 +754,14 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 		* Map
 		************************************************/
 		if (X >= 0 && X <= p->Draw->MaxMapX && Y >= 0 && Y <= p->Draw->MaxMapY) {
-			p->Draw->PlayerOffsetX = (p->Draw->MaxMapX / 2) - 24;
-			p->Draw->PlayerOffsetY = (p->Draw->MaxMapY / 2) - 24;
-
-			int me = p->Winsock->MyIndex;
-			int mYX = (int)p->Player[me]->X / 48;
-			int mYY = (int)p->Player[me]->Y / 48;
-			int tX = p->Input->LastMouseX / 48;
-			int tY = p->Input->LastMouseY / 48;
-			int Xloc = mYX - tX + 6;
-			int Yloc = mYY - tY + 6;
+			p->Draw->resetPlayerOffset();
+			Rect rct1, rct2;
 
 			/************************************************
 			* Click Player
 			************************************************/
 			// Check whether there is a player under the cursor
-			int foundplayer = 0;
 			for (int i = 0; i < MaxPlayers; i++) {
-				Rect rct1, rct2;
-
 				rct1.X = (int)(p->Player[me]->X - p->Player[i]->X + p->Draw->PlayerOffsetX);
 				rct1.Y = (int)(p->Player[me]->Y - p->Player[i]->Y + p->Draw->PlayerOffsetY);
 				rct1.w = 48;
@@ -806,25 +795,22 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			************************************************/
 			// Check whether there is a building under the cursor,
 			CBuilding *TestBuilding;
-			int foundbuilding = 0;
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < 3; k++) {
-					if (foundbuilding == 0) {
-						TestBuilding = p->Build->findBuildingbyLocation(Xloc + j, Yloc + k);
+					TestBuilding = p->Build->findBuildingbyLocation((Xloc-1) + j, (Yloc-1) + k);
 
-						// If there is a building under the cursor,
-						if (TestBuilding) {
-							
-							// Ask the server for the building's city's data
-							char packet[2];
-							packet[0] = TestBuilding->City;
-							packet[1] = 0;
-							p->Winsock->SendData(cmRightClickCity, packet, sizeof(packet));
+					// If there is a building under the cursor,
+					if (TestBuilding) {
+						
+						// Ask the server for the building's city's data
+						char packet[2];
+						packet[0] = TestBuilding->City;
+						packet[1] = 0;
+						p->Winsock->SendData(cmRightClickCity, packet, sizeof(packet));
 
-							// Save the mouse state and return
-							this->endMouseDown(mouse_state);
-							return;
-						}
+						// Save the mouse state and return
+						this->endMouseDown(mouse_state);
+						return;
 					}
 				}
 			}
@@ -842,12 +828,11 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 				p->Draw->BuildMenuY = Y;
 
 				// Force build menu to be in inside screen
-				// Will change for 1024
 				if (X < 16) {
 					p->Draw->BuildMenuX = 16;
 				}
-				if (Y > 660) {
-					p->Draw->BuildMenuY = 660;
+				if (Y > (p->ResolutionY - 16)) {
+					p->Draw->BuildMenuY = p->ResolutionY - 16;
 				}
 
 				// Save the mouse state and return

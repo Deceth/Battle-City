@@ -1,11 +1,8 @@
 #include "CGame.h"
 #include "NetMessages.h"
 
-CGame::CGame()
-{
-	ResolutionX = 800;
-	ResolutionY = 600;
-
+CGame::CGame() {
+	
 	Login = new CLogin(this);
 	NewAccount = new CNew(this);
 	Personality = new CPersonality(this);
@@ -39,8 +36,7 @@ CGame::CGame()
 
 	Timer = new CTime();
 
-	for (int i = 0; i < MaxPlayers; i++)
-	{
+	for (int i = 0; i < MaxPlayers; i++) {
 		Player[i] = new CPlayer(this, i);
 	}
 
@@ -50,10 +46,20 @@ CGame::CGame()
 	Tick = 0;
 	TimePassed = 0;
 	lastTick = 0;
+
+	// Load the options so we know the resolution to use
+	Options->LoadOptions();
+	if (this->Options->resolution1024) {
+		ResolutionX = 1024;
+		ResolutionY = 768;
+	}
+	else {
+		ResolutionX = 800;
+		ResolutionY = 600;
+	}
 }
 
-CGame::~CGame()
-{
+CGame::~CGame() {
 	running = 0;
 
 	delete Login;
@@ -89,8 +95,7 @@ CGame::~CGame()
 
 	delete Timer;
 
-	for (int i = 0; i < MaxPlayers; i++)
-	{
+	for (int i = 0; i < MaxPlayers; i++) {
 		delete Player[i];
 	}
 
@@ -98,8 +103,7 @@ CGame::~CGame()
 	DDraw->~CDDraw();
 }
 
-void CGame::Init(HWND hWnd, HINSTANCE hInst)
-{
+void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	this->hWnd = hWnd;
 	this->hInst = hInst;
 
@@ -145,24 +149,27 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst)
 
 	Timer->Initialize();
 
-	Options->LoadOptions();
-
 	#ifndef _DEBUG
 		Winsock->Init("72.167.115.50");
+//		Winsock->Init("localhost");
 	#else
 		Winsock->Init("72.167.115.50");
+//		Winsock->Init("localhost");
 	#endif
 
-	if (Options->fullscreen == 0)
+	if (Options->fullscreen == 0) {
 		DDraw->InitWindowed(hWnd);
-	else
+	}
+	else {
 		DDraw->InitFullscreen(hWnd);
+	}
 
 	DDraw->Clear();
-		DDraw->Draw(DDraw->imgCompany, 400, 60, 320, 240);
-		DDraw->Draw(DDraw->imgCompany, 80, 300, 320, 240);
-		DDraw->Draw(DDraw->imgBCLogo, 80, 60, 320, 240);
-		DDraw->Draw(DDraw->imgBCLogo, 400, 300, 320, 240);
+	this->DDraw->Draw(this->DDraw->imgCompany, (this->ResolutionX/2), (this->ResolutionY/2)-240, 320, 240);
+	this->DDraw->Draw(this->DDraw->imgCompany, (this->ResolutionX/2)-320, (this->ResolutionY/2), 320, 240);
+	this->DDraw->Draw(this->DDraw->imgBCLogo, (this->ResolutionX/2)-320, (this->ResolutionY/2)-240, 320, 240);
+	this->DDraw->Draw(this->DDraw->imgBCLogo, (this->ResolutionX/2), (this->ResolutionY/2), 320, 240);
+
 	DDraw->Flip();
 
 	Dialog->Start();
@@ -182,17 +189,14 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst)
 	FILE *file;
 	file = fopen("imgHealthy.bmp","r");
 
-	if (file)
-	{
+	if (file) {
 		fread(&kicked, sizeof(kicked), 1, file);
 		fclose(file);
 
-		if (GetTickCount() < kicked.tick || GetTickCount() > kicked.tick + 600000)
-		{
+		if (GetTickCount() < kicked.tick || GetTickCount() > kicked.tick + 600000) {
 			remove("imgHealthy.bmp");
 		}
-		else
-		{
+		else {
 			Winsock->Socket = 0;
 			MessageBox(hWnd, "You have been kicked within 10 minutes ago.  You must wait before logging on again.", "BattleCity", 0);
 			SendMessage(hWnd, WM_CLOSE, 0, 0);
@@ -206,8 +210,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst)
 	char szReport[96];
 	memset(szReport, 0, sizeof(szReport));
 	test.ReportHash(szReport, CSHA1::REPORT_HEX);
-	if (strcmp(szReport, "74 2E 00 1A 48 05 AD A1 A8 8B E1 5E 1E 0F 75 1A 82 B6 E8 B7") != 0)
-	{
+	if (strcmp(szReport, "74 2E 00 1A 48 05 AD A1 A8 8B E1 5E 1E 0F 75 1A 82 B6 E8 B7") != 0) {
 		Winsock->Socket = 0;
 		MessageBox(hWnd, "Your map.dat is corrupted.  Please redownload the client at battlecity.looble.com!", "BattleCity", 0);
 		SendMessage(hWnd, WM_CLOSE, 0, 0);
@@ -216,8 +219,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst)
 	/////////////////////////////////////////////////
 }
 
-string CGame::ReturnUniqID()
-{
+string CGame::ReturnUniqID() {
 	char UniqID[50];
 	memset(UniqID, 0, 50);
 	GetPrivateProfileString("UniqID", "ID", "0", UniqID, 50, "froogle");
@@ -517,9 +519,9 @@ void CGame::handleGameKey(WPARAM wParam) {
 
 	// KEY: m or NUMPAD-
 	else if ((wParam == 77) || (wParam == 109)) {
+
 		// Center the player, freeze the player
-		this->Draw->PlayerOffsetX = 276;
-		this->Draw->PlayerOffsetY = 276;
+		this->Draw->resetPlayerOffset();
 		this->Player[this->Winsock->MyIndex]->isMoving = 0;
 
 		// Toggle the minimap, and request it if it is now open

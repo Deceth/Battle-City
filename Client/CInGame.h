@@ -81,6 +81,8 @@ public:
 	void ClearSector(int SectorX, int SectorY);
 	void PrintWhoData();
 	void PrintFinanceReport();
+	int getGrossIncome();
+
 private:
 	CGame *p;
 protected:

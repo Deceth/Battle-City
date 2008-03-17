@@ -3,21 +3,6 @@
 
 #define VERSION "3.4.8"
 
-const unsigned char MaxPlayers = 63;
-const unsigned char SectorSize = 16;
-const unsigned char MaxSectors = (512 / SectorSize);
-const short int RadarSize = 2400;
-
-const int COST_BUILDING = 500000;
-const int DISTANCE_MAX_FROM_CC = 1400;
-const int TIMER_CHANGE_TANK = 1000;
-const int TIMER_DEMOLISH = 3000;
-const int TIMER_RELOAD_SURFACES = 3000;
-const int TIMER_RESPAWN = 10000;
-const int TIMER_SHOOT_ADMIN = 50;
-const int TIMER_SHOOT_LASER = 650;
-const int TIMER_SHOOT_ROCKET = 650;
-
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <windows.h>
@@ -30,13 +15,50 @@ const int TIMER_SHOOT_ROCKET = 650;
 #include <sstream>
 #include <iostream> 
 #include <fstream>
-using namespace std;
-
 #define DIRECTINPUT_VERSION 0X0800
 #include <ddraw.h>
 #include <dinput.h>
-
+using namespace std;
 #include "resource.h"
+
+
+const unsigned char MaxPlayers = 63;
+const unsigned char SectorSize = 16;
+const unsigned char MaxSectors = (512 / SectorSize);
+const short int RadarSize = 2400;
+
+const COLORREF COLOR_BLUE = RGB(0,0,255);
+const COLORREF COLOR_GRAY = RGB(135, 135, 135);
+const COLORREF COLOR_GREEN = RGB(0,255,0);
+const COLORREF COLOR_RED = RGB(255,0,0);
+const COLORREF COLOR_TRANSPARENCY = RGB(255,0,255);
+const COLORREF COLOR_YELLOW = RGB(255, 215, 0);
+const COLORREF COLOR_WHITE = RGB(255,255,255);
+
+const COLORREF COLOR_ADMIN_CHAT = COLOR_YELLOW;
+const COLORREF COLOR_ADMIN_NAME = COLOR_YELLOW;
+const COLORREF COLOR_DEAD_CHAT = COLOR_GRAY;
+const COLORREF COLOR_DEAD_NAME = COLOR_GRAY;
+const COLORREF COLOR_ENEMY_CHAT = COLOR_RED;
+const COLORREF COLOR_ENEMY_NAME = COLOR_RED;
+const COLORREF COLOR_LAGGING_NAME = COLOR_BLUE;
+const COLORREF COLOR_TEAM_CHAT = COLOR_GREEN;
+const COLORREF COLOR_TEAM_NAME = COLOR_GREEN;
+
+const int COST_BUILDING = 500000;
+const int DISTANCE_MAX_FROM_CC = 1400;
+const int MAP_SQUARE_LAVA = 1;
+const int MAP_SQUARE_ROCK = 2;
+const int TIMER_CHANGE_TANK = 1000;
+const int TIMER_DEMOLISH = 3000;
+const int TIMER_RELOAD_SURFACES = 3000;
+const int TIMER_RESPAWN = 10000;
+const int TIMER_SHOOT_ADMIN = 50;
+const int TIMER_SHOOT_LASER = 650;
+const int TIMER_SHOOT_ROCKET = 650;
+
+//const int TCPPORT = 5643;
+const int TCPPORT = 6643;
 
 #include "CLogin.h"
 #include "CNew.h"

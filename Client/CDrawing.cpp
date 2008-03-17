@@ -1,28 +1,28 @@
 #include "CGame.h"
 
-CDrawing::CDrawing(CGame *game)
-{
+/***************************************************************
+ * Constructor
+ *
+ * @param game
+ **************************************************************/
+CDrawing::CDrawing(CGame *game) {
 	p = game;
-
-	PlayerOffsetX = 276;
-	PlayerOffsetY = 276;
-	MaxMapX = 600;
-	MaxMapY = 600;
-
-	arrowTick = 0;
-	lastArrow = 0;
-
-	BuildMenuX = 0;
-	BuildMenuY = 0;
+	this->ClearDrawing();
 }
 
-CDrawing::~CDrawing()
-{
+/***************************************************************
+ * Destructor
+ *
+ **************************************************************/
+CDrawing::~CDrawing() {
 
 }
 
-void CDrawing::DrawGame()
-{
+/***************************************************************
+ * Function:	DrawGame
+ *
+ **************************************************************/
+void CDrawing::DrawGame() {
 	this->DrawMap();
 	this->DrawBuildings();
 	this->DrawBullets();
@@ -35,24 +35,66 @@ void CDrawing::DrawGame()
 	this->DrawChat();
 	this->DrawInventory();
 
-	if (p->Player[p->Winsock->MyIndex]->isMayor)
-	{
-		if (p->InGame->ShowBuildMenu) this->DrawBuildMenu();
-		if (p->InGame->IsBuilding != 0) this->DrawBuildPlacement();
+	// If the player is Mayor,
+	if (p->Player[p->Winsock->MyIndex]->isMayor) {
+
+		// If the build menu is on, draw the build menu
+		if (p->InGame->ShowBuildMenu) {
+			this->DrawBuildMenu();
+		}
+
+		// If the player has a building or demolish on the cursor, draw the building/demolish
+		if (p->InGame->IsBuilding != 0) {
+			this->DrawBuildPlacement();
+		}
 	}
 
-	if (p->InGame->ShowMap == 1)
-	{
+	// If the minimap is on, draw the minimap
+	if (p->InGame->ShowMap == 1) {
 		this->DrawMiniMap();
 	}
 }
 
-void CDrawing::ClearDrawing()
-{
-	PlayerOffsetX = 276;
-	PlayerOffsetY = 276;
-	MaxMapX = 600;
-	MaxMapY = 600;
+/***************************************************************
+ * Function:	ClearDrawing
+ *
+ **************************************************************/
+void CDrawing::ClearDrawing() {
+
+	// Set the map width and height based on resolution
+	this->MaxMapX = p->ResolutionX - 200;
+	this->MaxMapY = p->ResolutionY;
+
+	// 1024
+	if (p->Options->resolution1024) {
+		this->defaultPlayerOffsetX = (this->MaxMapX / 2) - 24;
+		this->defaultPlayerOffsetY = (this->MaxMapY / 2) - 24;
+		this->groundTilesToDraw = 8;
+		this->tilesToDraw = 18;
+		this->demoCursorOffsetX = 4;
+		this->demoCursorOffsetY = -12;
+		this->buildingCursorOffsetX = this->demoCursorOffsetX - 48;
+		this->buildingCursorOffsetY = this->demoCursorOffsetY - 48 - 12;
+		this->minimapOffsetX = 30;
+		this->minimapOffsetY = 25;
+		this->clickOffsetX = 9;
+		this->clickOffsetY = 9;
+	}
+	// 800
+	else {
+		this->defaultPlayerOffsetX = (this->MaxMapX / 2) - 24;
+		this->defaultPlayerOffsetY = (this->MaxMapY / 2) - 24;
+		this->groundTilesToDraw = 6;
+		this->tilesToDraw = 14;
+		this->demoCursorOffsetX = -12;
+		this->demoCursorOffsetY = 4;
+		this->buildingCursorOffsetX = this->demoCursorOffsetX - 48;
+		this->buildingCursorOffsetY = this->demoCursorOffsetY - 48 - 16;
+		this->minimapOffsetX = 7;
+		this->minimapOffsetY = 7;
+		this->clickOffsetX = 7;
+		this->clickOffsetY = 7;
+	}
 
 	arrowTick = 0;
 	lastArrow = 0;
@@ -61,322 +103,425 @@ void CDrawing::ClearDrawing()
 	BuildMenuY = 0;
 }
 
-void CDrawing::DrawMap()
-{
-	int i = 0; int j = 0;
+/***************************************************************
+ * Function:	DrawMap
+ *
+ **************************************************************/
+void CDrawing::DrawMap() {
 	int me = p->Winsock->MyIndex;
 	int offX = (int)p->Player[me]->X % 48;
 	int offY = (int)p->Player[me]->Y % 48;
 	int goffX = (int)p->Player[me]->X % 128;
 	int goffY = (int)p->Player[me]->Y % 128;
-	int mYX = (int)p->Player[me]->X / 48;
-	int mYY = (int)p->Player[me]->Y / 48;
+	int myX = (int)p->Player[me]->X / 48;
+	int myY = (int)p->Player[me]->Y / 48;
+	int i = 0;
+	int j = 0;
+	int tX;
+	int tY;
 
-	for (i = -1; i < 6; i++)
-	{
-		for (j = -1; j < 6; j++)
-		{
+	// Draw the ground tiles (groundTilesToDraw+1 total)
+	for (i = -1; i < this->groundTilesToDraw; i++) {
+		for (j = -1; j < this->groundTilesToDraw; j++) {
 			p->DDraw->Draw(p->DDraw->imgGround,128*i+goffX, 128*j+goffY, 144, 144, 0, 0, MaxMapX, MaxMapY);
 		}
 	}
 
-	for (i = -14; i < 15; i ++)
-	{
-		for (j = -14; j < 15; j ++)
-		{
-				int tX = mYX + i;
-				int tY = mYY + j;
-				if (tX > 0 && tY > 0 && tX <= 512 && tY <= 512)
-				{
-					if (p->InGame->HasSector[(tX / SectorSize)][(tY / SectorSize)] == 1)
-					{
-					if (p->Map->map[tX][tY] == 1)
-						{
-							p->DDraw->Draw(p->DDraw->imgLava, (mYX-tX)*48+PlayerOffsetX+offX, (mYY-tY)*48+PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);
-						}
-						else if (p->Map->map[tX][tY] == 2)
-						{
-							p->DDraw->Draw(p->DDraw->imgRocks, (mYX-tX)*48+PlayerOffsetX+offX, (mYY-tY)*48+PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
-						}
+	// Draw landscape and CC tiles on top of the ground (tilesToDraw^2 total)
+	for (i = -this->tilesToDraw; i<this->tilesToDraw; i++) {
+		for (j = -this->tilesToDraw; j<this->tilesToDraw; j++) {
+			tX = myX + i;
+			tY = myY + j;
+
+			// If the tile is on the map,
+			if (tX > 0 && tY > 0 && tX <= 512 && tY <= 512) {
+
+				// If the player has the sector loaded,
+				if (p->InGame->HasSector[(tX / SectorSize)][(tY / SectorSize)] == 1) {
+
+					// If the map square is Lava, draw Lava
+					if (p->Map->map[tX][tY] == MAP_SQUARE_LAVA) {
+						p->DDraw->Draw(p->DDraw->imgLava, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);
 					}
-					else
-					{
-						p->DDraw->DFillRect((mYX-tX)*48+PlayerOffsetX+offX, (mYY-tY)*48+PlayerOffsetY+offY, 48, 48);
+					// Else if the map square is Rock, draw Rock
+					else if (p->Map->map[tX][tY] == MAP_SQUARE_ROCK) {
+						p->DDraw->Draw(p->DDraw->imgRocks, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
 					}
 				}
-				else
-				{
-					p->DDraw->DFillRect((mYX-tX)*48+PlayerOffsetX+offX, (mYY-tY)*48+PlayerOffsetY+offY, 48, 48);
+
+				// Else (player doesn't have the sector), paint it black
+				else {
+					p->DDraw->DFillRect((myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48);
 				}
+			}
+
+			// Else (tile is off the map), paint it black
+			else {
+				p->DDraw->DFillRect((myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48);
+			}
 		}
 	}
 }
 
-void CDrawing::DrawPanel()
-{
+/***************************************************************
+ * Function:	DrawPanel
+ *
+ **************************************************************/
+void CDrawing::DrawPanel() {
+
+	// Draw the top half of the interface
 	p->DDraw->Draw(p->DDraw->imgInterface, MaxMapX, 0, 200, 430);
+
+	// Draw the bottom half of the interface
 	p->DDraw->Draw(p->DDraw->imgInterfaceBottom, MaxMapX, 430, 200, 170);
 
-	//Mayor
-	if (p->Player[p->Winsock->MyIndex]->isMayor)
-	{
+	//If the player is Mayor,
+	if (p->Player[p->Winsock->MyIndex]->isMayor) {
+
+		// Draw the money box
 		p->DDraw->Draw(p->DDraw->imgMoneyBox, MaxMapX+2, 224, 120, 19);
 
-		string output = CashFormat(p->InGame->Cash);
-
-		int GrossIncome = p->InGame->Income - p->InGame->Hospital - p->InGame->Items - p->InGame->Research;
-		if (GrossIncome < 0)
-		{
+		// If the city is losing money, draw moneyDown and the total in red
+		if (p->InGame->getGrossIncome() < 0) {
 			p->DDraw->Draw(p->DDraw->imgMoneyDown, MaxMapX+8, 225, 10, 14);
-			p->DDraw->DTextOut(MaxMapX+21, 226, output, RGB(255, 0, 0));
+			p->DDraw->DTextOut(MaxMapX+21, 226, CashFormat(p->InGame->Cash), COLOR_RED);
 		}
-		else
-		{
+		// Else (city is gaining money), draw moneyUp and the total in green
+		else {
 			p->DDraw->Draw(p->DDraw->imgMoneyUp, MaxMapX+8, 226, 10, 14);
-			p->DDraw->DTextOut(MaxMapX+21, 226, output.c_str(), RGB(0, 255, 0));
+			p->DDraw->DTextOut(MaxMapX+21, 226, CashFormat(p->InGame->Cash), COLOR_GREEN);
 		}
 
-		if (p->Personnel->ApplicantWaiting)
-		{
-			if (p->Personnel->ApplicantAnim == 1)
+		// If the mayor has an applicant,
+		if (p->Personnel->ApplicantWaiting) {
+
+			// Make the Staff button flash on a timer
+			if (p->Personnel->ApplicantAnim == 1) {
 				p->DDraw->Draw(p->DDraw->imgBtnStaff, MaxMapX + 147, 269, 42, 19);
-			if (p->Tick > p->Personnel->ApplicantTick)
-			{
+			}
+			if (p->Tick > p->Personnel->ApplicantTick) {
 				p->Personnel->ApplicantAnim = 1 - p->Personnel->ApplicantAnim;
 				p->Personnel->ApplicantTick = p->Tick + 500;
 			}
 		}
 	}
+
+	// Draw the Arrow
 	this->DrawArrow();
+
+	// Draw the Health,
 	this->DrawHealth();
 
+	// If the player is an admin,
+	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
 
-	//Admin
-	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2)
-	{
+		// Draw the staff button as the Admin button
 		p->DDraw->Draw(p->DDraw->imgBtnStaff, MaxMapX + 110, 460, 42, 19);
 	}
 
-	p->DDraw->DTextOut(MaxMapX + 12, 465, PanelLine1, RGB(255, 255, 255));
-	p->DDraw->DTextOut(MaxMapX + 12, 480, PanelLine2, RGB(255, 255, 255));
-	p->DDraw->DTextOut(MaxMapX + 12, 495, PanelLine3, RGB(255, 255, 255));
-	p->DDraw->DTextOut(MaxMapX + 12, 510, PanelLine4, RGB(255, 255, 255));
-	p->DDraw->DTextOut(MaxMapX + 12, 525, PanelLine5, RGB(255, 255, 255));
-	p->DDraw->DTextOut(MaxMapX + 12, 540, PanelLine6, RGB(255, 255, 255));
-	p->DDraw->DTextOut(MaxMapX + 12, 555, PanelLine7, RGB(255, 255, 255));
+	// Display Panel-Text lines 1 through 7
+	p->DDraw->DTextOut(MaxMapX + 12, 465, PanelLine1, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 480, PanelLine2, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 495, PanelLine3, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 510, PanelLine4, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 525, PanelLine5, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 540, PanelLine6, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 555, PanelLine7, COLOR_WHITE);
 }
 
-void CDrawing::DrawTank()
-{
-	if (p->Player[p->Winsock->MyIndex]->isDead == true)
-	{
-		p->DDraw->DTextOut(220, 270, "You have been blown up!", RGB(255, 255, 255));
-		p->DDraw->DTextOut(220, 285, "You will respawn in: ", RGB(255, 255, 255));
+/***************************************************************
+ * Function:	DrawTank
+ *
+ **************************************************************/
+void CDrawing::DrawTank() {
+	int me = p->Winsock->MyIndex;
+
+	// If the player is dead,
+	if (p->Player[me]->isDead == true) {
 		std::ostringstream convert;
 		int timeleft = (int)(((int)(p->InGame->timeDeath + TIMER_RESPAWN) - p->Tick) / 1000);
-		if (timeleft < 0) timeleft = 0;
+		if (timeleft < 0) {
+			timeleft = 0;
+		}
 		convert << timeleft;
-		p->DDraw->DTextOut(387, 285, convert.str(), RGB(255, 255, 255));
+
+		// Draw dead message and respawn timer
+		p->DDraw->DTextOut(220, 270, "You have been blown up!", COLOR_WHITE);
+		p->DDraw->DTextOut(220, 285, "You will respawn in: ", COLOR_WHITE);
+		p->DDraw->DTextOut(387, 285, convert.str(), COLOR_WHITE);
 		return;
 	}
 
-	int me = p->Winsock->MyIndex;
-	if (p->Player[me]->Tank > 0)
-		p->DDraw->Draw(p->DDraw->imgTanks, PlayerOffsetX, PlayerOffsetY, 48, 48, (p->Player[me]->Direction / 2) * 48, p->Player[me]->Tank * 48);
-	else
-		p->DDraw->Draw(p->DDraw->imgTanks, PlayerOffsetX, PlayerOffsetY, 48, 48, (p->Player[me]->Direction / 2) * 48, p->Player[me]->isMayor * 48);
+	// If the player has a custom tank, draw it
+	if (p->Player[me]->Tank > 0) {
+		p->DDraw->Draw(p->DDraw->imgTanks, this->PlayerOffsetX, this->PlayerOffsetY, 48, 48, (p->Player[me]->Direction / 2) * 48, p->Player[me]->Tank * 48);
+	}
+
+	// Else (standard tank), draw commando/mayor tank
+	else {
+		p->DDraw->Draw(p->DDraw->imgTanks, this->PlayerOffsetX, this->PlayerOffsetY, 48, 48, (p->Player[me]->Direction / 2) * 48, p->Player[me]->isMayor * 48);
+	}
 	
-	int NameWidth = (int)p->Player[me]->NameString.length() * p->DDraw->TextWidth;
-	if (p->Player[me]->Member) NameWidth -= 16;
-	NameWidth = NameWidth / 2;
+	// If Names are on,
+	if (p->Options->names) {
+		int nameCenterPoint = this->PlayerOffsetX + 16 + 3;
+		int townWidth = (int)p->Player[me]->TownString.length() * p->DDraw->TextWidth / 2;
+		int nameWidth = (int)p->Player[me]->NameString.length() * p->DDraw->TextWidth;
+		if (p->Player[me]->Member) {
+			nameWidth -= 16;
+		}
+		nameWidth = nameWidth / 2;
 
-	int CenterPoint = PlayerOffsetX + 16 + 3;
-	if (p->Options->names)
-	{
-		if (p->Player[me]->Red > 0 || p->Player[me]->Green > 0 || p->Player[me]->Blue > 0)
-		{
-			if (p->Player[me]->RainbowName == 1)
-				p->DDraw->DTextOut(CenterPoint - NameWidth, (PlayerOffsetY-31), p->Player[me]->NameString, RGB(rand()%255, rand()%255, rand()%255));
-			else
-				p->DDraw->DTextOut(CenterPoint - NameWidth, (PlayerOffsetY-31), p->Player[me]->NameString, RGB(p->Player[me]->Red, p->Player[me]->Green, p->Player[me]->Blue));
+		// If the player has a non-default name color,
+		if (p->Player[me]->Red > 0 || p->Player[me]->Green > 0 || p->Player[me]->Blue > 0) {
+
+			// If rainbox, show random name color
+			if (p->Player[me]->RainbowName == 1) {
+				p->DDraw->DTextOut(nameCenterPoint - nameWidth, (this->PlayerOffsetY-31), p->Player[me]->NameString, RGB(rand()%255, rand()%255, rand()%255));
+			}
+
+			// Else (not rainbow), show player's name color
+			else {
+				p->DDraw->DTextOut(nameCenterPoint - nameWidth, (this->PlayerOffsetY-31), p->Player[me]->NameString, RGB(p->Player[me]->Red, p->Player[me]->Green, p->Player[me]->Blue));
+			}
 		}
-		else
-		{
-			p->DDraw->DTextOut(CenterPoint - NameWidth, (PlayerOffsetY-31), p->Player[me]->NameString, RGB(0, 255, 0));
+
+		// Else (player has default name color), show default name color
+		else {
+			p->DDraw->DTextOut(nameCenterPoint - nameWidth, (this->PlayerOffsetY-31), p->Player[me]->NameString, COLOR_TEAM_NAME);
 		}
-		int TownWidth = (int)p->Player[me]->TownString.length() * p->DDraw->TextWidth / 2;
-		p->DDraw->DTextOut(CenterPoint - TownWidth, (PlayerOffsetY-16), p->Player[me]->TownString, RGB(0, 255, 0));
+
+		// Draw town name
+		p->DDraw->DTextOut(nameCenterPoint - townWidth, (this->PlayerOffsetY-16), p->Player[me]->TownString, COLOR_TEAM_NAME);
+
+		// If the player is a member, draw the star
+		if (p->Player[me]->Member) {
+			p->DDraw->Draw(p->DDraw->imgStar, nameCenterPoint - nameWidth - 17, (this->PlayerOffsetY-31), 16, 16);
+		}
 	}
 
-	if (p->Player[me]->Member)
-	{
-		p->DDraw->Draw(p->DDraw->imgStar, CenterPoint - NameWidth - 17, (PlayerOffsetY-31), 16, 16);
-	}
 }
  
-void CDrawing::DrawBuildings()
-{
+/***************************************************************
+ * Function:	DrawBuildings
+ *
+ **************************************************************/
+void CDrawing::DrawBuildings() {
 	int me = p->Winsock->MyIndex;
 	int offX = (int)p->Player[me]->X % 48;
 	int offY = (int)p->Player[me]->Y % 48;
-	int mYX = (int)p->Player[me]->X / 48;
-	int mYY = (int)p->Player[me]->Y / 48;
+	int myX = (int)p->Player[me]->X / 48;
+	int myY = (int)p->Player[me]->Y / 48;
 	float curTick = p->Tick;
 
 	CBuilding *bld = p->Build->buildings;
-	if (bld)
-	{
-		while (bld->prev)
+	if (bld) {
+		while (bld->prev) {
 			bld = bld->prev;
+		}
+	}
 
-		while (bld)
-		{
-			if (abs(bld->X - mYX) < 18)
-			{
-				if (abs(bld->Y - mYY) < 18)
-				{
-					int tX = (mYX - bld->X) * 48;
-					int tY = (mYY - bld->Y) * 48;
-					int buildingType = bld->Type / 100;
-					int buildingSubType = bld->Type - buildingType*100;
-					int by = 144*buildingType;
-					int bX = (bld->Animation/2)*144;
-					p->DDraw->Draw(p->DDraw->imgBuildings, tX+PlayerOffsetX+offX, tY+PlayerOffsetY+offY, 144, 144, bX, by, MaxMapX, MaxMapY);
+	// For each building,
+	while (bld) {
+
+		// If this building is within sight,
+		if (abs(bld->X - myX) < this->tilesToDraw) {
+			if (abs(bld->Y - myY) < this->tilesToDraw) {
+
+				// Draw the building
+				int tX = (myX - bld->X) * 48;
+				int tY = (myY - bld->Y) * 48;
+				int buildingType = bld->Type / 100;
+				int buildingSubType = bld->Type - buildingType*100;
+				int by = 144*buildingType;
+				int bX = (bld->Animation/2)*144;
+				p->DDraw->Draw(p->DDraw->imgBuildings, tX+this->PlayerOffsetX+offX, tY+this->PlayerOffsetY+offY, 144, 144, bX, by, MaxMapX, MaxMapY);
 
 				int moffX = 0;
 				int moffY = 0;
 				int popX = bld->pop * 48;
 				int popY = 0;
+				int imgX = buildingSubType * 32;
+				int firstno = bld->ItemsLeft / 10;
+				int secondno = bld->ItemsLeft - firstno*10;
 
-				switch (buildingType)
-					{
-						case 0:
-							popY = 48;
-							p->DDraw->Draw(p->DDraw->imgPopulation, tX+PlayerOffsetX+offX+96, tY+PlayerOffsetY+offY+49, 48, 48, popX, popY, MaxMapX, MaxMapY);
-							break;
-						case 2:
-							p->DDraw->Draw(p->DDraw->imgPopulation, tX+PlayerOffsetX+offX+96, tY+PlayerOffsetY+offY+33, 48, 48, popX, popY, MaxMapX, MaxMapY);
-							break;
-						case 3:
-							p->DDraw->Draw(p->DDraw->imgPopulation, tX+PlayerOffsetX+offX+92, tY+PlayerOffsetY+offY+92, 48, 48, popX, popY, MaxMapX, MaxMapY);
-							break;
-						case 1:
-						case 4:
-						{
-							popY = 0;
-							int imgX = buildingSubType * 32;
-							int popY = 0;
+				switch (buildingType) {
 
-							switch (buildingType)
-							{
-								case 1: //Factory
-								{
-									moffX = 56;
-									moffY = 52;
-									int firstno = bld->ItemsLeft / 10;
-									int secondno = bld->ItemsLeft - firstno*10;
-									p->DDraw->Draw(p->DDraw->imgBlackNumbers, tX+PlayerOffsetX+offX+56, tY+PlayerOffsetY+offY+84, 16, 16, 16*firstno, 0, MaxMapX, MaxMapY);
-									p->DDraw->Draw(p->DDraw->imgBlackNumbers, tX+PlayerOffsetX+offX+72, tY+PlayerOffsetY+offY+84, 16, 16, 16*secondno, 0, MaxMapX, MaxMapY);
-									p->DDraw->Draw(p->DDraw->imgPopulation, tX+PlayerOffsetX+offX+96, tY+PlayerOffsetY+offY+48, 48, 48, popX, popY, MaxMapX, MaxMapY);
-									if (bld->Smoke > 0)
-									{
-										p->DDraw->Draw(p->DDraw->imgSmoke, tX+PlayerOffsetX+offX+6, tY+PlayerOffsetY+offY-15, 180, 60, 0, (bld->Smoke-1)*60, MaxMapX, MaxMapY);
-									}
-									
-								}
-								break;
-								case 4: //Research
-								{
-									moffX = 14;
-									moffY = 98;
-									p->DDraw->Draw(p->DDraw->imgPopulation, tX+PlayerOffsetX+offX+96, tY+PlayerOffsetY+offY+90, 48, 48, popX, popY, MaxMapX, MaxMapY);
-								}
-								break;
-							}
-							p->DDraw->Draw(p->DDraw->imgItems, tX+PlayerOffsetX+offX+moffX, tY+PlayerOffsetY+offY+moffY, 32, 32, imgX, 0, MaxMapX, MaxMapY);
-							break;
+					// Building: CC
+					case 0:
+						popY = 48;
+						p->DDraw->Draw(p->DDraw->imgPopulation, tX+this->PlayerOffsetX+offX+96, tY+this->PlayerOffsetY+offY+49, 48, 48, popX, popY, MaxMapX, MaxMapY);
+						break;
+
+					// Building: House
+					case 2:
+						p->DDraw->Draw(p->DDraw->imgPopulation, tX+this->PlayerOffsetX+offX+96, tY+this->PlayerOffsetY+offY+33, 48, 48, popX, popY, MaxMapX, MaxMapY);
+						break;
+
+					// Building: Hospital
+					case 3:
+						p->DDraw->Draw(p->DDraw->imgPopulation, tX+this->PlayerOffsetX+offX+92, tY+this->PlayerOffsetY+offY+92, 48, 48, popX, popY, MaxMapX, MaxMapY);
+						break;
+
+					// Building: Factory
+					case 1:
+						moffX = 56;
+						moffY = 52;
+						p->DDraw->Draw(p->DDraw->imgBlackNumbers, tX+this->PlayerOffsetX+offX+56, tY+this->PlayerOffsetY+offY+84, 16, 16, 16*firstno, 0, MaxMapX, MaxMapY);
+						p->DDraw->Draw(p->DDraw->imgBlackNumbers, tX+this->PlayerOffsetX+offX+72, tY+this->PlayerOffsetY+offY+84, 16, 16, 16*secondno, 0, MaxMapX, MaxMapY);
+						p->DDraw->Draw(p->DDraw->imgPopulation, tX+this->PlayerOffsetX+offX+96, tY+this->PlayerOffsetY+offY+48, 48, 48, popX, popY, MaxMapX, MaxMapY);
+						if (bld->Smoke > 0) {
+							p->DDraw->Draw(p->DDraw->imgSmoke, tX+this->PlayerOffsetX+offX+6, tY+this->PlayerOffsetY+offY-15, 180, 60, 0, (bld->Smoke-1)*60, MaxMapX, MaxMapY);
 						}
-					}
+						p->DDraw->Draw(p->DDraw->imgItems, tX+this->PlayerOffsetX+offX+moffX, tY+this->PlayerOffsetY+offY+moffY, 32, 32, imgX, 0, MaxMapX, MaxMapY);
+						break;
+
+					// Building: Research
+					case 4:
+						moffX = 14;
+						moffY = 98;
+						p->DDraw->Draw(p->DDraw->imgPopulation, tX+this->PlayerOffsetX+offX+96, tY+this->PlayerOffsetY+offY+90, 48, 48, popX, popY, MaxMapX, MaxMapY);
+						p->DDraw->Draw(p->DDraw->imgItems, tX+this->PlayerOffsetX+offX+moffX, tY+this->PlayerOffsetY+offY+moffY, 32, 32, imgX, 0, MaxMapX, MaxMapY);
+						break;
 				}
 			}
-		bld = bld->next;
+
 		}
+		bld = bld->next;
 	}
 }
 
-void CDrawing::DrawPlayers()
-{
+/***************************************************************
+ * Function:	DrawPlayers
+ *
+ **************************************************************/
+void CDrawing::DrawPlayers() {
 	int me = p->Winsock->MyIndex;
 	int tankimg = 0;
+	int tX;
+	int tY;
+	int nameWidth;
+	int centerPoint;
+	string lagString;
+	int lagWidth;
+	int townWidth;
 
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (p->Player[i]->isInGame == 1)
-		{
-			if (me != i)
-			{
-				int tX = (int)(p->Player[me]->X - p->Player[i]->X + PlayerOffsetX);
-				int tY = (int)(p->Player[me]->Y - p->Player[i]->Y + PlayerOffsetY);
-				if (abs(tX) < 800 && abs(tY) < 800)
-				{
-					if (p->Player[i]->City == p->Player[me]->City)
-					{
-						if (p->Player[i]->isMayor) tankimg = 1; else tankimg = 0;
-					}
-					else
-					{
-						if (p->Player[i]->isMayor) tankimg = 3; else tankimg = 2;
-					}
-					if (p->Player[i]->Tank > 0) tankimg = p->Player[i]->Tank;
-					if (p->Player[i]->isDead == false) p->DDraw->Draw(p->DDraw->imgTanks, tX, tY, 48, 48, (p->Player[i]->Direction / 2) * 48, tankimg * 48, MaxMapX, MaxMapY);
-					if (p->Options->names)
-					{
-						if (p->Player[i]->isDead == true)
-						{
-							p->DDraw->DTextOut(tX - ((int)(p->Player[i]->NameString.length() / 2) * 4), tY - 31, p->Player[i]->NameString, RGB(135, 135, 135));
-							p->DDraw->DTextOut(tX - ((int)(p->Player[i]->TownString.length() / 2) * 4), tY - 16, p->Player[i]->TownString, RGB(135, 135, 135));
+	// For each player,
+	for (int i = 0; i < MaxPlayers; i++) {
+
+		// If the player is in game,
+		if (p->Player[i]->isInGame) {
+
+			// If the player isn't this player,
+			if (me != i) {
+				tX = (int)(p->Player[me]->X - p->Player[i]->X + this->PlayerOffsetX);
+				tY = (int)(p->Player[me]->Y - p->Player[i]->Y + this->PlayerOffsetY);
+				
+				// If the player is within sight,
+				if (abs(tX) < 800 && abs(tY) < 800) {
+
+					// If the player is alive,
+					if (p->Player[i]->isDead == false) {
+
+						// If the player has a custom tank, use it
+						if (p->Player[i]->Tank > 0) {
+							tankimg = p->Player[i]->Tank;
 						}
-						else
-						{
-							int NameWidth = (int)p->Player[i]->NameString.length() * p->DDraw->TextWidth;
-							if (p->Player[i]->Member) NameWidth -= 16;
-							NameWidth = NameWidth / 2;
-							int CenterPoint = tX + 16 + 3;
-							if (p->Player[i]->isLagging)
-							{
-								string LagString;
-								LagString = p->Player[i]->Name;
-								LagString += " (Lagging)";
-								int LagWidth = (int)LagString.length() * p->DDraw->TextWidth / 2;
-								int TownLagWidth = (int)p->Player[i]->TownString.length() * p->DDraw->TextWidth / 2;
-								p->DDraw->DTextOut(CenterPoint - LagWidth, tY - 31, LagString,  RGB(0, 0, 255));
-								p->DDraw->DTextOut(CenterPoint - TownLagWidth, tY - 16, p->Player[i]->TownString,  RGB(0, 0, 255));
-							}
-							else
-							{
-								if (p->Player[i]->Red > 0 || p->Player[i]->Green > 0 || p->Player[i]->Blue > 0)
-								{
-									if (p->Player[i]->RainbowName == 1)
-										p->DDraw->DTextOut(CenterPoint - NameWidth, tY - 31, p->Player[i]->NameString, RGB(rand()%255, rand()%255, rand()%255));
-									else
-										p->DDraw->DTextOut(CenterPoint - NameWidth, tY - 31, p->Player[i]->NameString, RGB(p->Player[i]->Red, p->Player[i]->Green, p->Player[i]->Blue));
-								}
-								else
-								{
-									if (p->Player[i]->City == p->Player[me]->City)
-										p->DDraw->DTextOut(CenterPoint - NameWidth, tY - 31, p->Player[i]->NameString, RGB(0, 255, 0));
-									else
-										p->DDraw->DTextOut(CenterPoint - NameWidth, tY - 31, p->Player[i]->NameString, RGB(255, 0, 0));
-								}
-								int TownWidth = (int)p->Player[i]->TownString.length() * p->DDraw->TextWidth / 2;
-								if (p->Player[i]->City == p->Player[me]->City)
-									p->DDraw->DTextOut(CenterPoint - TownWidth, tY - 16, p->Player[i]->TownString, RGB(0, 255, 0));
-								else
-									p->DDraw->DTextOut(CenterPoint - TownWidth, tY - 16, p->Player[i]->TownString, RGB(255, 0, 0));
 
-								if (p->Player[i]->Member)
-								{
-									p->DDraw->Draw(p->DDraw->imgStar, CenterPoint - NameWidth - 17, tY - 31, 16, 16);
+						// Else if the player is in my city
+						else if (p->Player[i]->City == p->Player[me]->City) {
+							// If Mayor, set friend mayor tank
+							if (p->Player[i]->isMayor) {
+								tankimg = 1;
+							}
+							// Else (not mayor), set friend commando tank
+							else {
+								tankimg = 0;
+							}
+						}
+						// Else (player not in my city),
+						else {
+							// If mayor, set enemy mayor tank
+							if (p->Player[i]->isMayor) {
+								tankimg = 3;
+							}
+							// Else (not mayor), set enemy commando tank
+							else {
+								tankimg = 2;
+							}
+						}
+						
+						// Draw the tank
+						p->DDraw->Draw(p->DDraw->imgTanks, tX, tY, 48, 48, (p->Player[i]->Direction / 2) * 48, tankimg * 48, MaxMapX, MaxMapY);
+					}
+
+					// If Names are on,
+					if (p->Options->names) {
+
+						// If the player is dead, draw the name and city in Gray
+						if (p->Player[i]->isDead) {
+							p->DDraw->DTextOut(tX - ((int)(p->Player[i]->NameString.length() / 2) * 4), tY - 31, p->Player[i]->NameString, COLOR_DEAD_NAME);
+							p->DDraw->DTextOut(tX - ((int)(p->Player[i]->TownString.length() / 2) * 4), tY - 16, p->Player[i]->TownString, COLOR_DEAD_NAME);
+						}
+						// Else (player is alive), draw the name and city in Gray
+						else {
+							nameWidth = (int)p->Player[i]->NameString.length() * p->DDraw->TextWidth;
+							if (p->Player[i]->Member) {
+								nameWidth -= 16;
+							}
+							nameWidth = nameWidth / 2;
+							centerPoint = tX + 16 + 3;
+							townWidth = (int)p->Player[i]->TownString.length() * p->DDraw->TextWidth / 2;
+							
+							// If the player is lagging, put "(Lagging)" next to their name
+							if (p->Player[i]->isLagging) {
+								lagString = p->Player[i]->Name;
+								lagString += " (Lagging)";
+								lagWidth = (int)lagString.length() * p->DDraw->TextWidth / 2;
+								p->DDraw->DTextOut(centerPoint - lagWidth, tY - 31, lagString,  COLOR_LAGGING_NAME);
+								p->DDraw->DTextOut(centerPoint - townWidth, tY - 16, p->Player[i]->TownString,  COLOR_LAGGING_NAME);
+							}
+
+							// Else (player is not lagging),
+							else {
+
+								// If the player has a custom name color,
+								if (p->Player[i]->Red > 0 || p->Player[i]->Green > 0 || p->Player[i]->Blue > 0) {
+
+									// If the player has rainbox, draw the name in a random color
+									if (p->Player[i]->RainbowName == 1) {
+										p->DDraw->DTextOut(centerPoint - nameWidth, tY - 31, p->Player[i]->NameString, RGB(rand()%255, rand()%255, rand()%255));
+									}
+									// Else (no rainbow), draw the custom name color
+									else {
+										p->DDraw->DTextOut(centerPoint - nameWidth, tY - 31, p->Player[i]->NameString, RGB(p->Player[i]->Red, p->Player[i]->Green, p->Player[i]->Blue));
+									}
+								}
+								// Else (no custom name color)
+								else {
+
+									// If the player is in my city, draw in Green
+									if (p->Player[i]->City == p->Player[me]->City) {
+										p->DDraw->DTextOut(centerPoint - nameWidth, tY - 31, p->Player[i]->NameString, COLOR_TEAM_NAME);
+									}
+									// Else (player not in my city), draw in Red
+									else {
+										p->DDraw->DTextOut(centerPoint - nameWidth, tY - 31, p->Player[i]->NameString, COLOR_ENEMY_NAME);
+									}
+								}
+
+								// If the player is in my city, draw CityName in Green
+								if (p->Player[i]->City == p->Player[me]->City) {
+									p->DDraw->DTextOut(centerPoint - townWidth, tY - 16, p->Player[i]->TownString, COLOR_TEAM_NAME);
+								}
+								// Else (player not in my city), draw CityName in Red
+								else {
+									p->DDraw->DTextOut(centerPoint - townWidth, tY - 16, p->Player[i]->TownString, COLOR_ENEMY_NAME);
+								}
+
+								// If the player is a member, draw a star
+								if (p->Player[i]->Member) {
+									p->DDraw->Draw(p->DDraw->imgStar, centerPoint - nameWidth - 17, tY - 31, 16, 16);
 								}
 							}
 						}
@@ -387,77 +532,108 @@ void CDrawing::DrawPlayers()
 	}
 }
 
-void CDrawing::DrawBuildMenu()
-{
+/***************************************************************
+ * Function:	DrawBuildMenu
+ *
+ **************************************************************/
+void CDrawing::DrawBuildMenu() {
 	int minY = 0;
-	for (int i = 0; i < 26; i++)
-	{
-		if (p->InGame->CanBuild[i] || p->Player[p->Winsock->MyIndex]->isAdmin == 2)
-		{
+
+	// For each item,
+	for (int i = 0; i < 26; i++) {
+
+		// If the player can build the item, or the player is an admin,
+		if (p->InGame->CanBuild[i] || p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+
+			// Increment the height of the build menu
 			minY += 16;
 		}
 	}
-		if(minY > BuildMenuY)
-			BuildMenuY = minY;
-		int DrawY = BuildMenuY;
 
-		p->DDraw->Draw(p->DDraw->imgBuildIcons, BuildMenuX - 16, DrawY, 16, 16, 13*16);
-		p->DDraw->DFillRect(BuildMenuX, DrawY, 180, 16);
-		p->DDraw->DTextOut(BuildMenuX, DrawY, "Demolish", RGB(255, 215, 0));
+	// If the build menu needs more space than BuildMenuY, set BuildMenuY
+	// This causes the build menu to not overflow past the top of the screen
+	if (minY > this->BuildMenuY) {
+		this->BuildMenuY = minY;
+	}
+	int DrawY = this->BuildMenuY;
 
-		DrawY -= 16;
-		for (int i = 0; i < 26; i++)
-		{
-			if (p->InGame->CanBuild[i] || p->Player[p->Winsock->MyIndex]->isAdmin == 2)
-			{ 
-				p->DDraw->Draw(p->DDraw->imgBuildIcons, BuildMenuX - 16, DrawY, 16, 16, buildButton[i]*16);
-				p->DDraw->DFillRect(BuildMenuX, DrawY, 180, 16);
-				p->DDraw->DTextOut(BuildMenuX, DrawY, buildNames[i], RGB(255, 215, 0));
-				DrawY -= 16;
-			}
+
+	// Draw the background box
+	p->DDraw->DFillRect(BuildMenuX, DrawY-minY, 180, minY+16);
+
+	// Draw Demolish
+	p->DDraw->Draw(p->DDraw->imgBuildIcons, BuildMenuX - 16, DrawY, 16, 16, 13*16);
+	p->DDraw->DTextOut(BuildMenuX, DrawY, "Demolish", COLOR_YELLOW);
+	DrawY -= 16;
+
+	// For each item,
+	for (int i = 0; i < 26; i++) {
+
+		// If the player can build the item, or the player is an admin,
+		if (p->InGame->CanBuild[i] || p->Player[p->Winsock->MyIndex]->isAdmin == 2) { 
+
+			// Draw the item
+			p->DDraw->Draw(p->DDraw->imgBuildIcons, BuildMenuX - 16, DrawY, 16, 16, buildButton[i]*16);
+			p->DDraw->DTextOut(BuildMenuX, DrawY, buildNames[i], COLOR_YELLOW);
+			DrawY -= 16;
 		}
+	}
 	
 }
 
-void CDrawing::DrawBuildPlacement()
-{
-	if (p->InGame->IsBuilding != 0)
-	{
+/***************************************************************
+ * Function:	DrawBuildPlacement
+ *
+ **************************************************************/
+void CDrawing::DrawBuildPlacement() {
+	
+	// If the player has a Building or Demolish on the cursor,
+	if (p->InGame->IsBuilding != 0) {
 		int me = p->Winsock->MyIndex;
 		int offX = (int)p->Player[me]->X % 48;
 		int offY = (int)p->Player[me]->Y % 48;
-		int tX = (p->Input->LastMouseX / 48) * 48 -24+12;
-		int tY = (p->Input->LastMouseY / 48) * 48 -24+12;
+		int tX = (p->Input->LastMouseX / 48) * 48 + this->buildingCursorOffsetX;
+		int tY = (p->Input->LastMouseY / 48) * 48 + this->buildingCursorOffsetY;
 		int buildingType = buildingTypes[p->InGame->IsBuilding-1] / 100;
 		int buildingSubType = buildingTypes[p->InGame->IsBuilding-1] - buildingType*100;
 		int moffX = 0;
 		int moffY = 0; 
 
-		if (p->InGame->IsBuilding > 0)
-		{
+		// If the player has a Building on the cursor,
+		if (p->InGame->IsBuilding > 0) {
+			tX = (p->Input->LastMouseX / 48) * 48 + this->buildingCursorOffsetX;
+			tY = (p->Input->LastMouseY / 48) * 48 + this->buildingCursorOffsetY;
 
 			p->DDraw->Draw(p->DDraw->imgBuildings, tX+offX, tY+offY, 144, 144, 0, (buildingTypes[p->InGame->IsBuilding-1]/100)*144, MaxMapX, MaxMapY);
-
 			int imgX = buildingSubType * 32;
 
-			if (buildingType == 1) //factorY
-			{
+			// Factory
+			if (buildingType == 1) {
 				moffX = 56;
 				moffY = 52;
 				p->DDraw->Draw(p->DDraw->imgItems, tX+offX+moffX, tY+offY+moffY, 32, 32, imgX, 0, MaxMapX, MaxMapY); 
 			}
-			else if(buildingType == 4) //research
-			{
+			else if(buildingType == 4) {
 				moffX = 14;
 				moffY = 98;
 				p->DDraw->Draw(p->DDraw->imgItems, tX+offX+moffX, tY+offY+moffY, 32, 32, imgX, 0, MaxMapX, MaxMapY); 
 			}
 		}
-		else
+
+		// Else (player has Demolish on the cursor),
+		else {
+			tX = (p->Input->LastMouseX / 48) * 48 + this->demoCursorOffsetX;
+			tY = (p->Input->LastMouseY / 48) * 48 + this->demoCursorOffsetY;
+
 			p->DDraw->Draw(p->DDraw->imgDemolish, tX+offX+moffX, tY+offY+moffY, 32, 32, 0, 0, MaxMapX, MaxMapY); 
+		}
 	}
 }
 
+/***************************************************************
+ * Function:	DrawArrow
+ *
+ **************************************************************/
 void CDrawing::DrawArrow()
 {
 	int me = p->Winsock->MyIndex;
@@ -552,19 +728,27 @@ void CDrawing::DrawArrow()
 	}
 }
 
+/***************************************************************
+ * Function:	DrawHealth
+ *
+ **************************************************************/
 void CDrawing::DrawHealth()
 {
 	float percent = (float(p->Player[p->Winsock->MyIndex]->HP) / float(40));
 	p->DDraw->Draw(p->DDraw->imgHealth, (MaxMapX + 137), 250-int(percent * 87), 38, int(percent * 87));
 }
 
+/***************************************************************
+ * Function:	DrawItems
+ *
+ **************************************************************/
 void CDrawing::DrawItems()
 {
 	int me = p->Winsock->MyIndex;
 	int offX = (int)p->Player[me]->X % 48;
 	int offY = (int)p->Player[me]->Y % 48;
-	int mYX = (int)p->Player[me]->X / 48;
-	int mYY = (int)p->Player[me]->Y / 48;
+	int myX = (int)p->Player[me]->X / 48;
+	int myY = (int)p->Player[me]->Y / 48;
 
 		CItem *itm = p->Item->items;
 		if (itm)
@@ -576,10 +760,10 @@ void CDrawing::DrawItems()
 			{
 				if (p->InGame->HasSector[itm->X / SectorSize][itm->Y / SectorSize])
 				{
-					if ((abs(mYX - itm->X) < 15) && (abs(mYY - itm->Y) < 15))
+					if ((abs(myX - itm->X) < 15) && (abs(myY - itm->Y) < 15))
 					{
-						int tX = ((mYX - itm->X) * 48)+PlayerOffsetX+offX;
-						int tY = ((mYY - itm->Y) * 48)+PlayerOffsetY+10+offY;
+						int tX = ((myX - itm->X) * 48)+this->PlayerOffsetX+offX;
+						int tY = ((myY - itm->Y) * 48)+this->PlayerOffsetY+10+offY;
 						switch (itm->Type)
 						{
 							case 3: //Bomb
@@ -629,14 +813,18 @@ void CDrawing::DrawItems()
 		}
 }
 
-void CDrawing::DrawChat()
-{
-	if (p->Input->MouseOverChat == 1)
-	{
+/***************************************************************
+ * Function:	DrawChat
+ *
+ **************************************************************/
+void CDrawing::DrawChat() {
+	int Y = MaxMapY - 126;
+
+	// If mouse is over chat, fill the chat box with black
+	if (p->Input->MouseOverChat == 1) {
 		p->DDraw->DFillRect(0, MaxMapY-84, MaxMapX, 84);
 	}
 	
-	int Y = MaxMapX - 126;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine1, p->InGame->chatColor1);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine2, p->InGame->chatColor2);
@@ -654,388 +842,582 @@ void CDrawing::DrawChat()
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine8, p->InGame->chatColor8);
 	Y += 14;
 
-	if (p->InGame->IsChatting == 1)
-	{
+	// If chatting, fill just the chat bar with black
+	if (p->InGame->IsChatting == 1) {
 		p->DDraw->DFillRect(0, Y, MaxMapX, 14);
-		p->DDraw->DTextOut(0, Y, p->InGame->ChatLine, RGB(255, 215, 0));
+		p->DDraw->DTextOut(0, Y, p->InGame->ChatLine, COLOR_YELLOW);
 	}
 
-	if (p->Options->newbietips == 1)
-	{
+	// If newbie tips are on, fill the top of the screen with black
+	if (p->Options->newbietips == 1) {
 		p->DDraw->DFillRect(0, 0, MaxMapX, 15);
-		p->DDraw->DTextOut(0, 0, p->InGame->NewbieTip, RGB(255, 215, 0));
+		p->DDraw->DTextOut(0, 0, p->InGame->NewbieTip, COLOR_YELLOW);
 	}
 }
 
-void CDrawing::DrawInventory()
-{
-	int ItemCount[12];
+/***************************************************************
+ * Function:	DrawInventory
+ *
+ **************************************************************/
+void CDrawing::DrawInventory() {
+	int DrawX;
+	int DrawY;
+	ostringstream stringConverter;
 	int OrbAnimation = 0;
-
+	int ItemCount[12];
 	memset(ItemCount, 0, sizeof(ItemCount));
 
 	CItem *itm = p->Inventory->items;
-	if (itm)
-	{
-		while (itm->prev)
+	if (itm) {
+		while (itm->prev) {
 			itm = itm->prev;
+		}
 
-		while (itm)
-		{
-			if (itm->Type == 5) OrbAnimation = itm->Animation;
+		while (itm) {
+			if (itm->Type == 5) {
+				OrbAnimation = itm->Animation;
+			}
 			ItemCount[itm->Type]++;
 			itm = itm->next;
 		}
 	}
 
-	if (ItemCount[0] > 0) // Laser
-	{
-		int DrawX = (MaxMapX + 7);
-		int DrawY = 267;
-		if (p->Inventory->SelectedItemType == 0) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+	// Laser
+	if (ItemCount[0] > 0) {
+		DrawX = (MaxMapX + 7);
+		DrawY = 267;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 0) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 0, 0);
-		if (ItemCount[0] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[0];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[0] > 1) {
+			stringConverter << ItemCount[0];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[1] > 0) // Rocket
-	{
-		int DrawX = (MaxMapX + 42);
-		int DrawY = 267;
-		if (p->Inventory->SelectedItemType == 1) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Rocket
+	if (ItemCount[1] > 0) {
+		DrawX = (MaxMapX + 42);
+		DrawY = 267;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 1) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 1*32, 0);
-		if (ItemCount[1] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[1];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[1] > 1) {
+			stringConverter << ItemCount[1];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[2] > 0) // Medkit
-	{
-		int DrawX = (MaxMapX + 77);
-		int DrawY = 267;
-		if (p->Inventory->SelectedItemType == 2) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Medkit
+	if (ItemCount[2] > 0) {
+		DrawX = (MaxMapX + 77);
+		DrawY = 267;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 2) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 2*32, 0);
-		if (ItemCount[2] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[2];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[2] > 1) {
+			stringConverter << ItemCount[2];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[3] > 0) // Bomb
-	{
-		int DrawX = (MaxMapX + 7);
-		int DrawY = 302;
-		if (p->Inventory->SelectedItemType == 3) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
-		
-		if (p->InGame->BombsAreActivated)
+
+	// Bomb
+	if (ItemCount[3] > 0) {
+		DrawX = (MaxMapX + 7);
+		DrawY = 302;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 3) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
+
+		// If activated, draw active image
+		if (p->InGame->BombsAreActivated) {
 			p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 152, 89);
-		else
+		}
+		// Else (not activated), draw normal image
+		else {
 			p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 3*32, 0);
-		if (ItemCount[3] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[3];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+		}
+
+		// If more than one, draw the number
+		if (ItemCount[3] > 1) {
+			stringConverter << ItemCount[3];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[4] > 0) // Mine
-	{
-		int DrawX = (MaxMapX + 42);
-		int DrawY = 302;
-		if (p->Inventory->SelectedItemType == 4) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Mine
+	if (ItemCount[4] > 0) {
+		DrawX = (MaxMapX + 42);
+		DrawY = 302;
+		
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 4) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 4*32, 0);
-		if (ItemCount[4] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[4];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[4] > 1) {
+			stringConverter << ItemCount[4];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[5] > 0) // Orb
-	{
-		int DrawX = (MaxMapX + 77);
-		int DrawY = 302;
-		if (p->Inventory->SelectedItemType == 5) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Orb
+	if (ItemCount[5] > 0) {
+		DrawX = (MaxMapX + 77);
+		DrawY = 302;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 5) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 250, 41 + (OrbAnimation * 32) + (OrbAnimation * 16));
-		if (ItemCount[5] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[5];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[5] > 1) {
+			stringConverter << ItemCount[5];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[6] > 0) // Walkie
-	{
-		int DrawX = (MaxMapX + 7);
-		int DrawY = 337;
-		if (p->Inventory->SelectedItemType == 6) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Walkie
+	if (ItemCount[6] > 0) {
+		DrawX = (MaxMapX + 7);
+		DrawY = 337;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 6) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 6*32, 0);
-		if (ItemCount[6] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[6];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[6] > 1) {
+			stringConverter << ItemCount[6];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[7] > 0) // DFG
-	{
-		int DrawX = (MaxMapX + 42);
-		int DrawY = 337;
-		if (p->Inventory->SelectedItemType == 7) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// DFG
+	if (ItemCount[7] > 0) {
+		DrawX = (MaxMapX + 42);
+		DrawY = 337;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 7) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 7*32, 0);
-		if (ItemCount[7] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[7];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[7] > 1) {
+			stringConverter << ItemCount[7];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[8] > 0) // Wall
-	{
-		int DrawX = (MaxMapX + 77);
-		int DrawY = 337;
-		if (p->Inventory->SelectedItemType == 8) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Wall
+	if (ItemCount[8] > 0) {
+		DrawX = (MaxMapX + 77);
+		DrawY = 337;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 8) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 8*32, 0);
-		if (ItemCount[8] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[8];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[8] > 1) {
+			stringConverter << ItemCount[8];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[9] > 0) // Turret
-	{
-		int DrawX = (MaxMapX + 7);
-		int DrawY = 372;
-		if (p->Inventory->SelectedItemType == 9) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Turret
+	if (ItemCount[9] > 0) {
+		DrawX = (MaxMapX + 7);
+		DrawY = 372;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 9) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 9*32, 0);
-		if (ItemCount[9] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[9];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[9] > 1) {
+			stringConverter << ItemCount[9];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[10] > 0) // Sleeper
-	{
-		int DrawX = (MaxMapX + 42);
-		int DrawY = 372;
-		if (p->Inventory->SelectedItemType == 10) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Sleeper
+	if (ItemCount[10] > 0) {
+		DrawX = (MaxMapX + 42);
+		DrawY = 372;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 10) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 10*32, 0);
-		if (ItemCount[10] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[10];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[10] > 1) {
+			stringConverter << ItemCount[10];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
-	if (ItemCount[11] > 0) // Plasma
-	{
-		int DrawX = (MaxMapX + 77);
-		int DrawY = 372;
-		if (p->Inventory->SelectedItemType == 11) p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+
+	// Plasma
+	if (ItemCount[11] > 0) {
+		DrawX = (MaxMapX + 77);
+		DrawY = 372;
+
+		// If selected, draw selection image under item
+		if (p->Inventory->SelectedItemType == 11) {
+			p->DDraw->Draw(p->DDraw->imgInventorySelection, DrawX, DrawY, 32, 32, 0, 0);
+		}
 		p->DDraw->Draw(p->DDraw->imgItems, DrawX, DrawY, 32, 32, 11*32, 0);
-		if (ItemCount[11] > 1)
-		{
-			ostringstream Convert;
-			Convert << ItemCount[11];
-			p->DDraw->DTextOut(DrawX+22, DrawY+12, Convert.str(), RGB(255, 215, 0));
+
+		// If more than one, draw the number
+		if (ItemCount[11] > 1) {
+			stringConverter << ItemCount[11];
+			p->DDraw->DTextOut(DrawX+22, DrawY+12, stringConverter.str(), COLOR_YELLOW);
+			stringConverter.str("");
 		}
 	}
 }
 
-void CDrawing::DrawBullets()
-{
+/***************************************************************
+ * Function:	DrawBullets
+ *
+ **************************************************************/
+void CDrawing::DrawBullets() {
 	int me = p->Winsock->MyIndex;
 	int offX = (int)p->Player[me]->X % 48;
 	int offY = (int)p->Player[me]->Y % 48;
+	int tmpX;
+	int tmpY;
+	int dX;
+	int dY;
 
 	CBullet *blt = p->Bullet->bullets;
-	if (blt)
-	{
-		while (blt->prev)
+	if (blt) {
+		while (blt->prev) {
 			blt = blt->prev;
+		}
 
-		while (blt)
-		{
-			int tmpX = (int)p->Player[me]->X - (int)blt->X + PlayerOffsetX;
-			int tmpY = (int)p->Player[me]->Y - (int)blt->Y + PlayerOffsetY;
+		// For each bullet,
+		while (blt) {
+			tmpX = (int)p->Player[me]->X - (int)blt->X + this->PlayerOffsetX;
+			tmpY = (int)p->Player[me]->Y - (int)blt->Y + this->PlayerOffsetY;
 
-			if (tmpX > 0 && tmpY > 0 && tmpX < 900 && tmpY < 900)
-			{
-				int dX = blt->Animation * 8;
-				int dY = 0;
+			// If the bullet is in sight,
+			if (tmpX > 0 && tmpY > 0 && tmpX < 900 && tmpY < 900) {
+				dX = blt->Animation * 8;
+				dY = dY = blt->Type * 8;
 
+				// Cycle through the bullet animation
 				blt->Animation++;
-				if (blt->Animation > 3) blt->Animation = 0;
+				if (blt->Animation > 3) {
+					blt->Animation = 0;
+				}
 
-				dY = blt->Type * 8;
-
-				p->DDraw->Draw(p->DDraw->imgBullets, tmpX,  tmpY, 8, 8, dX, dY, MaxMapX, MaxMapY);
+				// Draw the bullet
+				p->DDraw->Draw(p->DDraw->imgBullets, tmpX, tmpY, 8, 8, dX, dY, MaxMapX, MaxMapY);
 			}
+
+			// Get the next bullet
 			blt = blt->next;
 		}
 	}
 }
 
-void CDrawing::DrawRadar()
-{
+/***************************************************************
+ * Function:	DrawRadar
+ *
+ **************************************************************/
+void CDrawing::DrawRadar() {
 	int me = p->Winsock->MyIndex;
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (p->Player[i]->isInGame == 1)
-		{
-			if (me != i)
-			{
-				//Radar
-				int RadarSrcX = 0;
-				int RadarX = 0;
-				int RadarY = 0;
-				int ratio = 24;
+	int RadarSrcX = 0;
+	int RadarX = 0;
+	int RadarY = 0;
+	int ratio = 24;
 
-				if (p->Player[i]->X >= p->Player[me]->X - RadarSize && p->Player[i]->X <= p->Player[me]->X + RadarSize && p->Player[i]->Y >= p->Player[me]->Y - RadarSize && p->Player[i]->Y <= p->Player[me]->Y + RadarSize &&p->Player[i]->X != 0 &&p->Player[i]->Y != 0 && i != me)
-				{	//player is in range
+	// For each player,
+	for (int i = 0; i < MaxPlayers; i++) {
+
+		// If the player is in game,
+		if (p->Player[i]->isInGame) {
+
+			// If the player isn't me,
+			if (me != i) {
+
+				// If the player is in range,
+				if (
+					(p->Player[i]->X >= p->Player[me]->X - RadarSize)
+					&&
+					(p->Player[i]->X <= p->Player[me]->X + RadarSize)
+					&&
+					(p->Player[i]->Y >= p->Player[me]->Y - RadarSize)
+					&& 
+					(p->Player[i]->Y <= p->Player[me]->Y + RadarSize)
+					&&
+					(p->Player[i]->X != 0)
+					&&
+					(p->Player[i]->Y != 0)
+				) {
 					RadarX = (int)((MaxMapX+100)-(p->Player[i]->X - p->Player[me]->X+70)/ratio);
 					RadarY = (int)(80-(p->Player[i]->Y - p->Player[me]->Y+69)/ratio);
-					if (p->Player[i]->City == p->Player[me]->City)
+					
+					// If the player is in my city, set color to 3
+					if (p->Player[i]->City == p->Player[me]->City) {
 						RadarSrcX = 3;
-					else
-						RadarSrcX = 2;
-					if (p->Player[i]->isAdmin == 2)
+					}
+
+					// Else if player is an admin, set color to 1
+					else if (p->Player[i]->isAdmin == 2) {
 						RadarSrcX = 1;
+					}
+					// Else (player is enemy), set color to 2
+					else {
+						RadarSrcX = 2;
+					}
 				}
-				if (RadarX >= (MaxMapX+28) && RadarX <= (MaxMapX+166) && RadarY >= 8 && RadarY <= 146)
-				{
-					if (p->Player[i]->isDead == false)
+
+				// ???
+				if (RadarX >= (MaxMapX+28) && RadarX <= (MaxMapX+166) && RadarY >= 8 && RadarY <= 146) {
+
+					// If player is alive, draw the player
+					if (p->Player[i]->isDead == false) {
 						p->DDraw->Draw(p->DDraw->imgRadarColors, RadarX, RadarY, 2, 2, RadarSrcX * 2);
-					else
+					}
+
+					// Else (player is dead), ???
+					else {
 						p->DDraw->Draw(p->DDraw->imgMiniMapColors, RadarX, RadarY, 2, 2, 15);
+					}
 				}
 			}
 		}
 	}
 }
 
-void CDrawing::DrawExplosions()
-{
+/***************************************************************
+ * Function:	DrawExplosions
+ *
+ **************************************************************/
+void CDrawing::DrawExplosions() {
 	int me = p->Winsock->MyIndex;
 	CExplosion *Xpl = p->Explode->explosions;
-	if (Xpl)
-	{
-
-		while (Xpl->prev)
+	int tX;
+	int tY;
+		
+	if (Xpl) {
+		while (Xpl->prev) {
 			Xpl = Xpl->prev;
+		}
 
-		while (Xpl)
-		{
-			int tX = (int)(p->Player[me]->X - Xpl->X + PlayerOffsetX);
-			int tY = (int)(p->Player[me]->Y - Xpl->Y + PlayerOffsetY);
-			switch(Xpl->Type)
-			{
-				case 1: //Small eXplosion
+		// For each explosion,
+		while (Xpl) {
+			tX = (int)(p->Player[me]->X - Xpl->X + this->PlayerOffsetX);
+			tY = (int)(p->Player[me]->Y - Xpl->Y + this->PlayerOffsetY);
+
+			switch(Xpl->Type) {
+
+				//Small explosion
+				case 1: 
 					p->DDraw->Draw(p->DDraw->imgSExplosion, tX, tY, 48, 48, Xpl->Animation * 48, 0, MaxMapX, MaxMapY);
 					break;
-				case 2: //Large eXplosion
+
+				//Large eXplosion
+				case 2: 
 					p->DDraw->Draw(p->DDraw->imgLExplosion, tX, tY, 144, 144, 0, Xpl->Animation * 144, MaxMapX, MaxMapY);
 					break;
-				case 3: //Muzzle flash
+
+				//Muzzle flash
+				case 3: 
 					p->DDraw->Draw(p->DDraw->imgMuzzleFlash, tX, tY, 12, 12, Xpl->Animation * 12, 0, MaxMapX, MaxMapY);
 					break;
 			}
+
+			// Get the next explosion
 			Xpl = Xpl->next;
 		}
 	}
 }
 
-void CDrawing::DrawMiniMap()
-{
+/***************************************************************
+ * Function:	DrawMiniMap
+ *
+ **************************************************************/
+void CDrawing::DrawMiniMap() {
 	int me = p->Winsock->MyIndex;
 	int offX = (int)p->Player[me]->X % 48;
 	int offY = (int)p->Player[me]->Y % 48;
 	int goffX = (int)p->Player[me]->X % 128;
 	int goffY = (int)p->Player[me]->Y % 128;
-	int mYX = (int)p->Player[me]->X / 48;
-	int mYY = (int)p->Player[me]->Y / 48;
+	int myX = (int)p->Player[me]->X / 48;
+	int myY = (int)p->Player[me]->Y / 48;
+	int tX;
+	int tY;
+	int X;
+	int Y;
 
 	int radius = 48;
 	int tilesize = 5;
-	p->DDraw->DFillRect(10, 10, 460, 460);
+
 	Rect build_rect = {0,0,3*tilesize,3*tilesize};
 	Rect plr_rect = {242,242,tilesize,tilesize};
 	Rect terrain_rect = {0,0,tilesize,tilesize};
 	char DrawX = 0;
-	
-	for (int Y = (int)(p->Player[me]->Y/48)-radius; Y <= (int)(p->Player[me]->Y/48)+radius; Y++)
-	{
-		for (int X = (int)(p->Player[me]->X/48)-radius; X <= (int)(p->Player[me]->X/48)+radius; X++)
-		{
-			if (X > 0 && Y > 0 && X < 512 && Y < 512)
-			{
-				if (p->Map->map[X][Y] > 0 && p->Map->map[X][Y] < 3)
-				{
-					if (p->Map->map[X][Y] == 1) DrawX = 0; else DrawX = 1;
-					terrain_rect.X = PlayerOffsetX+((mYX-7-X)*48)/(tilesize*2);
-					terrain_rect.Y = PlayerOffsetY+((mYY-7-Y)*48)/(tilesize*2);
-					if (terrain_rect.X > 10 && terrain_rect.X < 464 && terrain_rect.Y > 10 && terrain_rect.Y < 464)
+
+	// Fill the map rectangle
+	p->DDraw->DFillRect(10, 10, 460, 460);
+
+	/************************************************
+	 * Terrain
+	 ************************************************/
+	// For each square within {radius} of my position
+	for (Y = myY-radius; Y <= myY+radius; Y++) {
+		for (X = myX-radius; X <= myX+radius; X++) {
+
+			// If the square is on the map,
+			if (X > 0 && Y > 0 && X < 512 && Y < 512) {
+
+				// Square: LAVA
+				if (p->Map->map[X][Y] == MAP_SQUARE_LAVA) {
+					DrawX = 0;
+				}
+
+				// Square: LAVA
+				else if (p->Map->map[X][Y] == MAP_SQUARE_ROCK) {
+					DrawX = 1;
+				}
+
+				// Square: OTHER
+				else {
+					DrawX = -1;
+				}
+
+				// If LAVA or ROCK,
+				if (DrawX != -1) {
+					terrain_rect.X = this->PlayerOffsetX+((myX-X-this->minimapOffsetX)*48)/(tilesize*2);
+					terrain_rect.Y = this->PlayerOffsetY+((myY-Y-this->minimapOffsetY)*48)/(tilesize*2);
+
+					// Check some constraints on the position of the square... ???
+					if (terrain_rect.X > 10 && terrain_rect.X < 464 && terrain_rect.Y > 10 && terrain_rect.Y < 464) {
+
+						// Draw the color on the mini map
 						p->DDraw->Draw(p->DDraw->imgMiniMapColors, terrain_rect.X, terrain_rect.Y, terrain_rect.w, terrain_rect.h, DrawX*15);
+					}
 				}
 			}
 		}
 	}
 
+	/************************************************
+	 * Buildings
+	 ************************************************/
 	CBuilding *bld = p->Build->buildings;
-	if (bld)
-		while(bld->prev)
+	if (bld) {
+		while(bld->prev) {
 			bld = bld->prev;
-
-	while (bld)
-	{
-		int tX = (mYX - 7 - bld->X) * 48;
-		int tY = (mYY - 7 - bld->Y) * 48;
-		build_rect.X = PlayerOffsetX+(tX)/(2*tilesize);
-		build_rect.Y = PlayerOffsetY+(tY)/(2*tilesize);
-		if (build_rect.X > 10 && build_rect.X < 464 && build_rect.Y > 10 && build_rect.Y < 464)
-		{
-			if (bld->City == p->Player[me]->City && bld->Type == 6) DrawX = 2; else DrawX = 3;
-			p->DDraw->Draw(p->DDraw->imgMiniMapColors, build_rect.X, build_rect.Y, build_rect.w, build_rect.h, DrawX*15);
 		}
-	bld = bld->next;
+
+		// For each building,
+		while (bld) {
+
+			tX = (myX - bld->X - this->minimapOffsetX) * 48;
+			tY = (myY - bld->Y - this->minimapOffsetY) * 48;
+			build_rect.X = this->PlayerOffsetX + (tX) / (2*tilesize);
+			build_rect.Y = this->PlayerOffsetY + (tY) / (2*tilesize);
+
+			if (build_rect.X > 10 && build_rect.X < 464 && build_rect.Y > 10 && build_rect.Y < 464) {
+
+				// If the building is my CC, draw 2
+				if ((bld->City == p->Player[me]->City) && (bld->Type == 6)) {
+					DrawX = 2; 
+				}
+				// Else (not my CC), draw 3
+				else {
+					DrawX = 3;
+				}
+				p->DDraw->Draw(p->DDraw->imgMiniMapColors, build_rect.X, build_rect.Y, build_rect.w, build_rect.h, DrawX*15);
+			}
+
+			// Get the next building
+			bld = bld->next;
+		}
 	}
 
+	// Draw me
 	DrawX = 2;
 	p->DDraw->Draw(p->DDraw->imgMiniMapColors, plr_rect.X, plr_rect.Y, plr_rect.w, plr_rect.h, DrawX*15);
 }
 
-string CDrawing::CashFormat(long Number)
-{
+/***************************************************************
+ * Function:	CashFormat
+ *
+ **************************************************************/
+string CDrawing::CashFormat(long Number) {
 	char strCash[20];
 	char output[20];
 	memset(output, 0, 20);
 	itoa(Number, strCash, 10);
 	strcpy(output, "$");
-	switch (strlen(strCash))
-	{
+
+	switch (strlen(strCash)) {
+
 		case 4:
 			memcpy(&output[1], strCash, 1);
 			memcpy(&output[2], ",", 1);
 			memcpy(&output[3], &strCash[2], 3);
 			break;
+
 		case 5:
 			memcpy(&output[1], strCash, 2);
 			memcpy(&output[3], ",", 1);
 			memcpy(&output[4], &strCash[2], 3);
 			break;
+
 		case 6:
 			memcpy(&output[1], strCash, 3);
 			memcpy(&output[4], ",", 1);
 			memcpy(&output[5], &strCash[3], 3);
 			break;
+
 		case 7:
 			memcpy(&output[1], strCash, 1);
 			memcpy(&output[2], ",", 1);
@@ -1043,6 +1425,7 @@ string CDrawing::CashFormat(long Number)
 			memcpy(&output[6], ",", 1);
 			memcpy(&output[7], &strCash[4], 3);
 			break;
+
 		case 8:
 			memcpy(&output[1], strCash, 2);
 			memcpy(&output[3], ",", 1);
@@ -1050,9 +1433,13 @@ string CDrawing::CashFormat(long Number)
 			memcpy(&output[7], ",", 1);
 			memcpy(&output[8], &strCash[5], 3);
 			break;
+
 		case 1:
+
 		case 2:
+
 		case 3:
+
 		default:
 			strcpy(&output[strlen(output)], strCash);
 			break;
@@ -1063,8 +1450,11 @@ string CDrawing::CashFormat(long Number)
 	return Final;
 }
 
-void CDrawing::ClearPanel()
-{
+/***************************************************************
+ * Function:	ClearPanel
+ *
+ **************************************************************/
+void CDrawing::ClearPanel() {
 	PanelLine1 = "";
 	PanelLine2 = "";
 	PanelLine3 = "";
@@ -1073,4 +1463,13 @@ void CDrawing::ClearPanel()
 	PanelLine6 = "";
 	PanelLine7 = "";
 	PanelMode = modeEmpty;
+}
+
+/***************************************************************
+ * Function:	resetPlayerOffset
+ *
+ **************************************************************/
+void CDrawing::resetPlayerOffset() {
+	this->PlayerOffsetX = this->defaultPlayerOffsetX;
+	this->PlayerOffsetY = this->defaultPlayerOffsetY;
 }

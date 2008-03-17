@@ -132,8 +132,13 @@ void CItemList::Cycle()
 			}
 
 			itm->target = -1;
-			//int distance = 455; 1024
+			
+			// 1024
+			//int distance = 455;
+
+			// 800
 			int distance = 360;
+
 			int d;
 			for (int i = 0; i < MaxPlayers; i++)
 			{

@@ -53,7 +53,7 @@ void CWinsock::StartTCP()
 	sockaddr_in sockAddr;
 	sockAddr.sin_family = AF_INET;
 
-	sockAddr.sin_port = htons(5643);
+	sockAddr.sin_port = htons(TCPPORT);
 
 	sockAddr.sin_addr.s_addr = *(unsigned long*) host_entry->h_addr;
 

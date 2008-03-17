@@ -3,14 +3,12 @@
 
 void *ClassPointer;
 
-CProcess::CProcess(CGame *game)
-{
+CProcess::CProcess(CGame *game) {
 	p = game;
 	ClassPointer = this;
 }
 
-CProcess::~CProcess()
-{
+CProcess::~CProcess() {
 
 }
 
@@ -408,8 +406,7 @@ void CProcess::ProcessEnterGame(sSMStateGame *game)
 #endif
 	int me = p->Winsock->MyIndex;
 
-	p->Draw->PlayerOffsetX = (p->Draw->MaxMapX / 2) - 24;
-	p->Draw->PlayerOffsetY = (p->Draw->MaxMapY / 2) - 24;
+	p->Draw->resetPlayerOffset();
 	p->Player[me]->X = (float)game->x;
 	p->Player[me]->Y = (float)game->y;
 	p->Player[me]->SectorX = (game->x/48) / SectorSize;
@@ -1217,93 +1214,134 @@ void CProcess::ProcessAdmin(sSMAdmin *admin)
 #endif
 }
 
-void CProcess::ProcessSectorSent(sCMSector *sector)
-{
+/***************************************************************
+ * Function:	ProcessSectorSent
+ *
+ * @param TheData
+ **************************************************************/
+void CProcess::ProcessSectorSent(sCMSector *sector) {
 	p->InGame->HasSector[sector->x][sector->y] = 1;
 	p->InGame->RequestedSector[sector->x][sector->y] = false;
 }
 
-void CProcess::ProcessEditAccount(char TheData[255])
-{
+/***************************************************************
+ * Function:	ProcessEditAccount
+ *
+ * @param TheData
+ **************************************************************/
+void CProcess::ProcessEditAccount(char TheData[255]) {
 	memcpy(p->NewAccount->user, TheData, 15);
 	memcpy(p->NewAccount->pass, &TheData[15], 15);
 	memcpy(p->NewAccount->email, &TheData[30], 50);
 	memcpy(p->NewAccount->fullname, &TheData[80], 20);
 	memcpy(p->NewAccount->town, &TheData[100], 15);
 	memcpy(p->NewAccount->state, &TheData[115], 15);
-	for (int k = 0; k < 15; k++)
-	{
-		if (p->NewAccount->user[k] == 1) p->NewAccount->user[k] = 0;
-		if (p->NewAccount->pass[k] == 1) p->NewAccount->pass[k] = 0;
-		if (p->NewAccount->town[k] == 1) p->NewAccount->town[k] = 0;
-		if (p->NewAccount->state[k] == 1) p->NewAccount->state[k] = 0;
+	for (int k = 0; k < 15; k++) {
+		if (p->NewAccount->user[k] == 1) {
+			p->NewAccount->user[k] = 0;
+		}
+		if (p->NewAccount->pass[k] == 1) {
+			p->NewAccount->pass[k] = 0;
+		}
+		if (p->NewAccount->town[k] == 1) {
+			p->NewAccount->town[k] = 0;
+		}
+		if (p->NewAccount->state[k] == 1) {
+			p->NewAccount->state[k] = 0;
+		}
 	}
-	for (int k = 0; k < 20; k++)
-	{
-		if (p->NewAccount->fullname[k] == 1) p->NewAccount->fullname[k] = 0;
+	for (int k = 0; k < 20; k++) {
+		if (p->NewAccount->fullname[k] == 1) {
+			p->NewAccount->fullname[k] = 0;
+		}
 	}
-	for (int k = 0; k < 50; k++)
-	{
-		if (p->NewAccount->email[k] == 1) p->NewAccount->email[k] = 0;
+	for (int k = 0; k < 50; k++) {
+		if (p->NewAccount->email[k] == 1) {
+			p->NewAccount->email[k] = 0;
+		}
 	}
 
 	p->NewAccount->ShowEditDlg();
 }
 
-void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity)
-{
+/***************************************************************
+ * Function:	ProcessInfoButton
+ *
+ * @param selectedcity
+ **************************************************************/
+void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity) {
 	int me = p->Winsock->MyIndex;
 	string AppendString = "";
 
 	int cityX = (unsigned short)(512*48)-(32+(selectedcity->city % 8*64)) * 48;
 	int cityY = (unsigned short)(512*48)-(32+(selectedcity->city / 8*64)) * 48; 
 
-	if (p->Player[me]->X <= cityX)
-	{
-		if (cityY >= p->Player[me]->Y)
-		{
-			if ((cityX - p->Player[me]->X) / (cityY - p->Player[me]->Y) > 2) AppendString += "West.";
-			else if ((cityY - p->Player[me]->Y) / (cityX - p->Player[me]->X) > 2) AppendString +=  "North.";
-			else AppendString += "West.";
+	if (p->Player[me]->X <= cityX) {
+		if (cityY >= p->Player[me]->Y) {
+			if ((cityX - p->Player[me]->X) / (cityY - p->Player[me]->Y) > 2) {
+				AppendString += "West.";
+			}
+			else if ((cityY - p->Player[me]->Y) / (cityX - p->Player[me]->X) > 2) {
+				AppendString +=  "North.";
+			}
+			else {
+				AppendString += "West.";
+			}
 		}
-		if (cityY < p->Player[me]->Y)
-		{
-			if ((cityX - p->Player[me]->X) / (p->Player[me]->Y - cityY) > 2) AppendString += "West.";
-			else if ((p->Player[me]->Y - cityY) / (cityX - p->Player[me]->X) > 2) AppendString += "South.";
-			else AppendString += "West.";
+		if (cityY < p->Player[me]->Y) {
+			if ((cityX - p->Player[me]->X) / (p->Player[me]->Y - cityY) > 2) {
+				AppendString += "West.";
+			}
+			else if ((p->Player[me]->Y - cityY) / (cityX - p->Player[me]->X) > 2) {
+				AppendString += "South.";
+			}
+			else {
+				AppendString += "West.";
+			}
 		}
-	} else
-	{
-		if (cityY >= p->Player[me]->Y)
-		{
-			if ((p->Player[me]->X - cityX) / (cityY - p->Player[me]->Y) > 2) AppendString += "East.";
-			else if ((cityY - p->Player[me]->Y) / (p->Player[me]->X - cityX) > 2) AppendString += "North.";
-			else AppendString += "East.";
+	}
+	else {
+		if (cityY >= p->Player[me]->Y) {
+			if ((p->Player[me]->X - cityX) / (cityY - p->Player[me]->Y) > 2) {
+				AppendString += "East.";
+			}
+			else if ((cityY - p->Player[me]->Y) / (p->Player[me]->X - cityX) > 2) {
+				AppendString += "North.";
+			}
+			else {
+				AppendString += "East.";
+			}
 		}
-		if (cityY < p->Player[me]->Y)
-		{
-			if ((p->Player[me]->X - cityX) / (p->Player[me]->Y - cityY) > 2) AppendString += "East.";
-			else if ((p->Player[me]->Y - cityY) / (p->Player[me]->X - cityX) > 2) AppendString += "South.";
-			else AppendString += "East.";
+		if (cityY < p->Player[me]->Y) {
+			if ((p->Player[me]->X - cityX) / (p->Player[me]->Y - cityY) > 2) {
+				AppendString += "East.";
+			}
+			else if ((p->Player[me]->Y - cityY) / (p->Player[me]->X - cityX) > 2) {
+				AppendString += "South.";
+			}
+			else {
+				AppendString += "East.";
+			}
 		}
 	}
 			
-	if (selectedcity->city == 255)
-	{
+	if (selectedcity->city == 255) {
 		p->Draw->ClearPanel();
 		p->Draw->PanelLine1 = "Existing cities are";
 		p->Draw->PanelLine2 = "too small to detect!";
 	}
-	else
-	{
+	else {
 		p->Draw->ClearPanel();
 		p->Draw->PanelLine1 = "Enemy city to the ";
 		p->Draw->PanelLine2 = AppendString;
 	}
 }
 
-void CProcess::ProcessMayorChanged()
-{
+/***************************************************************
+ * Function:	ProcessMayorChanged
+ *
+ **************************************************************/
+void CProcess::ProcessMayorChanged() {
 	p->Dialog->StartDialog = 0;
 	if (p->Interview->hWnd) EndDialog(p->Interview->hWnd, 1);
 	p->State = STATE_MEETING;
@@ -1311,17 +1349,25 @@ void CProcess::ProcessMayorChanged()
 	p->Meeting->ShowMeetingDlg();
 }
 
-void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo)
-{
+/***************************************************************
+ * Function:	ProcessRightClickCity
+ *
+ * @param cityinfo
+ **************************************************************/
+void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo) {
 	int commandocount = 0;
 	int CityMayor = -1;
 
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (p->Player[i]->City == cityinfo->City)
-		{
-			if (p->Player[i]->isMayor) CityMayor = i;
-			else commandocount += 1;
+	for (int i = 0; i < MaxPlayers; i++) {
+		if (p->Player[i]->isInGame) {
+			if (p->Player[i]->City == cityinfo->City) {
+				if (p->Player[i]->isMayor) {
+					CityMayor = i;
+				}
+				else {
+					commandocount += 1;
+				}
+			}
 		}
 	}
 
@@ -1339,13 +1385,13 @@ void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo)
 	p->Draw->PanelLine1 = "City of ";
 	p->Draw->PanelLine1.append(CityList[cityinfo->City]);
 
-	if (CityMayor > -1) 
-	{
+	if (CityMayor > -1)  {
 		p->Draw->PanelLine2 = "Mayor ";
 		p->Draw->PanelLine2.append(p->Player[CityMayor]->Name);
 	}
-	else
+	else {
 		p->Draw->PanelLine2 = "No Mayor";
+	}
 
 	p->Draw->PanelLine3 = "Commandos: ";
 	p->Draw->PanelLine3 += Commandos;
@@ -1357,51 +1403,56 @@ void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo)
 	ostringstream OrbPoints;
 	OrbPoints << cityinfo->OrbPoints;
 	p->Draw->PanelLine5 += OrbPoints.str();
-	if (CityMayor != -1 || cityinfo->BuildingCount > 0)
-	{
+	if (CityMayor != -1 || cityinfo->BuildingCount > 0) {
 		p->Engine->MsgQueue = 0;
 	}
-	else
-	{
+	else {
 		p->Draw->ClearPanel();
 
 		p->Engine->MsgQueue = 0;
 	}
 }
 
-void CProcess::ProcessRespawn(unsigned char Index)
-{
-	if (p->Winsock->MyIndex == Index)
-	{
-		p->Draw->PlayerOffsetX = 276;
-		p->Draw->PlayerOffsetY = 276;
+/***************************************************************
+ * Function:	ProcessRespawn
+ *
+ * @param Index
+ **************************************************************/
+void CProcess::ProcessRespawn(unsigned char Index) {
+	if (p->Winsock->MyIndex == Index) {
+		p->Draw->resetPlayerOffset();
 		p->Player[p->Winsock->MyIndex]->SetHP(40);
 	}
-	else
-	{
+	else {
 		p->Player[Index]->X = 0;
 		p->Player[Index]->Y = 0;
 	}
 	p->Player[Index]->isDead = false;
 }
 
-void CProcess::ProcessPong()
-{
+/***************************************************************
+ * Function:	ProcessPong
+ *
+ **************************************************************/
+void CProcess::ProcessPong() {
 	p->InGame->TCPPingValues[0] = p->InGame->TCPPingValues[1];
 	p->InGame->TCPPingValues[1] = p->InGame->TCPPingValues[2];
 	p->InGame->TCPPingValues[2] = p->InGame->TCPPingValues[3];
 	p->InGame->TCPPingValues[3] = p->InGame->TCPPingValues[4];
 	p->InGame->TCPPingValues[4] = (int)(p->Tick - p->InGame->PingTimer);
 	p->InGame->TCPPing = 0;
-	for (int i = 0; i < 5; i++)
-	{
+	for (int i = 0; i < 5; i++) {
 		p->InGame->TCPPing += p->InGame->TCPPingValues[i];
 	}
 	p->InGame->TCPPing = p->InGame->TCPPing / 5;
 }
 
-void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit)
-{
+/***************************************************************
+ * Function:	ProcessAdminEdit
+ *
+ * @param adminedit
+ **************************************************************/
+void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit) {
 	SetDlgItemText(p->AdminEdit->hWnd, IDUSER, adminedit->User);
 	SetDlgItemText(p->AdminEdit->hWnd, IDPASS, adminedit->Pass);
 	SetDlgItemText(p->AdminEdit->hWnd, IDFULLNAME, adminedit->FullName);
@@ -1425,15 +1476,13 @@ void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit)
 
 	CheckDlgButton(p->AdminEdit->hWnd, IDC_ADMIN, adminedit->IsAdmin);
 	CheckDlgButton(p->AdminEdit->hWnd, IDC_MEMBER, adminedit->Member);
-	if (adminedit->Red == 255 && adminedit->Green == 255 && adminedit->Blue == 255)
-	{
+	if (adminedit->Red == 255 && adminedit->Green == 255 && adminedit->Blue == 255) {
 		CheckDlgButton(p->AdminEdit->hWnd, IDC_RAINBOW, 1);
 		SetDlgItemInt(p->AdminEdit->hWnd, IDRED, 255, false);
 		SetDlgItemInt(p->AdminEdit->hWnd, IDGREEN, 255, false);
 		SetDlgItemInt(p->AdminEdit->hWnd, IDBLUE, 255, false);
 	}
-	else
-	{
+	else {
 		SetDlgItemInt(p->AdminEdit->hWnd, IDRED, adminedit->Red, false);
 		SetDlgItemInt(p->AdminEdit->hWnd, IDGREEN, adminedit->Green, false);
 		SetDlgItemInt(p->AdminEdit->hWnd, IDBLUE, adminedit->Blue, false);
@@ -1441,8 +1490,12 @@ void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit)
 	}
 }
 
-void CProcess::ProcessClickPlayer(sSMClickPlayer *clickplayer)
-{
+/***************************************************************
+ * Function:	ProcessClickPlayer
+ *
+ * @param clickplayer
+ **************************************************************/
+void CProcess::ProcessClickPlayer(sSMClickPlayer *clickplayer) {
 	ostringstream ConvertPoints;
 	ostringstream ConvertOrbs;
 	ostringstream ConvertAssists;
@@ -1478,28 +1531,44 @@ void CProcess::ProcessClickPlayer(sSMClickPlayer *clickplayer)
 	p->Engine->MsgQueue = 0;
 }
 
-void CProcess::ProcessFinance(sSMFinance *finance)
-{
+
+/***************************************************************
+ * Function:	ProcessFinance
+ *
+ * @param clickplayer
+ **************************************************************/
+void CProcess::ProcessFinance(sSMFinance *finance) {
 	p->InGame->Cash = finance->Cash;
 	p->InGame->Income = finance->Income;
 	p->InGame->Research = finance->Research;
 	p->InGame->Items = finance->Items;
 	p->InGame->Hospital = finance->Hospital;
 
-	if (p->Draw->PanelMode == modeFinance)
+	if (p->Draw->PanelMode == modeFinance) {
 		p->InGame->PrintFinanceReport();
+	}
 }
 
+/***************************************************************
+ * Function:	ProcessWhisper
+ *
+ * @param TheData
+ **************************************************************/
 void CProcess::ProcessWhisper(char *TheData) {
 	int Index = (unsigned char)TheData[1];
 	string tmpstring = p->Player[Index]->Name + " (PM): " + &TheData[2];
 
-	p->InGame->AppendChat(tmpstring, RGB(255, 255, 255));
+	p->InGame->AppendChat(tmpstring, COLOR_WHITE);
 }
 
+/***************************************************************
+ * Function:	ProcessGlobal
+ *
+ * @param TheData
+ **************************************************************/
 void CProcess::ProcessGlobal(char *TheData) {
 	int Index = (unsigned char)TheData[1];
 	string tmpstring = p->Player[Index]->Name + " (Global): " + &TheData[2];
 
-	p->InGame->AppendChat(tmpstring, RGB(255, 165, 0));
+	p->InGame->AppendChat(tmpstring, COLOR_YELLOW);
 }

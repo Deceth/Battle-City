@@ -24,6 +24,7 @@ public:
 	char debug;
 	char names;
 	char limitfps;
+	char resolution1024;
 
 	void LoadOptions();
 	void SaveOptions();

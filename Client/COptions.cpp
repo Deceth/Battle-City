@@ -2,12 +2,10 @@
 
 void *COptionsPointer;
 
-int CALLBACK OptionsDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
-{
+int CALLBACK OptionsDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
 	int i = 0;
 	CGame *p = (CGame *)COptionsPointer;
-    switch(Message)
-    {
+    switch(Message) {
         case WM_INITDIALOG:
 			p->Options->hWnd = hwnd;
 			CheckDlgButton(hwnd, 1100, p->Options->sound);
@@ -19,10 +17,10 @@ int CALLBACK OptionsDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPara
 			CheckDlgButton(hwnd, 1106, p->Options->debug);
 			CheckDlgButton(hwnd, 1107, p->Options->names);
 			CheckDlgButton(hwnd, 1108, p->Options->limitfps);
+			CheckDlgButton(hwnd, 1109, p->Options->resolution1024);
         return 1;
         case WM_COMMAND:
-            switch(LOWORD(wParam))
-            {
+            switch(LOWORD(wParam)) {
                 case 1:
 					//Save Options
 					p->Options->sound = IsDlgButtonChecked(hwnd, 1100);
@@ -34,8 +32,8 @@ int CALLBACK OptionsDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPara
 					p->Options->debug = IsDlgButtonChecked(hwnd, 1106);
 					p->Options->names = IsDlgButtonChecked(hwnd, 1107);
 					p->Options->limitfps = IsDlgButtonChecked(hwnd, 1108);
-					if (p->Options->music == 0)
-					{
+					p->Options->resolution1024 = IsDlgButtonChecked(hwnd, 1109);
+					if (p->Options->music == 0) {
 						p->Sound->StopMID(1, 0);
 					}
 					p->Options->SaveOptions();
@@ -99,6 +97,7 @@ void COptions::LoadOptions()
 		this->debug = GetPrivateProfileInt("Options", "Debug", 0, buffer);
 		this->names = GetPrivateProfileInt("Options", "Names", 1, buffer);
 		this->limitfps = GetPrivateProfileInt("Options", "LimitFPS", 1, buffer);
+		this->resolution1024 = GetPrivateProfileInt("Options", "Resolution1024", 1, buffer);
 	}
 	else
 	{
@@ -111,6 +110,7 @@ void COptions::LoadOptions()
 		this->debug = 0;
 		this->names = 1;
 		this->limitfps = 1;
+		this->resolution1024 = 1;
 		SaveOptions();
 	}
 }
@@ -150,4 +150,7 @@ void COptions::SaveOptions()
 
 	itoa(this->limitfps, sdf, 10);
 	WritePrivateProfileString("Options", "LimitFPS", sdf, buffer);
+
+	itoa(this->resolution1024, sdf, 10);
+	WritePrivateProfileString("Options", "Resolution1024", sdf, buffer);
 }

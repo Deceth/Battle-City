@@ -32,20 +32,6 @@ CInGame::CInGame(CGame *game)
 	timeDeath = 0;
 	timeLastAttack = 0;
 
-	/* 1024
-	PlayerOffsetX = 316;
-	PlayerOffsetY = 316;
-	MaxMapX = 680;
-	MaxMapY = 680;
-	*/
-
-	/* 640
-	PlayerOffsetX = 216;
-	PlayerOffsetY = 216;
-	MaxMapX = 480;
-	MaxMapY = 480;
-	*/
-
 	for (int i = 0; i < 27; i++)
 	{
 		CanBuild[i] = 0;
@@ -383,150 +369,214 @@ void CInGame::CheckCheatTools()
 	}
 }
 
-void CInGame::RefreshArea()
-{
+/***************************************************************
+ * Function:	RefreshArea
+ *
+ **************************************************************/
+void CInGame::RefreshArea() {
 	bool requestedSector = false;
-
 	char me = p->Winsock->MyIndex;
+	sCMSector sector;
 
-	for (int i = -1; i <= 1; i++)
-	{
-		for (int j = -1; j <= 1; j++)
-		{
-			if (((p->Player[me]->SectorX+i) >= 0) & ((p->Player[me]->SectorX+i) <= MaxSectors) 
-				& ((p->Player[me]->SectorY+j) >= 0) & ((p->Player[me]->SectorY+j) <= MaxSectors))
-			{
-				if (this->HasSector[(p->Player[me]->SectorX+i)][(p->Player[me]->SectorY+j)] == 0 && this->RequestedSector[(p->Player[me]->SectorX+i)][(p->Player[me]->SectorY+j)] == false)
-				{
-					sCMSector sector;
+	// For each sector in the nearby grid of 9 sectors,
+	for (int i = -1; i <= 1; i++) {
+		for (int j = -1; j <= 1; j++) {
+
+			// If the sector is on the map,
+			if (
+				((p->Player[me]->SectorX+i) >= 0)
+				&&
+				((p->Player[me]->SectorX+i) <= MaxSectors) 
+				&&
+				((p->Player[me]->SectorY+j) >= 0)
+				&&
+				((p->Player[me]->SectorY+j) <= MaxSectors)
+			) {
+
+				// If the player doesn't have the sector, and hasn't already requested it,
+				if (
+					(! this->HasSector[(p->Player[me]->SectorX+i)][(p->Player[me]->SectorY+j)])
+					&&
+					(! this->RequestedSector[(p->Player[me]->SectorX+i)][(p->Player[me]->SectorY+j)])
+				) {
+
+					// Get the bounds of the sector
 					sector.x = p->Player[me]->SectorX + i;
 					sector.y = p->Player[me]->SectorY + j;
 
-					if ((sector.x >= 0) & (sector.y >= 0) & (sector.x <= MaxSectors) & (sector.y <= MaxSectors))
-					{
-						ClearSector(sector.x, sector.y);
-						this->RequestedSector[sector.x][sector.y] = true;
-						p->Winsock->SendData(cmRequestSector, (char *)&sector, sizeof(sector));
-						requestedSector = true;
-					}
+					ClearSector(sector.x, sector.y);
+					this->RequestedSector[sector.x][sector.y] = true;
+					p->Winsock->SendData(cmRequestSector, (char *)&sector, sizeof(sector));
+					requestedSector = true;
 				}
 			}
 		}
 	}
 
-	for (int i = 0; i <= MaxSectors; i++)
-	{
-		for (int j = 0; j <= MaxSectors; j++)
-		{
-			if ((abs(i - p->Player[me]->SectorX) > 1) | (abs(j - p->Player[me]->SectorY) > 1))
-				ClearSector(i, j);
+	// For each sector,
+	for (int i = 0; i <= MaxSectors; i++) {
+		for (int j = 0; j <= MaxSectors; j++) {
+
+			// If the player has the sector,	
+			if( this->HasSector[i][j] ) {
+
+				// If the player is no longer near the sector, clear it
+				if ((abs(i - p->Player[me]->SectorX) > 1) | (abs(j - p->Player[me]->SectorY) > 1)) {
+					ClearSector(i, j);
+				}
+			}
 		}
 	}
 
-	if (requestedSector == true && p->InGame->ShowMap == 1) 
-	{
+	// If we requested a sector, and the minimap is open, 
+	if ((requestedSector==true) && (p->InGame->ShowMap == 1)) {
+
+		// Request the map
 		p->Winsock->SendData(cmMiniMap, " ");
 	}
 }
 
-void CInGame::ClearSector(int SectorX, int SectorY)
-{
-	if (SectorX >= 0 && SectorY >= 0 && SectorX <= MaxSectors && SectorY <= MaxSectors && p->InGame->ShowMap == 0)
-	{
+/***************************************************************
+ * Function:	ClearSector
+ *
+ * @param SectorX the X position of the sector
+ * @param SectorY the Y position of the sector
+ **************************************************************/
+void CInGame::ClearSector(int SectorX, int SectorY) {
+
+	// If the sector is on the map, and the minimap is not open,
+	if (SectorX >= 0 && SectorY >= 0 && SectorX <= MaxSectors && SectorY <= MaxSectors && p->InGame->ShowMap == 0) {
 		p->InGame->HasSector[SectorX][SectorY] = 0;
 		p->InGame->RequestedSector[SectorX][SectorY] = false;
 
 		CItem *itm = p->Item->items;
-		if (itm)
-		{
-			while (itm->prev)
+		if (itm) {
+			while (itm->prev) {
 				itm = itm->prev;
+			}
 
-			while (itm)
-			{
-				if ((itm->X / SectorSize) == SectorX && (itm->Y / SectorSize) == SectorY)
-				{
+			// For each item,
+			while (itm) {
+
+				// If the item is in the sector,
+				if ((itm->X / SectorSize) == SectorX && (itm->Y / SectorSize) == SectorY) {
+
+					// Delete the item (from the client)
 					p->Item->delItem(itm);
 					itm = p->Item->items;
-					if (!itm)
+
+					if (!itm) {
 						break;
-					while (itm->prev)
+					}
+					while (itm->prev) {
 						itm = itm->prev;
+					}
 				}
+
+				// Get the next item
 				itm = itm->next;
 			}
 		}
 
 		CBuilding *bld = p->Build->buildings;
-		if (bld)
-		{
-			while (bld->prev)
+		if (bld) {
+			while (bld->prev) {
 				bld = bld->prev;
+			}
 
-			while (bld)
-			{
-				if ((bld->X / SectorSize) == SectorX && (bld->Y / SectorSize) == SectorY && bld->Type != 6)
-				{
+			// For each building,
+			while (bld) {
+
+				// If the building is in the sector (and not a CC),
+				if ((bld->X / SectorSize) == SectorX && (bld->Y / SectorSize) == SectorY && bld->Type != 6) {
+
+					// Delete the item (from the client)
 					p->Build->delBuilding(bld);
+					
 					bld = p->Build->buildings;
-					if (!bld)
+					if (!bld) {
 						break;
-					while (bld->prev)
+					}
+					while (bld->prev) {
 						bld = bld->prev;
+					}
 				}
+
+				// Get the next building
 				bld = bld->next;
 			}
 		}
 	}
 }
 
-void CInGame::ClearAllSectors()
-{
+/***************************************************************
+ * Function:	ClearAllSectors
+ *
+ **************************************************************/
+void CInGame::ClearAllSectors() {
 	memset(HasSector, 0, sizeof(HasSector));
 	memset(RequestedSector, 0, sizeof(RequestedSector));
 
 	CItem *itm = p->Item->items;
-	if (itm)
-	{
-		while (itm->prev)
+	if (itm) {
+		while (itm->prev) {
 			itm = itm->prev;
+		}
 
-		while (itm)
-		{
+		// For each item,
+		while (itm) {
+
+			// Delete the item (from the client)
 			p->Item->delItem(itm);
 			itm = p->Item->items;
-			if (!itm)
+			if (!itm) {
 				break;
-			while (itm->prev)
+			}
+			while (itm->prev) {
 				itm = itm->prev;
+			}
+
+			// Get the next item
 			itm = itm->next;
 		}
 	}
 
 	CBuilding *bld = p->Build->buildings;
-	if (bld)
-	{
-		while (bld->prev)
+	if (bld) {
+		while (bld->prev) {
 			bld = bld->prev;
+		}
 
-		while (bld)
-		{
-			if (bld->Type != 6)
-			{
+		// For each building,
+		while (bld) {
+
+			// If the is not a CC,
+			if (bld->Type != 6) {
+
+				// Delete the building (from the client)
 				p->Build->delBuilding(bld);
 				bld = p->Build->buildings;
-				if (!bld)
+				if (!bld) {
 					break;
-				while (bld->prev)
+				}
+				while (bld->prev) {
 					bld = bld->prev;
+				}
 			}
+
+			// Get the next building
 			bld = bld->next;
 		}
 	}
 }
 
-void CInGame::PrintFinanceReport()
-{
+/***************************************************************
+ * Function:	PrintFinanceReport
+ *
+ **************************************************************/
+void CInGame::PrintFinanceReport() {
+	long netIncome = this->getGrossIncome();
+
 	p->Draw->ClearPanel();
 
 	p->Draw->PanelMode = modeFinance;
@@ -545,10 +595,16 @@ void CInGame::PrintFinanceReport()
 	p->Draw->PanelLine5 += p->Draw->CashFormat(p->InGame->Hospital);
 
 	p->Draw->PanelLine6 = "Total: ";
-	long NetIncome = p->InGame->Income - p->InGame->Research - p->InGame->Items - p->InGame->Hospital;
-	if (NetIncome < 0)
-	{
+	if (netIncome < 0) {
 		p->Draw->PanelLine6 += "-";
 	}
-	p->Draw->PanelLine6 += p->Draw->CashFormat(abs(NetIncome));
+	p->Draw->PanelLine6 += p->Draw->CashFormat(abs(netIncome));
+}
+
+/***************************************************************
+ * Function:	getGrossIncome
+ *
+ **************************************************************/
+int CInGame::getGrossIncome() {
+	return this->Income - this->Hospital - this->Items - this->Research;
 }
