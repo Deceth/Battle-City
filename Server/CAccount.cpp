@@ -714,6 +714,9 @@ void CAccount::GetLoginData(int Index) {
 			p->Player[Index]->Member = p->Database->Query.getIntField("Member");
 			p->Player[Index]->RentalCity = p->Database->Query.getIntField("RentalCity");
 			p->Database->Query.finalize();
+
+			// Set displayTank to Tank
+			p->Player[Index]->displayTank = p->Player[Index]->Tank;
 			return;
 		}
 	}
