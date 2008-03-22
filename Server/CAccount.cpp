@@ -1,13 +1,27 @@
 #include "CAccount.h"
 
+/***************************************************************
+ * Constructor:	CBuilding
+ *
+ * @param Server
+ **************************************************************/
 CAccount::CAccount(CServer *Server) {
 	p = Server;
 }
 
+/***************************************************************
+ * Destructor:	CBuilding
+ *
+ **************************************************************/
 CAccount::~CAccount() {
 
 }
 
+/***************************************************************
+ * Function:	CheckAccount
+ *
+ * @param account
+ **************************************************************/
 int CAccount::CheckAccount(string account) {
 	try {
 		// Select the account from the database, matching by account name
@@ -31,6 +45,11 @@ int CAccount::CheckAccount(string account) {
     }
 }
 
+/***************************************************************
+ * Function:	CheckEmail
+ *
+ * @param email
+ **************************************************************/
 int CAccount::CheckEmail(string email) {
 	try {
 		// Select the account from the database, matching by email address
@@ -54,6 +73,12 @@ int CAccount::CheckEmail(string email) {
     }
 }
 
+/***************************************************************
+ * Function:	CompareEmail
+ *
+ * @param email
+ * @param Index
+ **************************************************************/
 int CAccount::CompareEmail(string email, int Index) {
 	try {
 		// Select the account from the database, matching by name
@@ -80,6 +105,12 @@ int CAccount::CompareEmail(string email, int Index) {
     }
 }
 
+/***************************************************************
+ * Function:	CheckPassword
+ *
+ * @param account
+ * @param password
+ **************************************************************/
 int CAccount::CheckPassword(string account, string password) {
 	try {
 		// Select the account from the database, matching by name
@@ -106,6 +137,16 @@ int CAccount::CheckPassword(string account, string password) {
     }
 }
 
+/***************************************************************
+ * Function:	NewAccount
+ *
+ * @param account
+ * @param password
+ * @param email
+ * @param fullname
+ * @param town
+ * @param state
+ **************************************************************/
 int CAccount::NewAccount(string account, string password, string email, string fullname, string town, string state) {
 
 	// If the account name isn't already in use,
@@ -146,6 +187,10 @@ int CAccount::NewAccount(string account, string password, string email, string f
 	}
 }
 
+/***************************************************************
+ * Function:	GenerateTop20
+ *
+ **************************************************************/
 void CAccount::GenerateTop20() {
 	string QueryString;
 	string TempTop20;
@@ -329,6 +374,10 @@ void CAccount::GenerateTop20() {
 	}
 }
 
+/***************************************************************
+ * Function:	MonthHasChanged
+ *
+ **************************************************************/
 bool CAccount::MonthHasChanged() {
 	char monthString[100];
 	struct tm *ptr;
@@ -360,6 +409,11 @@ bool CAccount::MonthHasChanged() {
 	return true;
 }
 
+/***************************************************************
+ * Function:	ReturnRank
+ *
+ * @param Points
+ **************************************************************/
 string CAccount::ReturnRank(int Points) {
 	string rank;
 
@@ -433,6 +487,12 @@ string CAccount::ReturnRank(int Points) {
 	return rank;
 }
 
+/***************************************************************
+ * Function:	AddPoints
+ *
+ * @param Index
+ * @param points
+ **************************************************************/
 void CAccount::AddPoints(int Index, int points) {
 	// Add points to the players's Points and MonthlyPoints values
 	p->Player[Index]->Points += points;
@@ -449,6 +509,11 @@ void CAccount::AddPoints(int Index, int points) {
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
+/***************************************************************
+ * Function:	Sub2Points
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::Sub2Points(int Index) {
 	// Subtract 2 points from the players's Points and MonthlyPoints values
 	p->Player[Index]->Points -= 2;
@@ -473,6 +538,11 @@ void CAccount::Sub2Points(int Index) {
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
+/***************************************************************
+ * Function:	GetMonthlyTop20
+ *
+ * @param Index
+ **************************************************************/
 int CAccount::GetMonthlyTop20(int Index) {
 	// Select the account from the database, matching by name
 	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
@@ -490,7 +560,12 @@ int CAccount::GetMonthlyTop20(int Index) {
 	return 0;
 }
 
-
+/***************************************************************
+ * Function:	CheckBan
+ *
+ * @param UniqID
+ * @param IPAddress
+ **************************************************************/
 int CAccount::CheckBan(string UniqID, string IPAddress) {
 	try {
 		// Select the bans from the database, matching by ID
@@ -526,6 +601,11 @@ int CAccount::CheckBan(string UniqID, string IPAddress) {
     }
 }
 
+/***************************************************************
+ * Function:	CheckAccountBan
+ *
+ * @param account
+ **************************************************************/
 int CAccount::CheckAccountBan(string account) {
 	try {
 		// Select the bans from the database, matching by account name
@@ -548,6 +628,11 @@ int CAccount::CheckAccountBan(string account) {
     }
 }
 
+/***************************************************************
+ * Function:	SendAccountInformation
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::SendAccountInformation(int Index) {
 	try {
 		// Select the account from the database, matching by account name
@@ -625,6 +710,16 @@ void CAccount::SendAccountInformation(int Index) {
     }
 }
 
+/***************************************************************
+ * Function:	UpdateAccount
+ *
+ * @param Index
+ * @param password
+ * @param email
+ * @param fullname
+ * @param town
+ * @param state
+ **************************************************************/
 int CAccount::UpdateAccount(int Index, string password, string email, string fullname, string town, string state) {
 	string QueryString;
 
@@ -658,6 +753,12 @@ int CAccount::UpdateAccount(int Index, string password, string email, string ful
 	return 0;
 }
 
+/***************************************************************
+ * Function:	RecoverAccount
+ *
+ * @param Index
+ * @param Email
+ **************************************************************/
 int CAccount::RecoverAccount(int Index, string Email) {
 	try {
 		// Select the account from the database, matching by email
@@ -682,6 +783,11 @@ int CAccount::RecoverAccount(int Index, string Email) {
     }
 }
 
+/***************************************************************
+ * Function:	GetLoginData
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::GetLoginData(int Index) {
 	try {
 		// Select the account from the database, matching by account name
@@ -726,6 +832,11 @@ void CAccount::GetLoginData(int Index) {
     }
 }
 
+/***************************************************************
+ * Function:	AddDeath
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::AddDeath(int Index) {
 	// Add a death to the player
 	p->Player[Index]->Deaths++;
@@ -741,6 +852,12 @@ void CAccount::AddDeath(int Index) {
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
+
+/***************************************************************
+ * Function:	AddOrb
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::AddOrb(int Index) {
 	// Add an orb to the player
 	p->Player[Index]->Orbs++;
@@ -756,6 +873,11 @@ void CAccount::AddOrb(int Index) {
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
+/***************************************************************
+ * Function:	AddAssist
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::AddAssist(int Index) {
 	// Add an assist to the player
 	p->Player[Index]->Assists++;
@@ -771,6 +893,11 @@ void CAccount::AddAssist(int Index) {
 	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 }
 
+/***************************************************************
+ * Function:	GetDeaths
+ *
+ * @param Index
+ **************************************************************/
 int CAccount::GetDeaths(int Index) {
 	// Select the account from the database, matching by account name
 	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
@@ -788,6 +915,11 @@ int CAccount::GetDeaths(int Index) {
 	return 0;
 }
 
+/***************************************************************
+ * Function:	GetOrbs
+ *
+ * @param Index
+ **************************************************************/
 int CAccount::GetOrbs(int Index) {
 	// Select the account from the database, matching by account name
 	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
@@ -805,6 +937,11 @@ int CAccount::GetOrbs(int Index) {
 	return 0;
 }
 
+/***************************************************************
+ * Function:	GetAssists
+ *
+ * @param Index
+ **************************************************************/
 int CAccount::GetAssists(int Index) {
 	// Select the account from the database, matching by account name
 	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
@@ -822,6 +959,11 @@ int CAccount::GetAssists(int Index) {
 	return 0;
 }
 
+/***************************************************************
+ * Function:	GetStats
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::GetStats(int Index) {
 	// Select the account from the database, matching by account name
 	string QueryString = "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
@@ -840,6 +982,11 @@ void CAccount::GetStats(int Index) {
 	p->Database->Query.finalize();
 }
 
+/***************************************************************
+ * Function:	SaveStats
+ *
+ * @param Index
+ **************************************************************/
 void CAccount::SaveStats(int Index) {
 	string QueryString;
 	std::ostringstream Converter;

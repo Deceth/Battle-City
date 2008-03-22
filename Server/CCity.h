@@ -6,48 +6,50 @@
 class CServer;
 class CBuildingList;
 
-class CCity
-{
-protected:
-public:
-	CCity(CServer *Server);
-	~CCity();
+class CCity {
 
-	float DestructTimer;
+	public:
+		CCity(CServer *Server);
+		~CCity();
 
-	int Mayor;
-	int Successor;
-	int Orbs;
-	unsigned char id;
-	int active;
-	int hiring;
-	int notHiring;
+		float DestructTimer;
 
-	long cash;
-	long cashresearch;
-	long itemproduction;
-	long hospital;
-	long income;
+		int Mayor;
+		int Successor;
+		int Orbs;
+		unsigned char id;
+		int active;
+		int hiring;
+		int notHiring;
 
-	float moneyCycle;
-	int itemC[12];
+		long cash;
+		long cashresearch;
+		long itemproduction;
+		long hospital;
+		long income;
 
-	float research[20]; // -1 == complete, 0 == unbuilt, > 0 == tick research will complete
-	int canBuild[30];
+		float moneyCycle;
+		int itemC[12];
 
-	int x;
-	int y;
+		float research[20]; // -1 == complete, 0 == unbuilt, > 0 == tick research will complete
+		int canBuild[30];
 
-	void cycle();
-	void setCanBuild(int i, int can);
-	void destroy();
+		int x;
+		int y;
 
-	void didOrb(int City, int index);
-	void wasOrbed();
+		void cycle();
+		void setCanBuild(int i, int can);
+		void destroy();
 
-	int PlayerCount();
-private:
-	CServer *p;
+		void didOrb(int City, int index);
+		void wasOrbed();
+
+		int PlayerCount();
+
+	protected:
+
+	private:
+		CServer *p;
 };
 
 #endif

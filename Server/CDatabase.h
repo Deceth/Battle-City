@@ -5,20 +5,23 @@
 
 class CServer;
 
-class CDatabase
-{
-public:
-	CDatabase(CServer *Server);
-	~CDatabase();
+class CDatabase {
 
-	void LoadDatabase();
-	void CleanDatabase();
+	public:
+		CDatabase(CServer *Server);
+		~CDatabase();
 
-	CppSQLite3DB Database;
-	CppSQLite3Query Query;
-private:
-	CServer *p;
-protected:
+		void LoadDatabase();
+		void CleanDatabase();
+
+		CppSQLite3DB Database;
+		CppSQLite3Query Query;
+
+	private:
+		CServer *p;
+
+	protected:
+
 };
 
 #endif

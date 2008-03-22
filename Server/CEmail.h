@@ -46,32 +46,35 @@
 
 class CServer;
 
-class CEMail
-{
-public:
-	CEMail(CServer *Server);
-	~CEMail();
+class CEMail {
 
-	void SendWelcome(string Address);
-	void SendPassword(string Email, string User, string Password);
+	public:
+		CEMail(CServer *Server);
+		~CEMail();
 
-	int send_mail(const char *smtpserver, const char *from, const char *to, 
-					const char *subject, const char *replyto, const char *msg);
-	int connect_to_server(const char *server);
-	int send_command(int n_sock, const char *prefix, const char *cmd, 
-						const char *suffix, int ret_code);
-	int send_mail_message(int n_sock, const char *from, const char *to, 
-							const char *subject, const char *replyto, const char *msg);
+		void SendWelcome(string Address);
+		void SendPassword(string Email, string User, string Password);
+
+		int send_mail(const char *smtpserver, const char *from, const char *to, 
+						const char *subject, const char *replyto, const char *msg);
+		int connect_to_server(const char *server);
+		int send_command(int n_sock, const char *prefix, const char *cmd, 
+							const char *suffix, int ret_code);
+		int send_mail_message(int n_sock, const char *from, const char *to, 
+								const char *subject, const char *replyto, const char *msg);
 
 
-	#ifdef WIN32
-	int startup_sockets_lib(void);
-	int cleanup_sockets_lib(void);
-	#define snprintf  _snprintf
-	#endif
-private:
-	CServer *p;
-protected:
+		#ifdef WIN32
+		int startup_sockets_lib(void);
+		int cleanup_sockets_lib(void);
+		#define snprintf  _snprintf
+		#endif
+
+	protected:
+
+	private:
+		CServer *p;
+
 };
 
 #endif

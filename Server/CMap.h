@@ -5,19 +5,22 @@
 
 class CServer;
 
-class CMap
-{
-public:
-	CMap(CServer *Server);
-	~CMap();
+class CMap {
 
-	void CalculateTiles();
-	void LoadMap();
+	public:
+		CMap(CServer *Server);
+		~CMap();
 
-	unsigned char map[512][512];
-private:
-	CServer *p;
-protected:
+		void CalculateTiles();
+		void LoadMap();
+
+		unsigned char map[512][512];
+
+	protected:
+
+	private:
+		CServer *p;
+
 };
 
 #endif

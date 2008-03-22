@@ -1,55 +1,75 @@
 #include "CMap.h"
 
-//short tiles[512][512];
-
-CMap::CMap(CServer *Server)
-{
-	p = Server;
+/***************************************************************
+ * Constructor
+ *
+ * @param Server
+ **************************************************************/
+CMap::CMap(CServer *Server) {
+	this->p = Server;
 }
 
-CMap::~CMap()
-{
-
+/***************************************************************
+ * Destructor
+ *
+ **************************************************************/
+CMap::~CMap() {
 }
 
-void CMap::LoadMap()
-{
-	for (int i = 0; i < 512; i++)
-	{
-		for (int j = 0; j < 512; j++)
-		{
+/***************************************************************
+ * Function:	LoadMap
+ *
+ **************************************************************/
+void CMap::LoadMap() {
+	FILE *file;
+
+	// For each row,
+	for (int i = 0; i < 512; i++) {
+
+		// For each column,
+		for (int j = 0; j < 512; j++) {
+
+			// Set the square to 0
 			this->map[i][j] = 0;
 		}
 	}
 
-	if (p->Exists("map.dat") == 0) 
-	{
-		p->running = 0;
+	// If the map file is missing,
+	if (this->p->Exists("map.dat") == 0) {
+
+		// Error and return
+		this->p->running = 0;
 		cout << "Error:  map.dat is missing!" << endl;
 		return;
 	}
 
-	FILE *file;
+	// Open and read the map file
 	file = fopen("map.dat","r");
-
-	if (file)
-	{
+	if (file) {
 		fread(this->map,512,512,file);
-		CalculateTiles();
+		this->CalculateTiles();
 	}
 
 	fclose(file);
 }
 
-void CMap::CalculateTiles()
-{
+/***************************************************************
+ * Function:	CalculateTiles
+ *
+ **************************************************************/
+void CMap::CalculateTiles() {
 	int citIndex = 63;
-	for (int j = 0; j < 512; j++)
-	{
-		for (int i = 0; i < 512; i++)
-		{
-			if (this->map[i][j] == 3)
-			{
+
+	// For each row,
+	for (int j = 0; j < 512; j++) {
+
+		// For each column,
+		for (int i = 0; i < 512; i++) {
+
+			// If the map says to place a CC,
+			if (this->map[i][j] == 3) {
+
+				// Place the CC
 				p->City[citIndex]->x = i * 48;
 				p->City[citIndex]->y = j * 48;
 				p->Build->newBuilding(i, j, 0, -1, 0);

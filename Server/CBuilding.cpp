@@ -11,9 +11,9 @@
  * @param Server
  **************************************************************/
 CBuilding::CBuilding(int x, int y, int type, int City, unsigned short id, CServer *Server) {
-	p = Server;
-	prev = 0;
-	next = 0;
+	this->p = Server;
+	this->prev = 0;
+	this->next = 0;
 	this->x = x;
 	this->y = y;
 	this->City = City;
@@ -39,11 +39,11 @@ CBuilding::CBuilding(int x, int y, int type, int City, unsigned short id, CServe
  **************************************************************/
 CBuilding::~CBuilding() {
 	// Tell the surrounding buildings to bypass this building in the list
-	if (next) {
-		next->prev = prev;
+	if (this->next) {
+		this->next->prev = this->prev;
 	}
-	if (prev) {
-		prev->next = next;
+	if (this->prev) {
+		this->prev->next = this->next;
 	}
 }
 /***************************************************************
@@ -52,7 +52,7 @@ CBuilding::~CBuilding() {
  * @param id
  **************************************************************/
 CBuilding *CBuildingList::findBuilding(unsigned short id) {
-	CBuilding *bld = buildings;
+	CBuilding *bld = this->buildings;
 
 	// If there are no buildings, return 0
 	if (!bld) {
@@ -87,7 +87,7 @@ CBuilding *CBuildingList::findBuilding(unsigned short id) {
  **************************************************************/
 int CBuildingList::GetOrbPointCount(int theCity) {
 	int pointsgiven = 0;
-	int count = p->Build->GetOrbBuildingCount(theCity);
+	int count = this->p->Build->GetOrbBuildingCount(theCity);
 
 	// Get the base point value from the city's building count
 
@@ -109,7 +109,7 @@ int CBuildingList::GetOrbPointCount(int theCity) {
 	}
 
 	// Add 5 points for each of the city's Orbs
-	pointsgiven += (p->City[theCity]->Orbs * 5);
+	pointsgiven += (this->p->City[theCity]->Orbs * 5);
 
 	return pointsgiven;
 }
@@ -124,16 +124,16 @@ int CBuildingList::GetOrbPointCount(int theCity) {
  * @param id
  **************************************************************/
 CBuilding *CBuildingList::newBuilding(int x, int y, int type, int City, unsigned short id) {
-	CBuilding *bld = buildings;
+	CBuilding *bld = this->buildings;
 
 	// If there are no buildings in the building linked list,
 	if (!bld) {
 
 		// Set the linked list to point to the new building
-		buildings = new CBuilding(x, y, type, City, id, p);
+		this->buildings = new CBuilding(x, y, type, City, id, this->p);
 
 		// Return a pointer to the new building (happens to also be a pointer to the linked list)
-		return buildings;
+		return this->buildings;
 	}
 	
 	// Else (there are buildings),
@@ -145,7 +145,7 @@ CBuilding *CBuildingList::newBuilding(int x, int y, int type, int City, unsigned
 		}
 
 		// Add the new building at the end of the list
-		bld->next = new CBuilding(x, y, type, City, id, p);
+		bld->next = new CBuilding(x, y, type, City, id, this->p);
 
 		// Tell the new building about the building before it
 		bld->next->prev = bld;
@@ -165,7 +165,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	CBuilding *otherBuilding;
 
 	// If there are no buildings, return 0
-	if (!buildings) {
+	if (!this->buildings) {
 		return 0;
 	}
 
@@ -220,7 +220,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 
 	// Building: ALL
 	// Tell the city it can now build this building type MINUS ONE (setCanBuild does its own index++)
-	p->City[buildingToDelete->City]->setCanBuild(buildingToDelete->type-1, 1);
+	this->p->City[buildingToDelete->City]->setCanBuild(buildingToDelete->type-1, 1);
 
 
 	/************************************************
@@ -233,7 +233,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 		if (buildingToDelete->AttachedID > 0) {
 
 			// Try to find the building in slot 1
-			otherBuilding = p->Build->findBuilding(buildingToDelete->AttachedID);
+			otherBuilding = this->p->Build->findBuilding(buildingToDelete->AttachedID);
 
 			// If the building was found,
 			if (otherBuilding) {
@@ -246,7 +246,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 				sSMPop pop;
 				pop.id = otherBuilding->id;
 				pop.pop = otherBuilding->pop / 8;
-				p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
+				this->p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
 			}
 		}
 
@@ -267,7 +267,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 				sSMPop pop;
 				pop.id = otherBuilding->id;
 				pop.pop = otherBuilding->pop / 8;
-				p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
+				this->p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
 			}
 		}
 	}
@@ -296,7 +296,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 					sSMPop pop;
 					pop.id = otherBuilding->id;
 					pop.pop = otherBuilding->pop / 16;
-					p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
+					this->p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
 				}
 
 				// Else if the House has this building attached in slot 2,
@@ -311,7 +311,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 					sSMPop pop;
 					pop.id = otherBuilding->id;
 					pop.pop = otherBuilding->pop / 16;
-					p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
+					this->p->Send->SendSectorArea(otherBuilding->x*48,otherBuilding->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
 				}
 			}
 		}
@@ -321,7 +321,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	sSMBuild bv;
 	bv.id = buildingToDelete->id;
 	bv.x = 1;
-	p->Send->SendSectorArea(buildingToDelete->x*48, buildingToDelete->y*48,smRemBuilding,(char *)&bv,sizeof(bv));
+	this->p->Send->SendSectorArea(buildingToDelete->x*48, buildingToDelete->y*48,smRemBuilding,(char *)&bv,sizeof(bv));
 
 	// If the building had a building before it, point the buildings list pointer at that building
 	if (buildingToDelete->prev) {

@@ -1,42 +1,65 @@
 #include "CTimer.h"
 
-void CTime::Update() 
-{
-	td2 = GetTime();
-	dt = (td2-td) * 0.1f; 
-	td = td2;
+/***************************************************************
+ * Constructor
+ *
+ **************************************************************/
+CTime::CTime() {
+	this->dt = 0;
+	this->td2 = 0;
+	this->td = 0;
+	this->frequency = 0;
+	this->resolution = 0;
+	this->mm_timer_start = 0;
+	this->mm_timer_elapsed = 0;
+	this->Initialize();
 }
 
-CTime::CTime()
-{
-	dt = 0;
-	td2 = 0;
-	td = 0;
-	frequency = 0;
-	resolution = 0;
-	mm_timer_start = 0;
-	mm_timer_elapsed = 0;
-	Initialize();
+/***************************************************************
+ * Function:	Update
+ *
+ **************************************************************/
+void CTime::Update()  {
+	this->td2 = this->GetTime();
+	this->dt = (this->td2-this->td) * 0.1f; 
+	this->td = this->td2;
 }
 
-void CTime::Initialize()
-{
+/***************************************************************
+ * Function:	Initialize
+ *
+ **************************************************************/
+void CTime::Initialize() {
 #ifdef WIN32
-	mm_timer_start	= timeGetTime();			// Use timeGetTime() To Get Current Time
-	resolution		= 1.0f/1000.0f;				// Set Our Timer Resolution To .001f
-	frequency			= 1000;						// Set Our Timer Frequency To 1000
-	mm_timer_elapsed	= mm_timer_start;		// Set The Elapsed Time To The Current Time'
+	// Use timeGetTime() To Get Current Time
+	this->mm_timer_start	= timeGetTime();			
+
+	// Set Our Timer Resolution To .001f
+	resolution		= 1.0f/1000.0f;
+	
+	// Set Our Timer Frequency To 1000
+	frequency			= 1000;					
+
+	// Set The Elapsed Time To The Current Time
+	mm_timer_elapsed	= mm_timer_start;		
 #endif
 }
 
-float CTime::Get_dt() const 
-{ 
-	return dt; 
+/***************************************************************
+ * Function:	Get_dt
+ *
+ **************************************************************/
+float CTime::Get_dt() const  { 
+	return this->dt; 
 }
 
-float CTime::GetTime() const						// Get Time In Milliseconds
-{
+/***************************************************************
+ * Function:	GetTime
+ *
+ **************************************************************/
+float CTime::GetTime() const {
 #ifdef WIN32
-	return( (float) ( timeGetTime() - mm_timer_start) * resolution)*1000.0f;
+	// Get Time In Milliseconds
+	return( (float) ( timeGetTime() - this->mm_timer_start) * this->resolution)*1000.0f;
 #endif
 }

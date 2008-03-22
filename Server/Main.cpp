@@ -2,69 +2,94 @@
 
 CServer Server;
 
-int main(int argc, char *argv[])
-{
+/***************************************************************
+ * Function:	main
+ *
+ * @param argc
+ * @param argv
+ **************************************************************/
+int main(int argc, char *argv[]) {
 	float LastBulletTick = 0;
-
 	float ItemTick = 0;
 	float BuildingTick = 0;
 	float BulletTick = 0;
+	float RespawnTick = 0;
 	float Top20Tick = 0;
 	float CityTick = 0;
 
+	// Initalize the server
 	Server.Init();
 
-	while (Server.running == 1)
-	{
+	// While the server is running,
+	while (Server.running == 1) {
+
+		// Increment the timer values
 		Server.lastTick = Server.Tick;
 		Server.Tick = Server.Timer->GetTime();
 
+		// Tell the server to run its cycle
 		Server.Winsock->Cycle();
 
-		if (Server.Tick > ItemTick)
-		{
+		// If the Item timer is up, tell the server to run its Item cycle
+		if (Server.Tick > ItemTick) {
 			Server.Item->cycle();
 			ItemTick = Server.Tick + 100;
 		}
 
-		if (Server.Tick > BuildingTick)
-		{
+		// If the Building timer is up, tell the server to run its Building cycle
+		if (Server.Tick > BuildingTick) {
 			Server.Build->cycle();
 			BuildingTick = BuildingTick + 50;
 		}
 
-		if (Server.Tick > BulletTick)
-		{
+		// If the Bullet timer is up, tell the server to run its Bullet cycle
+		if (Server.Tick > BulletTick) {
 			Server.TimePassed = Server.Tick - LastBulletTick;
 			Server.Bullet->cycle();
 			LastBulletTick = Server.Tick;
 			BulletTick = Server.Tick + 12;
 		}
 
-		if (Server.Tick > Top20Tick)
-		{
+		// If the Top20 timer is up, tell the server to run its Top20 cycle
+		if (Server.Tick > Top20Tick) {
 			Server.Account->GenerateTop20();
 			Top20Tick = Server.Tick + 300000;
 		}
 
-		if (Server.Tick > CityTick)
-		{
-			for (int i = 0; i < 64; i++)
-			{
+		// If the City timer is up, 
+		if (Server.Tick > CityTick) {
+
+			// For each possible city,
+			for (int i = 0; i < MAX_CITIES; i++) {
+
+				// Run the City cycle
 				Server.City[i]->cycle();
 			}
 			CityTick = Server.Tick + 1000;
 		}
 
+		// If the Respawn timer is up,
+		if (Server.Tick > RespawnTick) {
+
+			// Check for players to respawn, reset the Respawn timer
+			Server.respawnPlayers();
+			RespawnTick = Server.Tick + 1000;
+		}
+
+		// Sleep
 		Server.PlatformSleep(1);
 	}
 
+	// If we left the while loop, close the server
 	cout << "Server::Close" << endl;
 
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (Server.Player[i]->State > State_Disconnected)
-		{
+	// For each possible player,
+	for (int i = 0; i < MaxPlayers; i++) {
+
+		// If the player is not disconnected,
+		if (Server.Player[i]->State > State_Disconnected) {
+
+			// Disconnect the player
 			Server.Player[i]->Clear();
 		}
 	}

@@ -5,24 +5,28 @@
 
 class CServer;
 
-struct Rect
-{
+struct Rect {
 	long x;
 	long y;
 	long w;
 	long h;
 };
 
-class CCollision
-{
-public:
-	CCollision(CServer *Server);
-	~CCollision();
+class CCollision {
 
-	int checkCollision(Rect r, Rect d);
-private:
-	CServer *p;
-protected:
+	public:
+		CCollision(CServer *Server);
+		~CCollision();
+
+		int checkCollision(Rect r, Rect d);
+
+	private:
+		CServer *p;
+		Rect tr;
+		Rect td;
+
+	protected:
+
 };
 
 #endif

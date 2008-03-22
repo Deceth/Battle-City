@@ -1,40 +1,50 @@
 #include "CServer.h"
 
-CLog::CLog(CServer *Server)
-{
+/***************************************************************
+ * Constructor
+ *
+ * @param Server
+ **************************************************************/
+CLog::CLog(CServer *Server) {
 	p = Server;
 }
 
-CLog::~CLog()
-{
-
+/***************************************************************
+ * Destructor
+ *
+ **************************************************************/
+CLog::~CLog() {
 }
 
-void CLog::logServerError(std::string error)
-{
+/***************************************************************
+ * Function:	logServerError
+ *
+ * @param error
+ **************************************************************/
+void CLog::logServerError(std::string error) {
 	time_t mytime;
 	struct tm *today;
 	char ftime[30];
 	char fdate[30];
+	string filepath;
+	FILE *file;
+	char linebreak[3];
+	string output;
 	
 	time(&mytime);
 	today = localtime(&mytime);
 	strftime(ftime, 30, "%Y-%b-%d.%H.%M.%S", today );
 	strftime(fdate, 30, "%Y-%b-%d", today );
 
-	string filepath;
 	filepath = "logs//debug//";
 	filepath += fdate;
 	filepath += ".log";
 
-	FILE *file;
 	file = fopen(filepath.c_str(),"a");
-	char linebreak[3];
 	linebreak[0] = 13;
 	linebreak[1] = 10;
 	linebreak[2] = 0;
 
-	string output;
 	output += linebreak;
 	output += ftime;
 	output += " - " + error;
@@ -46,26 +56,31 @@ void CLog::logServerError(std::string error)
 	cout << "WARNING:  Server Crash.  Code: " << error << "\n";
 }
 
-void CLog::logClientError(std::string error, int Index)
-{
+/***************************************************************
+ * Function:	logClientError
+ *
+ * @param error
+ * @param Index
+ **************************************************************/
+void CLog::logClientError(std::string error, int Index) {
 	time_t mytime;
 	struct tm *today;
 	char ftime[30];
 	char fdate[30];
+	string filepath;
+	FILE *file;
+	char linebreak[3];
 	
 	time(&mytime);
 	today = localtime(&mytime);
 	strftime(ftime, 30, "%Y-%b-%d.%H.%M.%S", today );
 	strftime(fdate, 30, "%Y-%b-%d", today );
 
-	string filepath;
 	filepath = "logs//debug//";
 	filepath += fdate;
 	filepath += ".log";
 
-	FILE *file;
 	file = fopen(filepath.c_str(),"a");
-	char linebreak[3];
 	linebreak[0] = 13;
 	linebreak[1] = 10;
 	linebreak[2] = 0;
@@ -93,31 +108,34 @@ void CLog::logClientError(std::string error, int Index)
 	error.clear();
 }
 
-void CLog::logChat(std::string chat)
-{
+/***************************************************************
+ * Function:	logChat
+ *
+ * @param Server
+ **************************************************************/
+void CLog::logChat(std::string chat) {
 	time_t mytime;
 	struct tm *today;
 	char ftime[30];
 	char fdate[30];
-	
+	string filepath;
+	FILE *file;
+	char linebreak[3];
+	string output;
+
 	time(&mytime);
 	today = localtime(&mytime);
 	strftime(ftime, 30, "%Y-%b-%d.%H.%M.%S", today );
 	strftime(fdate, 30, "%Y-%b-%d", today );
 
-	string filepath;
 	filepath = "logs//chat//";
 	filepath += fdate;
 	filepath += ".log";
 
-	FILE *file;
 	file = fopen(filepath.c_str(),"a");
-	char linebreak[3];
 	linebreak[0] = 13;
 	linebreak[1] = 10;
 	linebreak[2] = 0;
-
-	string output;
 
 	output = linebreak;
 	output += ftime;
@@ -128,31 +146,34 @@ void CLog::logChat(std::string chat)
 	fclose(file);
 }
 
-void CLog::logAdmin(std::string admin, int Index)
-{
+/***************************************************************
+ * Function:	logAdmin
+ *
+ * @param Server
+ **************************************************************/
+void CLog::logAdmin(std::string admin, int Index) {
 	time_t mytime;
 	struct tm *today;
 	char ftime[30];
 	char fdate[30];
-	
+	string filepath;
+	FILE *file;
+	char linebreak[3];
+	string output;
+
 	time(&mytime);
 	today = localtime(&mytime);
 	strftime(ftime, 30, "%Y-%b-%d.%H.%M.%S", today );
 	strftime(fdate, 30, "%Y-%b-%d", today );
 
-	string filepath;
 	filepath = "logs//admin//";
 	filepath += fdate;
 	filepath += ".log";
 
-	FILE *file;
 	file = fopen(filepath.c_str(),"a");
-	char linebreak[3];
 	linebreak[0] = 13;
 	linebreak[1] = 10;
 	linebreak[2] = 0;
-
-	string output;
 
 	output = linebreak;
 	output += ftime;
@@ -165,31 +186,34 @@ void CLog::logAdmin(std::string admin, int Index)
 	fclose(file);
 }
 
-void CLog::logAccount(std::string account)
-{
+/***************************************************************
+ * Function:	logAccount
+ *
+ * @param account
+ **************************************************************/
+void CLog::logAccount(std::string account) {
 	time_t mytime;
 	struct tm *today;
 	char ftime[30];
 	char fdate[30];
+	string filepath;
+	FILE *file;
+	char linebreak[3];
+	string output;
 	
 	time(&mytime);
 	today = localtime(&mytime);
 	strftime(ftime, 30, "%Y-%b-%d.%H.%M.%S", today );
 	strftime(fdate, 30, "%Y-%b-%d", today );
 
-	string filepath;
 	filepath = "logs//account//";
 	filepath += fdate;
 	filepath += ".log";
 
-	FILE *file;
 	file = fopen(filepath.c_str(),"a");
-	char linebreak[3];
 	linebreak[0] = 13;
 	linebreak[1] = 10;
 	linebreak[2] = 0;
-
-	string output;
 
 	output = linebreak;
 	output += ftime;
@@ -200,72 +224,74 @@ void CLog::logAccount(std::string account)
 	fclose(file);
 }
 
-void CLog::logOrb(int Orber, int EnemyCity, int BuildCount)
-{
+/***************************************************************
+ * Function:	logOrb
+ *
+ * @param Orber
+ * @param EnemyCity
+ * @param BuildCount
+ **************************************************************/
+void CLog::logOrb(int Orber, int EnemyCity, int BuildCount) {
 	time_t mytime;
 	struct tm *today;
 	char ftime[30];
 	char fdate[30];
-	
+	string filepath;
+	FILE *file;
+	string output;
+	string PlayersHome;
+	string PlayersEnemy;
+	char linebreak[3];
+	int pointsgiven;
+	stringstream PointsString;
+
 	time(&mytime);
 	today = localtime(&mytime);
 	strftime(ftime, 30, "%Y-%b-%d.%H.%M.%S", today );
 	strftime(fdate, 30, "%Y-%b-%d", today );
 
-	string filepath;
 	filepath = "logs//orb//";
 	filepath += fdate;
 	filepath += ".log";
 
-	FILE *file;
 	file = fopen(filepath.c_str(),"a");
-	char linebreak[3];
 	linebreak[0] = 13;
 	linebreak[1] = 10;
 	linebreak[2] = 0;
 
-	string output;
-	string PlayersHome;
-	string PlayersEnemy;
-
 	PlayersHome.clear();
-	for (int pl = 0; pl < MaxPlayers; pl++)
-	{
-		if (p->Player[pl]->City == p->Player[Orber]->City)
-		{
+	PlayersEnemy.clear();
+
+	// For each player,
+	for (int pl = 0; pl < MaxPlayers; pl++) {
+
+		// If the player was in the city that orbed, append the player's name to playersHome
+		if (p->Player[pl]->City == p->Player[Orber]->City) {
 			PlayersHome += p->Player[pl]->Name;
 			PlayersHome += "  ";
 		}
-	}
 
-	PlayersEnemy.clear();
-	for (int pl = 0; pl < MaxPlayers; pl++)
-	{
-		if (p->Player[pl]->City == EnemyCity)
-		{
+		// If the player was in the city that got orbed, append the player's name to playersEnemy
+		if (p->Player[pl]->City == EnemyCity) {
 			PlayersEnemy += p->Player[pl]->Name;
 			PlayersEnemy += "   ";
 		}
 	}
 
-	int pointsgiven = 0;
-
-	if (BuildCount < 15)
-	{
+	// Log the points given for the orb
+	// TODO: make consistent with other pointsGiven
+	if (BuildCount < 15) {
 		pointsgiven = 20;
 	}
-	else if (BuildCount < 20)
-	{
+	else if (BuildCount < 20) {
 		pointsgiven = 30;
 	}
-	else
-	{
+	else {
 		pointsgiven = 50;
 	}
-
-	stringstream PointsString;
 	PointsString << pointsgiven;
 
+	// Log the orb
 	output = linebreak;
 	output += ftime;
 	output += "  (";

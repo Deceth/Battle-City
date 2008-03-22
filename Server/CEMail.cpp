@@ -10,9 +10,13 @@ string tmpEmail;
 string tmpUser;
 string tmpPassword;
 
-CEMail::CEMail(CServer *Server)
-{
-	p = Server;
+/***************************************************************
+ * Constructor
+ *
+ * @param Server
+ **************************************************************/
+CEMail::CEMail(CServer *Server) {
+	this->p = Server;
 	CEmailPointer = Server;
 
 #ifdef _DEBUG
@@ -22,108 +26,129 @@ CEMail::CEMail(CServer *Server)
 #endif
 }
 
-CEMail::~CEMail()
-{
-
+/***************************************************************
+ * Destructor
+ *
+ **************************************************************/
+CEMail::~CEMail() {
 }
 
-void CEMail::SendWelcome(string Address)
-{
+/***************************************************************
+ * Function:	SendWelcome
+ *
+ * @param Address
+ **************************************************************/
+void CEMail::SendWelcome(string Address) {
 	pthread_t thread;
-
 	int rc = 0;
 
+	// Fill the temp variables
 	tmpEmail = Address;
 
+	// Spawn a thread to send the email
     rc = pthread_create(&thread, NULL, SendWelcomeEmail, (void *)0);
-    if (rc)
-	{
+    if (rc) {
 		cout << "SendWelcome - ERROR: return code from pthread_create() is " << rc << endl;
     }
 }
 
-void CEMail::SendPassword(string Email, string User, string Password)
-{
+/***************************************************************
+ * Function:	SendPassword
+ *
+ * @param Email
+ * @param User
+ * @param Password
+ **************************************************************/
+void CEMail::SendPassword(string Email, string User, string Password) {
 	pthread_t thread;
-
 	int rc = 0;
 
+	// Fill the temp variables
 	tmpEmail = Email;
 	tmpPassword = Password;
 	tmpUser = User;
 
+	// Spawn a thread to send the email
     rc = pthread_create(&thread, NULL, SendPasswordEmail, (void *)0);
-    if (rc)
-	{
+    if (rc) {
 		cout << "SendPassword - ERROR: return code from pthread_create() is " << rc << endl;
     }
 }
 
-void *SendWelcomeEmail(void *threadarg)
-{
+/***************************************************************
+ * Function:	SendWelcomeEmail
+ *
+ * @param tr
+ * @param td
+ **************************************************************/
+void *SendWelcomeEmail(void *threadarg) {
 	string EMail = tmpEmail;
 	string EmailMessage;
-
 	CServer *p = (CServer *)CEmailPointer;
 
+	// Create the welcome email
 	EmailMessage = "Welcome to BattleCity!";
 	EmailMessage += "\r\n\r\nBe sure to check out the online community at www.battlecity.net !";
-
 	cout << "Mail::SendWelcome::" << EMail << endl;
 
-	if (p->EMail->send_mail(MailServer.c_str(), "remote@battlecity.net", EMail.c_str(),
-				"Welcome to BattleCity!", 
-				"remote@battlecity.net", 
-				EmailMessage.c_str()) != 0)
-	{
+	// Send the email
+	if (p->EMail->send_mail(MailServer.c_str(), "remote@battlecity.net", EMail.c_str(), "Welcome to BattleCity!", "remote@battlecity.net", EmailMessage.c_str()) != 0) {
 		cout << "Mail::Failed::Welcome::" << EMail << endl;
 	}
-	else
-	{
+	else {
 		cout << "Mail::Succeeded::Welcome::" << EMail << endl;
 	}
 
+	// Exit the thread
 	pthread_exit(NULL);
-
 	return 0;
 }
 
-void *SendPasswordEmail(void *threadarg)
-{
+/***************************************************************
+ * Function:	SendPasswordEmail
+ *
+ * @param tr
+ * @param td
+ **************************************************************/
+void *SendPasswordEmail(void *threadarg) {
 	string EMail = tmpEmail;
 	string User = tmpUser;
 	string Password = tmpPassword;
 	string EmailMessage;
-
 	CServer *p = (CServer *)CEmailPointer;
 
+	// Create the password email
 	EmailMessage = "An account information recovery request has been made for your email address.  Your account information is as follows:\r\n\r\nUser: ";
 	EmailMessage += User;
 	EmailMessage += "\r\nPassword: ";
 	EmailMessage += Password;
-
 	cout << "Mail::SendPassword::" << EMail << endl;
 
-	if (p->EMail->send_mail(MailServer.c_str(), "remote@battlecity.net", EMail.c_str(),
-				"Password Recovery", 
-				"remote@battlecity.net", 
-				EmailMessage.c_str()) != 0)
-	{
+	// Send the email
+	if (p->EMail->send_mail(MailServer.c_str(), "remote@battlecity.net", EMail.c_str(), "Password Recovery",  "remote@battlecity.net",  EmailMessage.c_str()) != 0) {
 		cout << "Mail::Failed::Password::" << EMail << endl;
 	}
-	else
-	{
+	else {
 		cout << "Mail::Succeeded::Password::" << EMail << endl;
 	}
 
+	// Exit the thread
 	pthread_exit(NULL);
-
 	return 0;
 }
 
+/***************************************************************
+ * Function:	send_mail
+ *
+ * @param smtpserver
+ * @param from
+ * @param to
+ * @param subject
+ * @param replyto
+ * @param msg
+ **************************************************************/
 int CEMail::send_mail(const char *smtpserver, const char *from, const char *to, 
-					const char *subject, const char *replyto, const char *msg)
-{
+					const char *subject, const char *replyto, const char *msg) {
 	int n_socket;
 	int n_retval = 0;
 
@@ -161,8 +186,12 @@ int CEMail::send_mail(const char *smtpserver, const char *from, const char *to,
 	return n_retval;
 }
 
-int CEMail::connect_to_server(const char *server)
-{
+/***************************************************************
+ * Function:	connect_to_server
+ *
+ * @param server
+ **************************************************************/
+int CEMail::connect_to_server(const char *server) {
 	struct hostent *host;
 	struct in_addr	inp;
 	struct protoent *proto;
@@ -214,9 +243,14 @@ int CEMail::connect_to_server(const char *server)
 	return n_sock;
 }
 
+/***************************************************************
+ * Function:	send_command
+ *
+ * @param tr
+ * @param td
+ **************************************************************/
 int CEMail::send_command(int n_sock, const char *prefix, const char *cmd, 
-						const char *suffix, int ret_code)
-{
+						const char *suffix, int ret_code) {
 #define BUFSIZE		4096
 	char s_buf[BUFSIZE] = "";
 	char s_buf2[50];
@@ -242,9 +276,14 @@ int CEMail::send_command(int n_sock, const char *prefix, const char *cmd,
 		return ERROR;
 }
 
+/***************************************************************
+ * Function:	send_mail_message
+ *
+ * @param tr
+ * @param td
+ **************************************************************/
 int CEMail::send_mail_message(int n_sock, const char *from, const char *to,
-							const char *subject, const char *replyto, const char *msg)
-{
+							const char *subject, const char *replyto, const char *msg) {
 #define BUFSIZE		4096
 #define BUFSIZE2	100
 #define MSG_TERM	"\r\n.\r\n"
@@ -285,11 +324,12 @@ int CEMail::send_mail_message(int n_sock, const char *from, const char *to,
 }
 
 #ifdef WIN32
-/* 
- * Routines for  Windows Socket Library
- */
-int CEMail::startup_sockets_lib(void)
-{
+
+/***************************************************************
+ * Function:	startup_sockets_lib
+ *
+ **************************************************************/
+int CEMail::startup_sockets_lib(void) {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int n_err;
@@ -312,8 +352,11 @@ int CEMail::startup_sockets_lib(void)
 	return TRUE; 
 }
 
-int CEMail::cleanup_sockets_lib(void)
-{
+/***************************************************************
+ * Function:	cleanup_sockets_lib
+ *
+ **************************************************************/
+int CEMail::cleanup_sockets_lib(void) {
 	WSACleanup();
 	return TRUE;
 }

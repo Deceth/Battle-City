@@ -1,75 +1,67 @@
 #include "CPlayer.h"
 
-CPlayer::CPlayer(CServer *Server)
-{
-	p = Server;
-	this->X = 0;
-	this->Y = 0;
-	this->City = 0;
-	this->Name.clear();
-	this->Town.clear();
-	this->UniqID.clear();
-	this->IPAddress.clear();
-	this->Points = 0;
-	Orbs = 0;
-	Assists = 0;
-	Deaths = 0;
-	MonthlyPoints = 0;
-	this->Mayor = 0;
-	this->State = State_Disconnected;
-	shutdown(this->Socket, 2);
+/***************************************************************
+ * Constructor
+ *
+ * @param Server
+ **************************************************************/
+CPlayer::CPlayer(CServer *Server) {
+	this->p = Server;
 
-	isAdmin = 1;
-	displayTank = 0;
-	Tank = 0;
-	Tank2 = 0;
-	Tank3 = 0;
-	Tank4 = 0;
-	Tank5 = 0;
-	Tank6 = 0;
-	Tank7 = 0;
-	Tank8 = 0;
-	Tank9 = 0;
-	Red = 0;
-	Green = 0;
-	Blue = 0;
-	Member = 0;
-	RentalCity = 0;
-
-	id = 0;
-	lastMove = 0;
-	lastShot = 0;
-	this->isDead = false;
-	this->timeDeath = 0;
-
-	memset(Buffer, 0, 2048);
-	BufferLength = 0;
+	// Reset the player stats
+	this->ResetPlayer();
 }
 
-CPlayer::~CPlayer()
-{
+/***************************************************************
+ * Destructor
+ *
+ **************************************************************/
+CPlayer::~CPlayer() {
 }
 
-void CPlayer::setMayor(int set)
-{
-	Mayor = set;
-	State = State_Game;
+/***************************************************************
+ * Function:	CPlayer
+ *
+ * @param set
+ **************************************************************/
+void CPlayer::setMayor(int set) {
+	sSMFinance finance;
+	sSMMayorUpdate Mayorupdate;
 
-	if (set)
-	{
-		p->City[City]->id = City;
-		p->City[City]->Mayor = id;
-		if (p->City[City]->hiring > -1) p->Winsock->SendData(p->City[City]->hiring,smMayorChanged," ");
-		p->City[City]->Successor = -1;
-		p->City[City]->notHiring = 0;
-		p->City[City]->hiring = -1;
+	// Store whether the player is in-game or not
+	this->Mayor = set;
 
-		for (int j = 0; j <= 26; j++)
-		{
-			p->City[City]->setCanBuild(j,p->City[City]->canBuild[j]);
+	// Set the player to in-game
+	// ???
+	this->State = State_Game;
+
+	// If the player is now mayor,
+	if (set) {
+
+		// ???
+		this->p->City[this->City]->id = this->City;
+
+		// Store this player as mayor of this city,
+		this->p->City[this->City]->Mayor = this->id;
+
+		// If the player is hiring, send out MayorChanged messages
+		if (this->p->City[this->City]->hiring > -1) {
+			this->p->Winsock->SendData(this->p->City[this->City]->hiring,smMayorChanged," ");
 		}
 
-		sSMFinance finance;
+		// Reset the mayor options
+		this->p->City[this->City]->Successor = -1;
+		this->p->City[this->City]->notHiring = 0;
+		this->p->City[this->City]->hiring = -1;
+
+		// For each item,
+		for (int j = 0; j <= 26; j++) {
+
+			// Set the build tree for this city
+			this->p->City[this->City]->setCanBuild(j,this->p->City[City]->canBuild[j]);
+		}
+
+		// Request the city's finance report
 		finance.Cash = p->City[this->City]->cash;
 		finance.Income = p->City[this->City]->income;
 		finance.Items = p->City[this->City]->itemproduction;
@@ -77,27 +69,48 @@ void CPlayer::setMayor(int set)
 		finance.Research = p->City[this->City]->cashresearch;
 		p->Winsock->SendData(id,smFinance,(char *)&finance,sizeof(finance));
 
-		sSMMayorUpdate Mayorupdate;
-		Mayorupdate.Index = id;
+		// Set isMayor = 1 on the packet
 		Mayorupdate.IsMayor = 1;
-		p->Send->SendGameAllBut(-1, smMayorUpdate, (char *)&Mayorupdate, sizeof(Mayorupdate));
-	} else {
-		sSMMayorUpdate Mayorupdate;
-		Mayorupdate.Index = id;
-		Mayorupdate.IsMayor = 0;
-		p->Send->SendGameAllBut(-1, smMayorUpdate, (char *)&Mayorupdate, sizeof(Mayorupdate));
 	}
+
+	// Else (player is now not mayor),
+	else {
+		// Set isMayor = 0 on the packet
+		Mayorupdate.IsMayor = 0;
+	}
+
+	// Tell everyone the mayor changed
+	Mayorupdate.Index = id;
+	p->Send->SendGameAllBut(-1, smMayorUpdate, (char *)&Mayorupdate, sizeof(Mayorupdate));
 }
 
-void CPlayer::Clear()
-{
-	if (p->Player[id]->State == State_Game)
-		p->Player[id]->LeaveGame(1);
-
+/***************************************************************
+ * Function:	Clear
+ *
+ **************************************************************/
+void CPlayer::Clear() {
 	char packet[1];
-	packet[0] = id;
-	p->Send->SendAllBut(-1, smClearPlayer, packet, 1);
 
+	// If the player is in game, boot the player
+	if (this->p->Player[this->id]->State == State_Game) {
+		this->p->Player[this->id]->LeaveGame(1);
+	}
+
+	// Tell everyone to clear the player
+	packet[0] = id;
+	this->p->Send->SendAllBut(-1, smClearPlayer, packet, 1);
+
+	// Reset the player stats
+	this->ResetPlayer();
+}
+
+/***************************************************************
+ * Function:	ResetPlayer
+ *
+ **************************************************************/
+void CPlayer::ResetPlayer() {
+
+	// Reset the player stats
 	this->X = 0;
 	this->Y = 0;
 	this->City = 0;
@@ -106,196 +119,338 @@ void CPlayer::Clear()
 	this->UniqID.clear();
 	this->IPAddress.clear();
 	this->Points = 0;
-	Orbs = 0;
-	Assists = 0;
-	Deaths = 0;
-	MonthlyPoints = 0;
+	this->Orbs = 0;
+	this->Assists = 0;
+	this->Deaths = 0;
+	this->MonthlyPoints = 0;
 	this->Mayor = 0;
 	this->State = State_Disconnected;
 	shutdown(this->Socket, 2);
+	memset(this->Buffer, 0, 2048);
+	this->BufferLength = 0;
+
+	this->isAdmin = 1;
+	this->displayTank = 0;
+	this->Tank = 0;
+	this->Tank2 = 0;
+	this->Tank3 = 0;
+	this->Tank4 = 0;
+	this->Tank5 = 0;
+	this->Tank6 = 0;
+	this->Tank7 = 0;
+	this->Tank8 = 0;
+	this->Tank9 = 0;
+	this->Red = 0;
+	this->Green = 0;
+	this->Blue = 0;
+	this->Member = 0;
+	this->RentalCity = 0;
+
+	this->id = 0;
 	this->lastMove = 0;
 	this->lastShot = 0;
 	this->isDead = false;
 	this->timeDeath = 0;
-	id = 0;
-	memset(Buffer, 0, 2048);
-	BufferLength = 0;
-
-	isAdmin = 1;
-	Tank = 0;
-	Tank2 = 0;
-	Tank3 = 0;
-	Tank4 = 0;
-	Red = 0;
-	Green = 0;
-	Blue = 0;
-	Member = 0;
-	RentalCity = 0;
 }
 
-int CPlayer::FindApplyMayor()
-{
-	for (int j = 0; j < 64; j++)
-	{
-		if (p->City[j]->hiring == id)
-		{
-			return p->City[j]->Mayor;
+/***************************************************************
+ * Function:	FindApplyMayor
+ *
+ **************************************************************/
+int CPlayer::FindApplyMayor() {
+	
+	// For each possible city
+	for (int j = 0; j < MAX_CITIES; j++) {
+
+		// If the city is hiring... equals the player?
+		if (this->p->City[j]->hiring == this->id) {
+
+			// Return the Mayor
+			return this->p->City[j]->Mayor;
 		}
 	}
 	return -1;
 }
 
+
+/***************************************************************
+ * Function:	isInApply
+ *
+ * Returns true if the player's state is Apply
+ **************************************************************/
+bool CPlayer::isInApply() {
+	return (this->State == State_Apply);
+}
+
+/***************************************************************
+ * Function:	isInChat
+ *
+ * Returns true if the player's state is Chat
+ **************************************************************/
+bool CPlayer::isInChat() {
+	return (this->State == State_Chat);
+}
+
+/***************************************************************
+ * Function:	isConnected
+ *
+ * Returns true if the player's state is connected
+ **************************************************************/
+bool CPlayer::isConnected() {
+	return (this->State != State_Disconnected);
+}
+
+/***************************************************************
+ * Function:	isInGame
+ *
+ * Returns true if the player's state is Game
+ **************************************************************/
+bool CPlayer::isInGame() {
+	return (this->State == State_Game);
+}
+
+/***************************************************************
+ * Function:	isInGameApplyOrChat
+ *
+ * Returns true if the player's state is Chat, Game, or Apply
+ **************************************************************/
+bool CPlayer::isInGameApplyOrChat() {
+	return this->isInApply() || this->isInChat() || this->isInGame();
+}
+
+
+
+
+
 //--------------------------- Actions ---------------------------\\
 
-void CPlayer::JoinGame()
-{
+
+
+/***************************************************************
+ * Function:	JoinGame
+ *
+ **************************************************************/
+void CPlayer::JoinGame() {
 	sSMStateGame stategame;
-	p->City[City]->y = (int)(512*48)-(34+(City / 8*64)) * 48; 
-	p->City[City]->x = (int)(512*48)-(33+(City % 8*64)) * 48;
-	stategame.x = p->City[City]->x;
-	stategame.y = p->City[City]->y;
-	p->Player[id]->X = stategame.x;
-	p->Player[id]->Y = stategame.y;
-	p->Account->GetStats(id);
-	MonthlyPoints = p->Account->GetMonthlyTop20(id);
-	stategame.City = City;
-
-	p->Winsock->SendData(id,smStateGame,(char *)&stategame,sizeof(stategame));
-
 	sSMJoinData join;
-	join.id = id;
-	join.Mayor = Mayor;
-	join.City = City;
-	p->Send->SendGameAllBut(id,smJoinData,(char *)&join,sizeof(join));
-	p->Player[id]->lastMove = p->Tick;
+
+	// Get the location of the CC
+	this->p->City[City]->y = (int)(512*48)-(34+(City / 8*MAX_CITIES)) * 48; 
+	this->p->City[City]->x = (int)(512*48)-(33+(City % 8*MAX_CITIES)) * 48;
+	stategame.City = this->City;
+	stategame.x = this->p->City[this->City]->x;
+	stategame.y = this->p->City[this->City]->y;
+	
+	// Set the player on the CC
+	this->p->Player[this->id]->X = stategame.x;
+	this->p->Player[this->id]->Y = stategame.y;
+
+	// Set the player's stats
+	this->p->Account->GetStats(this->id);
+	this->MonthlyPoints = this->p->Account->GetMonthlyTop20(id);
+
+	// Send the data to the player
+	this->p->Winsock->SendData(this->id,smStateGame,(char *)&stategame,sizeof(stategame));
+
+	// Tell everyone but the player that the player joined
+	join.id = this->id;
+	join.Mayor = this->Mayor;
+	join.City = this->City;
+	this->p->Send->SendGameAllBut(this->id,smJoinData,(char *)&join,sizeof(join));
+	this->p->Player[this->id]->lastMove = this->p->Tick;
 	cout << "Join::" << Name.c_str() << endl;
 }
 
-void CPlayer::StartJoin()
-{
-	State = State_Game;
-	p->Send->SendGameData(id);
+/***************************************************************
+ * Function:	StartJoin
+ *
+ **************************************************************/
+void CPlayer::StartJoin() {
+
+	// Set state to In Game
+	this->State = State_Game;
+	this->p->Send->SendGameData(this->id);
 }
 
-void CPlayer::LeaveGame(int showmessage)
-{
-	CItem *itm = p->Item->items;
-	if (itm)
-	{
-		while (itm->prev)
-			itm = itm->prev;
+/***************************************************************
+ * Function:	LeaveGame
+ *
+ * @param showmessage
+ **************************************************************/
+void CPlayer::LeaveGame(int showmessage) {
+	CItem *itm = this->p->Item->items;
+	int failed = 0;
+	char packet[2];
 
-		while (itm)
-		{
-			if (itm->holder == id)
-				itm = p->Item->delItem(itm);
-			if (itm) itm = itm->next;
+	if (itm) {
+		while (itm->prev) {
+			itm = itm->prev;
+		}
+
+		// For each item,
+		while (itm) {
+
+			// If the player is holding the item,
+			if (itm->holder == this->id) {
+
+				// Delete the item
+				itm = this->p->Item->delItem(itm);
+			}
+			if (itm) {
+				itm = itm->next;
+			}
 		}
 	}
-	if (Mayor)	
-	{
-		int failed = 0;
-		if (p->City[City]->Successor > -1)
-		{
-			if (p->Player[p->City[City]->Successor]->State == State_Game && p->Player[p->City[City]->Successor]->City == City && p->City[City]->Successor != id)
-			{
-				p->Player[p->City[City]->Successor]->setMayor(1);
+
+	// TODO: Consider skipping this whole step if the city is being orbed?
+	// Prevent balkh bug?
+
+	// If the player is mayor,
+	if (this->Mayor) {
+
+		// If there is a successor,
+		if (this->p->City[this->City]->Successor > -1) {
+
+			// If that successor is in game, in this city, and not the mayor
+			if (	
+				(this->p->Player[this->p->City[this->City]->Successor]->State == State_Game)
+				&&
+				(this->p->Player[this->p->City[this->City]->Successor]->City == this->City)
+				&&
+				(this->p->City[this->City]->Successor != this->id)
+				) {
+
+				// Set the successor to mayor
+				this->p->Player[this->p->City[this->City]->Successor]->setMayor(1);
 			}
-			else failed = 1;
+
+			// Else (successor not in game), set failed = 1
+			else {
+				failed = 1;
+			}
 		}
-		else
-		{
+
+		// Else (no successor), set failed = 1
+		else {
 			failed = 1;
 		}
-		if (failed == 1)
-		{
-			for (int j = 0; j < MaxPlayers; j++)
-			{
-				if (p->Player[j]->City == City && id != j && p->Player[j]->State == State_Game)
-				{
-					p->Player[j]->setMayor(1);
+
+		// If we failed to find a successor,
+		if (failed == 1) {
+
+			// For each possible player,
+			for (int j = 0; j < MaxPlayers; j++) {
+
+				// If that player is in game, in this city, and not the mayor
+				if ( (this->p->Player[j]->City == this->City) && (this->id != j) && (this->p->Player[j]->State == State_Game) ) {
+
+					// Make the player the new mayor
+					this->p->Player[j]->setMayor(1);
 					break;
 				}
 			}
-			if (p->City[City]->Mayor == id)
-			{
-				if (p->Build->GetOrbBuildingCount(City) < ORBABLE_SIZE)
-				{
-					p->City[City]->destroy();
+
+			// If this player is still the mayor,
+			if (this->p->City[this->City]->Mayor == id) {
+
+				// If the city is not orbable, destroy it
+				if (this->p->Build->GetOrbBuildingCount(this->City) < ORBABLE_SIZE) {
+					this->p->City[this->City]->destroy();
 				}
-				else
-				{
-					p->City[City]->DestructTimer = p->Tick + TIMER_CITY_DESTRUCT;
-					p->City[City]->Mayor = -1;
-					p->City[City]->notHiring = 0;
+
+				// Else (orbable), start the Destruct timer
+				else {
+					this->p->City[this->City]->DestructTimer = this->p->Tick + TIMER_CITY_DESTRUCT;
+					this->p->City[this->City]->Mayor = -1;
+					this->p->City[this->City]->notHiring = 0;
 				}
 			}
 		}
 	}
 
-	p->Player[id]->X = 0;
-	p->Player[id]->Y = 0;
-	p->Player[id]->City = 0;
-	p->Player[id]->isDead = false;
-	p->Player[id]->timeDeath = 0;
+	// Reset this player
+	this->p->Player[this->id]->X = 0;
+	this->p->Player[this->id]->Y = 0;
+	this->p->Player[this->id]->City = 0;
+	this->p->Player[this->id]->isDead = false;
+	this->p->Player[this->id]->timeDeath = 0;
 
-	if (this->State == State_Game)
-	{
-		p->Account->SaveStats(id);
+	// If the player is in game,
+	if (this->State == State_Game) {
 
-		if (showmessage == 1)
-		{
-			char packet[2];
-			packet[0] = (char)id;
+		// Save the player's stats
+		this->p->Account->SaveStats(this->id);
+
+		// If showmessage == 1, tell everyone you left
+		if (showmessage == 1) {
+			packet[0] = (char)this->id;
 			packet[1] = 69;
-			p->Send->SendGameAllBut(id, smChatCommand, packet, 2); 
+			this->p->Send->SendGameAllBut(this->id, smChatCommand, packet, 2); 
 			cout << "Left::" << Name << endl;
 		}
 	}
 
-	p->Player[id]->State = State_Chat;
+	// Set the state to Chat
+	this->p->Player[this->id]->State = State_Chat;
 }
 
-void CPlayer::LoggedIn(string User)
-{
-	Name = User;
-	p->Account->GetLoginData(id);
-	State = State_Chat;
+/***************************************************************
+ * Function:	LoggedIn
+ *
+ * @param User
+ **************************************************************/
+void CPlayer::LoggedIn(string User) {
+	char TempString[20];
+	sSMPlayer player;
+	sSMPoints pts;
+
+	// Set name, login data
+	this->Name = User;
+	this->p->Account->GetLoginData(this->id);
+
+	// Set state to Chat (reset later?)
+	this->State = State_Chat;
 
 	cout << "LoggedIn::" << User << "\n";
 
-	if (isAdmin == 1) isAdmin = 2; else isAdmin = 1;
+	// HACK: Increment admin
+	if (this->isAdmin == 1) {
+		this->isAdmin = 2;
+	}
+	else {
+		this->isAdmin = 1;
+	}
 
-	char TempString[20];
+	// Tell everyone you logged in
 	memset(&TempString, 0, sizeof(TempString));
 	TempString[0] = (unsigned char)id;
 	TempString[1] = (unsigned char)isAdmin;
-	p->Winsock->SendData(id, 1, TempString, 2); //Log in succesful
+	this->p->Winsock->SendData(id, 1, TempString, 2); //Log in succesful
 
-	sSMPlayer player;
-	strcpy(player.Name, Name.c_str());
-	strcpy(player.Town, Town.c_str());
-	player.Index = id;
-	player.isAdmin = isAdmin;
-	player.Red = Red;
-	player.Green = Green;
-	player.Blue = Blue;
-	player.Member = Member;
-	player.Tank = Tank;
-	p->Send->SendAllBut(-1, smPlayerData, (char *)&player, sizeof(player));
-	p->Send->SendCurrentPlayers(id);
+	// Send everyone your player data
+	strcpy(player.Name, this->Name.c_str());
+	strcpy(player.Town, this->Town.c_str());
+	player.Index = this->id;
+	player.isAdmin = this->isAdmin;
+	player.Red = this->Red;
+	player.Green = this->Green;
+	player.Blue = this->Blue;
+	player.Member = this->Member;
+	player.Tank = this->displayTank;
+	this->p->Send->SendAllBut(-1, smPlayerData, (char *)&player, sizeof(player));
+	this->p->Send->SendCurrentPlayers(this->id);
 
-	p->Account->GetStats(id);
-	sSMPoints pts;
-	pts.Index = id;
-	pts.Points = p->Player[id]->Points;
-	pts.Deaths = p->Player[id]->Deaths;
-	pts.Assists = p->Player[id]->Assists;
-	pts.Orbs = p->Player[id]->Orbs;
-	pts.MonthlyPoints = p->Player[id]->MonthlyPoints;
-	p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
+	// Send everyone your stats
+	this->p->Account->GetStats(this->id);
+	pts.Index = this->id;
+	pts.Points = this->p->Player[this->id]->Points;
+	pts.Deaths = this->p->Player[this->id]->Deaths;
+	pts.Assists = this->p->Player[this->id]->Assists;
+	pts.Orbs = this->p->Player[this->id]->Orbs;
+	pts.MonthlyPoints = this->p->Player[this->id]->MonthlyPoints;
+	this->p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 
+	// Set state to Verified (set above?)
 	State = State_Verified;
-
-	p->Log->logAccount("Login ::  " + User + " :: " + this->IPAddress + " :: " + this->UniqID);
+	this->p->Log->logAccount("Login ::  " + User + " :: " + this->IPAddress + " :: " + this->UniqID);
 }

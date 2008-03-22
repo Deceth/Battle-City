@@ -5,67 +5,75 @@
 
 class CServer;
 
-class CPlayer
-{
-public:
-	unsigned char id;
+class CPlayer {
 
-	float X;
-	float Y;
+	public:
+		unsigned char id;
 
-	string Name;
-	string Town;
-	string UniqID;
-	string IPAddress;
+		float X;
+		float Y;
 
-	int isAdmin;
-	unsigned char displayTank;
-	unsigned char Tank;
-	unsigned char Tank2;
-	unsigned char Tank3;
-	unsigned char Tank4;
-	unsigned char Tank5;
-	unsigned char Tank6;
-	unsigned char Tank7;
-	unsigned char Tank8;
-	unsigned char Tank9;
-	unsigned char Red;
-	unsigned char Green;
-	unsigned char Blue;
-	unsigned char Member;
-	unsigned char RentalCity;
+		string Name;
+		string Town;
+		string UniqID;
+		string IPAddress;
 
-	int Points;
-	int Orbs;
-	int Assists;
-	int Deaths;
-	int MonthlyPoints;
-	int City;
-	int Mayor;
-	int State;
-	float lastMove;
-	float lastShot;
+		int isAdmin;
+		unsigned char displayTank;
+		unsigned char Tank;
+		unsigned char Tank2;
+		unsigned char Tank3;
+		unsigned char Tank4;
+		unsigned char Tank5;
+		unsigned char Tank6;
+		unsigned char Tank7;
+		unsigned char Tank8;
+		unsigned char Tank9;
+		unsigned char Red;
+		unsigned char Green;
+		unsigned char Blue;
+		unsigned char Member;
+		unsigned char RentalCity;
 
-	int Socket;
-	char Buffer[2048];
-	int BufferLength;
+		int Points;
+		int Orbs;
+		int Assists;
+		int Deaths;
+		int MonthlyPoints;
+		int City;
+		int Mayor;
+		int State;
+		float lastMove;
+		float lastShot;
 
-	void setMayor(int set);
-	void JoinGame();
-	void StartJoin();
-	void LeaveGame(int showmessage);
-	void LoggedIn(string User);
-	void Death(int killer);
-	void Clear();
-	int FindApplyMayor();
+		int Socket;
+		char Buffer[2048];
+		int BufferLength;
 
-	bool isDead;
-	float timeDeath;
+		void setMayor(int set);
+		void JoinGame();
+		void StartJoin();
+		void LeaveGame(int showmessage);
+		void LoggedIn(string User);
+		void Death(int killer);
+		void Clear();
+		int FindApplyMayor();
+		bool isInApply();
+		bool isInChat();
+		bool isConnected();
+		bool isInGame();
+		bool isInGameApplyOrChat();
 
-	CPlayer(CServer *Server);
-	~CPlayer();
-private:
-	CServer *p;
+		bool isDead;
+		float timeDeath;
+
+		CPlayer(CServer *Server);
+		~CPlayer();
+
+	private:
+		CServer *p;
+		void ResetPlayer();
+
 };
 
 #endif
