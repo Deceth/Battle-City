@@ -41,8 +41,6 @@ class CSocket {
 		socklen_t addrlen;
 		timeval timev;
 
-	protected:
-
 };
 
 #endif

@@ -1,9 +1,15 @@
 #include "CServer.h"
 
-CServer::CServer()
-{
-	running = 1;
+/***************************************************************
+ * Constructor
+ *
+ **************************************************************/
+CServer::CServer() {
 
+	// Set running to 1
+	this->running = 1;
+
+	// Create objects
 	Winsock = new CSocket(this);
 	Process = new CProcess(this);
 	Account = new CAccount(this);
@@ -17,18 +23,23 @@ CServer::CServer()
 	Log = new CLog(this);
 	EMail = new CEMail(this);
 	Database = new CDatabase(this);
-	for (int i = 0; i < MaxPlayers; i++)
-	{
+
+	// For each possible player, create player objects
+	for (int i = 0; i < MaxPlayers; i++) {
 		Player[i] = new CPlayer(this);
 	}
-	for (int i = 0; i < 64; i++)
-	{
+
+	// For each possible city, create city objects
+	for (int i = 0; i < MAX_CITIES; i++) {
 		City[i] = new CCity(this);
 	}
 }
 
-CServer::~CServer()
-{
+/***************************************************************
+ * Destructor
+ * 
+ **************************************************************/
+CServer::~CServer() {
 	delete Winsock;
 	delete Process;
 	delete Account;
@@ -42,12 +53,14 @@ CServer::~CServer()
 	delete Log;
 	delete EMail;
 	delete Database;
-	for (int i = 0; i < MaxPlayers; i++)
-	{
+
+	// For each possible player, delete the player object
+	for (int i = 0; i < MaxPlayers; i++) {
 		delete Player[i];
 	}
-	for (int i = 0; i < 64; i++)
-	{
+
+	// For each possible city, delete the city object
+	for (int i = 0; i < MAX_CITIES; i++) {
 		delete City[i];
 	}
 
@@ -56,8 +69,13 @@ CServer::~CServer()
 	#endif
 }
 
-void CServer::Init()
-{
+/***************************************************************
+ * Function:	Init
+ *
+ **************************************************************/
+void CServer::Init() {
+
+	// Print startup messages
 	cout << "BattleCity Classic Server Version " << VERSION << endl;
 	cout << "(C) Copyright 2006 CodeMallet" << endl;
 	cout << endl;
@@ -66,12 +84,14 @@ void CServer::Init()
 
 	cout << "Server::Start" << endl << endl;
 
-	Timer->Initialize();
-	Winsock->InitWinsock();
+	// Start the timer, start listening on the socket
+	this->Timer->Initialize();
+	this->Winsock->InitWinsock();
 
-	Map->LoadMap();
+	// Load the database, files, and news
+	this->Map->LoadMap();
 	this->CheckFilesAndPaths();
-	Database->LoadDatabase();
+	this->Database->LoadDatabase();
 	this->LoadNews();
 
 	#ifdef WIN32
@@ -81,12 +101,19 @@ void CServer::Init()
 	cout << "Server::Start::Success" << endl;
 }
 
-int CServer::FreePlayer()
-{
-	for (int i = 1; i < MaxPlayers; i++)
-	{
-		if (Player[i]->State == 0)
-		{
+/***************************************************************
+ * Function:	FreePlayer
+ *
+ **************************************************************/
+int CServer::FreePlayer() {
+
+	// For each possible player,
+	for (int i = 1; i < MaxPlayers; i++) {
+
+		// If no player is connected in that slot,
+		if (Player[i]->State == State_Disconnected) {
+
+			// Return that index
 			return i;
 		}
 	}
@@ -94,8 +121,12 @@ int CServer::FreePlayer()
 	return 0;
 }
 
-void CServer::PlatformSleep(int ms)
-{
+/***************************************************************
+ * Function:	PlatformSleep
+ *
+ * @param ms
+ **************************************************************/
+void CServer::PlatformSleep(int ms) {
 	#ifdef WIN32
 		Sleep(ms);
 	#else
@@ -103,8 +134,13 @@ void CServer::PlatformSleep(int ms)
 	#endif
 }
 
-int CServer::PlatformCaseCompare(string String1, string String2)
-{
+/***************************************************************
+ * Function:	PlatformCaseCompare
+ *
+ * @param String1
+ * @param String2
+ **************************************************************/
+int CServer::PlatformCaseCompare(string String1, string String2) {
 	#ifdef WIN32
 		return stricmp(String1.c_str(), String2.c_str());
 	#else
@@ -112,36 +148,46 @@ int CServer::PlatformCaseCompare(string String1, string String2)
 	#endif
 }
 
-void CServer::LoadNews()
-{
+/***************************************************************
+ * Function:	LoadNews
+ *
+ **************************************************************/
+void CServer::LoadNews() {
+	char buffer[1024];
+
 	cout << "News::Load" << endl << endl;
 
-	if (Exists("news.txt") == 0)
-	{
+	// No news is bad news
+	if (Exists("news.txt") == 0) {
 		running = 0;
 		cout << "News::Load::News.txt does not exist" << endl;
 		return;
 	}
 
-	char buffer[1024];
+	// If you can't open the file, exit
 	ifstream NewsFile ("news.txt");
-	if (! NewsFile.is_open())
-	{ cout << "Error opening file"; exit (1); }
+	if (! NewsFile.is_open()) {
+		cout << "Error opening file";
+		exit (1);
+	}
 
-	while (! NewsFile.eof() )
-	{
+	// Read the file, appending the contents to News
+	while (! NewsFile.eof() ) {
 		NewsFile.getline (buffer,1024);
 		News += buffer;
 		News += "\r\n";
 	}
 
+	// Log
 	cout << News;
-
 	cout << "News::Load::Success" << endl << endl;
 }
 
-void CServer::CheckFilesAndPaths()
-{
+/***************************************************************
+ * Function:	CheckFilesAndPaths
+ *
+ **************************************************************/
+void CServer::CheckFilesAndPaths() {
 	#ifndef WIN32
 		mkdir("dat", 777);
 		mkdir("logs", 777);
@@ -161,13 +207,18 @@ void CServer::CheckFilesAndPaths()
 	#endif
 }
 
-int CServer::Exists(string Path)
-{
+/***************************************************************
+ * Function:	Exists
+ *
+ * @param Path
+ **************************************************************/
+int CServer::Exists(string Path) {
 	int Exists = 0;
 	fstream fin;
+
+	// If we can open the file, set Exists to 1
 	fin.open(Path.c_str(),ios::in);
-	if( fin.is_open() )
-	{
+	if( fin.is_open() ) {
 		Exists = 1;
 	}
 	fin.close();
@@ -175,13 +226,18 @@ int CServer::Exists(string Path)
 	return Exists;
 }
 
-int CServer::TotalPlayers()
-{
+/***************************************************************
+ * Function:	TotalPlayers
+ *
+ **************************************************************/
+int CServer::TotalPlayers() {
 	int totalPlayers = 0;
-	for (int j = 0; j < MaxPlayers; j++)
-	{
-		if (Player[j]->State >= State_Chat)
-		{
+
+	// For every possible player,
+	for (int j = 0; j < MaxPlayers; j++) {
+
+		// If the player is in Chat, Game, or Apply, increment the count
+		if ( Player[j]->isInGameApplyOrChat() ) {
 			totalPlayers++;
 		}
 	}
@@ -189,14 +245,59 @@ int CServer::TotalPlayers()
 	return totalPlayers;
 }
 
-void CServer::ChangeNews(string NewNews)
-{
+/***************************************************************
+ * Function:	ChangeNews
+ *
+ * @param NewNews
+ **************************************************************/
+void CServer::ChangeNews(string NewNews) {
+	// Change the news on the server
 	News = NewNews;
 	News += "\r\n";
 
+	// Change the news int he file
 	ofstream NewsFile ("news.txt");
 	NewsFile.write(News.c_str(), (int)News.length());
 	NewsFile.close();
 
 	this->Account->GenerateTop20();
+}
+
+/***************************************************************
+ * Function:	respawnPlayers
+ *
+ * @param NewNews
+ **************************************************************/
+void CServer::respawnPlayers() {
+	sSMStateGame game;
+	char respawnPacket[2];
+
+	// For each possible player,
+	for (int i = 0; i < MaxPlayers; i++) {
+
+		// If the player is in game,
+		if (this->Player[i]->isInGame()) {
+
+			// If the player is dead, and the Respawn timer is up,
+			if ((this->Player[i]->isDead == true) && ((this->Tick - this->Player[i]->timeDeath) > TIMER_RESPAWN)) {
+
+				// Move the player
+				this->Player[i]->lastMove = this->Tick;
+				this->Player[i]->X = (float)this->City[this->Player[i]->City]->x;
+				this->Player[i]->Y = (float)this->City[this->Player[i]->City]->y;
+
+				// Tell everyone the player moved
+				game.City = this->Player[i]->City;
+				game.x = (unsigned short)this->City[this->Player[i]->City]->x;
+				game.y = (unsigned short)this->City[this->Player[i]->City]->y;
+				this->Winsock->SendData(i, smWarp,(char *)&game,sizeof(game));
+
+				// Respawn the player
+				this->Player[i]->isDead = false;
+				respawnPacket[0] = i;
+				respawnPacket[1] = 0;
+				this->Send->SendAllBut(-1, smRespawn, respawnPacket, 1);
+			}
+		}
+	}
 }

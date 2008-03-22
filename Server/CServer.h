@@ -8,6 +8,7 @@ const unsigned char SectorSize = 16;
 const unsigned char MaxSectors = (512 / SectorSize);
 const short int RadarSize = 1800;
 
+const int MAX_CITIES = 64;
 const int MONEY_MAX_VALUE = 95000000;
 const int MONEY_STARTING_VALUE = 95000000;
 const int COST_BUILDING = 500000;
@@ -16,9 +17,11 @@ const int COST_INCOME_POPULATION = 10000;
 const int COST_UPKEEP_RESEARCH = 2000000;
 const int COST_UPKEEP_HOSPITAL = 2000000;
 const int TIMER_CITY_DESTRUCT = 120000;
+const int TIMER_BOMB = 5000;
 const int TIMER_RESEARCH = 10000;
 const int TIMER_RESPAWN = 10000;
 const int ORBABLE_SIZE = 11;
+const int PLAYERS_PER_CITY = 4;
 const int POPULATION_MAX_HOUSE = 100;
 const int POPULATION_MAX_NON_HOUSE = 50;
 
@@ -101,51 +104,53 @@ class CLog;
 class CEMail;
 class CDatabase;
 
-class CServer
-{
-public:
-	void Init();
+class CServer {
 
-	string Top20;
-	string News;
+	public:
+		void Init();
 
-	int FreePlayer();
-	int TotalPlayers();
+		string Top20;
+		string News;
 
-	void PlatformSleep(int ms);
-	int PlatformCaseCompare(string String1, string String2);
+		int FreePlayer();
+		int TotalPlayers();
 
-	void CheckFilesAndPaths();
-	int Exists(string Path);
-	void LoadNews();
-	void ChangeNews(string NewNews);
+		void PlatformSleep(int ms);
+		int PlatformCaseCompare(string String1, string String2);
 
-	int running;
-	
-	CServer();
-	~CServer();
+		void CheckFilesAndPaths();
+		int Exists(string Path);
+		void LoadNews();
+		void ChangeNews(string NewNews);
+		void respawnPlayers();
 
-	CSocket *Winsock;
-	CPlayer *Player[MaxPlayers];
-	CCity *City[64];
-	CProcess *Process;
-	CAccount *Account;
-	CBuildingList *Build;
-	CItemList *Item;
-	CBulletList *Bullet;
-	CCollision *Collision;
-	CMap *Map;
-	CSend *Send;
-	CLog *Log;
-	CEMail *EMail;
-	CDatabase *Database;
+		int running;
+		
+		CServer();
+		~CServer();
 
-	CTime *Timer;
-	float Tick;
-	float lastTick;
-	float TimePassed;
-private:
-protected:
+		CSocket *Winsock;
+		CPlayer *Player[MaxPlayers];
+		CCity *City[MAX_CITIES];
+		CProcess *Process;
+		CAccount *Account;
+		CBuildingList *Build;
+		CItemList *Item;
+		CBulletList *Bullet;
+		CCollision *Collision;
+		CMap *Map;
+		CSend *Send;
+		CLog *Log;
+		CEMail *EMail;
+		CDatabase *Database;
+
+		CTime *Timer;
+		float Tick;
+		float lastTick;
+		float TimePassed;
+
+	private:
+
 };
 
 #endif
