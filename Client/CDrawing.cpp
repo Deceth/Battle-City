@@ -145,13 +145,10 @@ void CDrawing::DrawMap() {
 					p->DDraw->Draw(p->DDraw->imgRocks, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
 				}
 
-// TODO: implement
-// What to do when player doesn't have the sector?
-// Overlay semi-transparent gray? "Fog of war"?
-//				If the player does not have the sector loaded,
-//				if (p->InGame->HasSector[(tX / SectorSize)][(tY / SectorSize)] == 0) {
-//					p->DDraw->Draw(p->DDraw->imgRocks, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
-//				}
+				// If the player does not have the sector loaded,
+				if (p->InGame->HasSector[(tX / SectorSize)][(tY / SectorSize)] == 0) {
+					p->DDraw->Draw(p->DDraw->imgLoading, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, 0, 0, MaxMapX, MaxMapY);
+				}
 
 			}
 

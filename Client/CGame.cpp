@@ -104,51 +104,62 @@ CGame::~CGame() {
 }
 
 void CGame::Init(HWND hWnd, HINSTANCE hInst) {
+	FILE *file;
+	sKicked kicked;
+	CSHA1 mapHash;
+	char szReport[96];
+
 	this->hWnd = hWnd;
 	this->hInst = hInst;
 
 	Restructure();
 
-	int Exit = 0;
-	if (CheckFile("imgArrows.bmp") == 0) Exit = 1;
-	if (CheckFile("imgBCLogo.bmp") == 0) Exit = 1;
-	if (CheckFile("imgBlackNumbers.bmp") == 0) Exit = 1;
-	if (CheckFile("imgBtnStaff.bmp") == 0) Exit = 1;
-	if (CheckFile("imgBuildIcons.bmp") == 0) Exit = 1;
-	if (CheckFile("imgBuildings.bmp") == 0) Exit = 1;
-	if (CheckFile("imgBullets.bmp") == 0) Exit = 1;
-	if (CheckFile("imgCompany.bmp") == 0) Exit = 1;
-	if (CheckFile("imgCursor.bmp") == 0) Exit = 1;
-	if (CheckFile("imgDemolish.bmp") == 0) Exit = 1;
-	if (CheckFile("imgGround.bmp") == 0) Exit = 1;
-	if (CheckFile("imgHealth.bmp") == 0) Exit = 1;
-	if (CheckFile("imgInterface.bmp") == 0) Exit = 1;
-	if (CheckFile("imgInterfaceBottom.bmp") == 0) Exit = 1;
-	if (CheckFile("imgInventorySelection.bmp") == 0) Exit = 1;
-	if (CheckFile("imgItems.bmp") == 0) Exit = 1;
-	if (CheckFile("imgLava.bmp") == 0) Exit = 1;
-	if (CheckFile("imgLExplosion.bmp") == 0) Exit = 1;
-//	if (CheckFile("imgLoadingSector.bmp") == 0) Exit = 1;
-	if (CheckFile("imgMiniMapColors.bmp") == 0) Exit = 1;
-	if (CheckFile("imgMoneyBox.bmp") == 0) Exit = 1;
-	if (CheckFile("imgMoneyDown.bmp") == 0) Exit = 1;
-	if (CheckFile("imgMoneyUp.bmp") == 0) Exit = 1;
-	if (CheckFile("imgMuzzleFlash.bmp") == 0) Exit = 1;
-	if (CheckFile("imgPopulation.bmp") == 0) Exit = 1;
-	if (CheckFile("imgRadarColors.bmp") == 0) Exit = 1;
-	if (CheckFile("imgResearch.bmp") == 0) Exit = 1;
-	if (CheckFile("imgResearchComplete.bmp") == 0) Exit = 1;
-	if (CheckFile("imgRocks.bmp") == 0) Exit = 1;
-	if (CheckFile("imgSExplosion.bmp") == 0) Exit = 1;
-	if (CheckFile("imgSmoke.bmp") == 0) Exit = 1;
-	if (CheckFile("imgStar.bmp") == 0) Exit = 1;
-	if (CheckFile("imgTanks.bmp") == 0) Exit = 1;
-	if (CheckFile("imgTurretBase.bmp") == 0) Exit = 1;
-	if (CheckFile("imgTurretHead.bmp") == 0) Exit = 1;
+	// If any image files are missing,
+	if (
+		(CheckFile("imgArrows.bmp") == 0) ||
+		(CheckFile("imgBCLogo.bmp") == 0) ||
+		(CheckFile("imgBlackNumbers.bmp") == 0) ||
+		(CheckFile("imgBtnStaff.bmp") == 0) ||
+		(CheckFile("imgBuildIcons.bmp") == 0) ||
+		(CheckFile("imgBuildings.bmp") == 0) ||
+		(CheckFile("imgBullets.bmp") == 0) ||
+		(CheckFile("imgCompany.bmp") == 0) ||
+		(CheckFile("imgCursor.bmp") == 0) ||
+		(CheckFile("imgDemolish.bmp") == 0) ||
+		(CheckFile("imgGround.bmp") == 0) ||
+		(CheckFile("imgHealth.bmp") == 0) ||
+		(CheckFile("imgInterface.bmp") == 0) ||
+		(CheckFile("imgInterfaceBottom.bmp") == 0) ||
+		(CheckFile("imgInventorySelection.bmp") == 0) ||
+		(CheckFile("imgItems.bmp") == 0) ||
+		(CheckFile("imgLava.bmp") == 0) ||
+		(CheckFile("imgLExplosion.bmp") == 0) ||
+		(CheckFile("imgLoading.bmp") == 0) ||
+		(CheckFile("imgMiniMapColors.bmp") == 0) ||
+		(CheckFile("imgMoneyBox.bmp") == 0) ||
+		(CheckFile("imgMoneyDown.bmp") == 0) ||
+		(CheckFile("imgMoneyUp.bmp") == 0) ||
+		(CheckFile("imgMuzzleFlash.bmp") == 0) ||
+		(CheckFile("imgPopulation.bmp") == 0) ||
+		(CheckFile("imgRadarColors.bmp") == 0) ||
+		(CheckFile("imgResearch.bmp") == 0) ||
+		(CheckFile("imgResearchComplete.bmp") == 0) ||
+		(CheckFile("imgRocks.bmp") == 0) ||
+		(CheckFile("imgSExplosion.bmp") == 0) ||
+		(CheckFile("imgSmoke.bmp") == 0) ||
+		(CheckFile("imgStar.bmp") == 0) ||
+		(CheckFile("imgTanks.bmp") == 0) ||
+		(CheckFile("imgTurretBase.bmp") == 0) ||
+		(CheckFile("imgTurretHead.bmp") == 0) 
+	){
+			
+		// Error and return
+		SendMessage(hWnd, WM_CLOSE, 0, 0);
+		return;
+	}
 
-	if (Exit == 1) { SendMessage(hWnd, WM_CLOSE, 0, 0); return; }
-
-	Timer->Initialize();
+	// Initialize the timer
+	this->Timer->Initialize();
 
 	#ifndef _DEBUG
 		Winsock->Init("72.167.115.50");
@@ -158,45 +169,47 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 //		Winsock->Init("localhost");
 	#endif
 
+	// If fullscreen is not on, open in Windowed mode
 	if (Options->fullscreen == 0) {
-		DDraw->InitWindowed(hWnd);
-	}
-	else {
-		DDraw->InitFullscreen(hWnd);
+		this->DDraw->InitWindowed(hWnd);
 	}
 
-	DDraw->Clear();
+	// Else (fullscreen is on), open in Fullscreen mode
+	else {
+		this->DDraw->InitFullscreen(hWnd);
+	}
+
+	// Clear the screen, add Logos
+	this->DDraw->Clear();
 	this->DDraw->Draw(this->DDraw->imgCompany, (this->ResolutionX/2), (this->ResolutionY/2)-240, 320, 240);
 	this->DDraw->Draw(this->DDraw->imgCompany, (this->ResolutionX/2)-320, (this->ResolutionY/2), 320, 240);
 	this->DDraw->Draw(this->DDraw->imgBCLogo, (this->ResolutionX/2)-320, (this->ResolutionY/2)-240, 320, 240);
 	this->DDraw->Draw(this->DDraw->imgBCLogo, (this->ResolutionX/2), (this->ResolutionY/2), 320, 240);
+	this->DDraw->Flip();
 
-	DDraw->Flip();
+	// Start the login dialog, load the map, sound, DirectInput, winsock, engine, etc
+	this->Dialog->Start();
+	this->Map->LoadMap();
+	this->Sound->Init();
+	this->Input->StartDInput();
+	this->Winsock->StartTCP();
+	this->Engine->Init();
 
-	Dialog->Start();
-	Map->LoadMap();
-	Sound->Init();
-	Input->StartDInput();
-
-	Winsock->StartTCP();
-	Engine->Init();
-
-	//Did the user get kicked within 10 minutes ago?
-
-	sKicked kicked;
-
+	// Check whether the user got kicked within the last 10 minutes
 	kicked.tick = 0;
-
-	FILE *file;
 	file = fopen("imgHealthy.bmp","r");
 
+	// If imgHealthy was found,
 	if (file) {
 		fread(&kicked, sizeof(kicked), 1, file);
 		fclose(file);
 
+		// If the Kick timer is up, remove the image
 		if (GetTickCount() < kicked.tick || GetTickCount() > kicked.tick + 600000) {
 			remove("imgHealthy.bmp");
 		}
+
+		// Else (Kick timer still going), tell the player he can't log in yet
 		else {
 			Winsock->Socket = 0;
 			MessageBox(hWnd, "You have been kicked within 10 minutes ago.  You must wait before logging on again.", "BattleCity", 0);
@@ -205,20 +218,21 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 		}
 	}
 
-	CSHA1 test;
-	test.HashFile("map.dat");
-	test.Final();
-	char szReport[96];
+	// Hash the map.dat file
+	mapHash.HashFile("map.dat");
+	mapHash.Final();
 	memset(szReport, 0, sizeof(szReport));
-	test.ReportHash(szReport, CSHA1::REPORT_HEX);
+	mapHash.ReportHash(szReport, CSHA1::REPORT_HEX);
+
+	// If the hash doesn't match the string below, tell the user the file is corrupted
 	if (strcmp(szReport, "74 2E 00 1A 48 05 AD A1 A8 8B E1 5E 1E 0F 75 1A 82 B6 E8 B7") != 0) {
-		Winsock->Socket = 0;
+		this->Winsock->Socket = 0;
 		MessageBox(hWnd, "Your map.dat is corrupted.  Please redownload the client at battlecity.looble.com!", "BattleCity", 0);
 		SendMessage(hWnd, WM_CLOSE, 0, 0);
 	}
-
-	/////////////////////////////////////////////////
 }
+
+
 
 string CGame::ReturnUniqID() {
 	char UniqID[50];
@@ -320,7 +334,7 @@ void CGame::Restructure()
 	if (SilentCheckFile("img//imgItems.bmp") == 1) rename("img//imgItems.bmp", "imgItems.bmp");
 	if (SilentCheckFile("img//imgLava.bmp") == 1) rename("img//imgLava.bmp", "imgLava.bmp");
 	if (SilentCheckFile("img//imgLExplosion.bmp") == 1) rename("img//imgLExplosion.bmp", "imgLExplosion.bmp");
-//	if (SilentCheckFile("img//imgLoadingSector.bmp") == 1) rename("img//imgLoadingSector.bmp", "imgLoadingSector.bmp");
+	if (SilentCheckFile("img//imgLoading.bmp") == 1) rename("img//imgLoading.bmp", "imgLoading.bmp");
 	if (SilentCheckFile("img//imgMiniMapColors.bmp") == 1) rename("img//imgMiniMapColors.bmp", "imgMiniMapColors.bmp");
 	if (SilentCheckFile("img//imgMuzzleFlash.bmp") == 1) rename("img//imgMuzzleFlash.bmp", "imgMuzzleFlash.bmp");
 	if (SilentCheckFile("img//imgPopulation.bmp") == 1) rename("img//imgPopulation.bmp", "imgPopulation.bmp");
