@@ -1,25 +1,30 @@
 #include "CCollision.h"
 
-CCollision::CCollision(CGame *game)
-{
-	p = game;
+CCollision::CCollision(CGame *game) {
+	this->p = game;
 }
 
-CCollision::~CCollision()
-{
+CCollision::~CCollision() {
 
 }
 
-int CCollision::CheckPlayerCollision(unsigned short id)
-{
-	if (p->Player[id]->isAdmin == 2) return 0;
-	Rect PlayerRect, tPlayerRect, BuildingRect, ItemRect;
-	int gap = 5;
+int CCollision::CheckPlayerCollision(unsigned short id) {
+	
+	// If the player is an admin, return
+	if (p->Player[id]->isAdmin == 2) {
+		return 0;
+	}
 
-	PlayerRect.X = (long)p->Player[id]->X-2;
-	PlayerRect.Y = (long)p->Player[id]->Y-2;
-	PlayerRect.w = (long)44;
-	PlayerRect.h = (long)44; 
+	Rect PlayerRect;
+	Rect tPlayerRect;
+	Rect BuildingRect;
+	Rect ItemRect;
+	int gap = 8;
+
+	PlayerRect.X = (long)p->Player[id]->X + gap;
+	PlayerRect.Y = (long)p->Player[id]->Y + gap;
+	PlayerRect.w = (long)48 - gap - gap;
+	PlayerRect.h = (long)48 - gap - gap; 
 
 	//fill in a smaller collision area
 	tPlayerRect.X = (long)p->Player[id]->X+24;
@@ -34,57 +39,62 @@ int CCollision::CheckPlayerCollision(unsigned short id)
 	if (p->Player[id]->Y > (511 * 48)) return 203;
 
 	//Map Terrain (lava, rocks, CC corners)
-	if (p->Map->map[(int)(p->Player[id]->X+gap)/48][(int)(p->Player[id]->Y+gap)/48] != 0) return 2; //top left corner
-	if (p->Map->map[(int)(p->Player[id]->X+48-gap-1)/48][(int)(p->Player[id]->Y+gap)/48] != 0) return 2; //top right corner
-	if (p->Map->map[(int)(p->Player[id]->X+48-gap-1)/48][(int)(p->Player[id]->Y+48-gap)/48] != 0) return 2; //bottom right corner
-	if (p->Map->map[(int)(p->Player[id]->X+gap)/48][(int)(p->Player[id]->Y+48-gap)/48] != 0) return 2; //bottom left corner
+	if (p->Map->map[(int)(PlayerRect.X-1)/48][(int)(PlayerRect.Y-1)/48] != 0) return 2; //top left corner
+	if (p->Map->map[(int)(PlayerRect.X+PlayerRect.w)/48][(int)(PlayerRect.Y-1)/48] != 0) return 2; //top right corner
+	if (p->Map->map[(int)(PlayerRect.X+PlayerRect.w)/48][(int)(PlayerRect.Y+PlayerRect.h)/48] != 0) return 2; //bottom right corner
+	if (p->Map->map[(int)(PlayerRect.X-1)/48][(int)(PlayerRect.Y+PlayerRect.h)/48] != 0) return 2; //bottom left corner
 
 	CBuilding *bld = p->Build->buildings;
-	if (bld)
-	{
-		while (bld->prev)
+	if (bld) {
+		while (bld->prev) {
 			bld = bld->prev;
+		}
 
-		while (bld)
-		{
-			BuildingRect.X = (bld->X-2)*48+gap;
-			BuildingRect.Y = (bld->Y-2)*48+gap;
-			BuildingRect.w = 144-gap;
-			BuildingRect.h = 144-gap;
-			if (bld->Type / 100 <= 2)
-			{
-				if (bld->Type == 200 && p->Tick > p->InGame->hospTick)
-				{
-					if (id == p->Winsock->MyIndex && RectCollision(tPlayerRect, BuildingRect))
-					{
+		while (bld) {
+			BuildingRect.X = (bld->X-2)*48;
+			BuildingRect.Y = (bld->Y-2)*48;
+			BuildingRect.w = 144;
+			BuildingRect.h = 144;
+
+			if (bld->Type / 100 <= 2) {
+
+				if (bld->Type == 200 && p->Tick > p->InGame->hospTick) {
+
+					if (id == p->Winsock->MyIndex && RectCollision(tPlayerRect, BuildingRect)) {
+
 						BuildingRect.Y = (bld->Y-1)*48;
 						BuildingRect.h = 96;
-						if (!RectCollision(tPlayerRect, BuildingRect))
-						{
+
+						if (!RectCollision(tPlayerRect, BuildingRect)) {
 							p->Player[p->Winsock->MyIndex]->SetHP(p->Player[p->Winsock->MyIndex]->HP + 5);
-							if (p->Player[p->Winsock->MyIndex]->HP > 40) p->Player[p->Winsock->MyIndex]->SetHP(40);
+
+							if (p->Player[p->Winsock->MyIndex]->HP > 40) {
+								p->Player[p->Winsock->MyIndex]->SetHP(40);
+							}
+
 							p->InGame->hospTick = p->Tick + 500;
 						}
 					}
-					else
-					{
+					else {
 						BuildingRect.Y = (bld->Y-1)*48;
 						BuildingRect.h = 96;
 					}
 				}
-				else
-				{
+				else {
 					BuildingRect.Y = (bld->Y-1)*48;
 					BuildingRect.h = 96;
 				}
 			}
 
-			if (RectCollision(tPlayerRect, BuildingRect))
-			{
+			/*
+			if (RectCollision(tPlayerRect, BuildingRect)) {
 				return 2;
 			}
+			*/
 			
-			if (RectCollision(PlayerRect, BuildingRect)) return 2;
+			if (RectCollision(PlayerRect, BuildingRect)) {
+				return 2;
+			}
 
 			bld = bld->next;
 		}
@@ -123,8 +133,7 @@ int CCollision::CheckPlayerCollision(unsigned short id)
 	return 0;
 }
 
-int CCollision::RectCollision(Rect rect1, Rect rect2)
-{
+int CCollision::RectCollision(Rect rect1, Rect rect2) {
 	rect1.w += rect1.X; 
 	rect1.h += rect1.Y;
 	rect2.w += rect2.X;
@@ -143,8 +152,7 @@ int CCollision::RectCollision(Rect rect1, Rect rect2)
 	return 1;
 }
 
-int CCollision::CheckBuildingCollision(int X, int Y)
-{
+int CCollision::CheckBuildingCollision(int X, int Y) {
 	int me = p->Winsock->MyIndex;
 
 	if (X < 0 || Y < 0) return 1;
