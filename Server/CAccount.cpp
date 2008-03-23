@@ -739,7 +739,7 @@ int CAccount::UpdateAccount(int Index, string password, string email, string ful
 			QueryString += "WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
 
 			// Execute the update statement, return 1
-			//p->Database->Database.execDML(QueryString.c_str());
+			p->Database->Database.execDML(QueryString.c_str());
 			cout << "UpdateAccount::" << p->Player[Index]->Name << endl;
 			return 1;
 		}
