@@ -44,7 +44,7 @@ int CProcess::ProcessData(char *TheData)
 			ProcessMayorHire(TheData[1]);
 			break;
 		case smAddRemCity:
-			p->Meeting->AddCity((unsigned char)TheData[1],(unsigned char)TheData[2]);
+			p->Meeting->AddCity((unsigned char)TheData[1],(unsigned char)TheData[2], (unsigned char)TheData[3]);
 			break;
 		case smStateGame:
 			ProcessEnterGame((sSMStateGame *)&TheData[1]);

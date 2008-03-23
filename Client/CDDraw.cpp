@@ -224,6 +224,8 @@ void CDDraw::LoadSurfaces()
 	DDSetColorKey(imgItems, COLOR_TRANSPARENCY);
 	imgLava = DDLoadBitmap(DirectDraw, "imgLava.bmp", 0, 0);
 	DDSetColorKey(imgLava, COLOR_TRANSPARENCY);
+//	imgLoadingSector = DDLoadBitmap(DirectDraw, "imgLoadingSector.bmp", 0, 0);
+//	DDSetColorKey(imgLoadingSector, COLOR_TRANSPARENCY);
 	imgLExplosion = DDLoadBitmap(DirectDraw, "imgLExplosion.bmp", 0, 0);
 	DDSetColorKey(imgLExplosion, COLOR_TRANSPARENCY);
 	imgMiniMapColors = DDLoadBitmap(DirectDraw, "imgMiniMapColors.bmp", 0, 0);
@@ -364,6 +366,11 @@ void CDDraw::DestroySurfaces()
 		  imgLExplosion->Release();
 		  imgLExplosion = NULL;
 		}
+//		if(imgLoadingSector != NULL)
+//		{
+//		  imgLoadingSector->Release();
+//		  imgLoadingSector = NULL;
+//		}
 		if(imgMiniMapColors != NULL)
 		{
 		  imgMiniMapColors->Release();

@@ -37,6 +37,7 @@ public:
 	IDirectDrawSurface7 *imgInventorySelection;
 	IDirectDrawSurface7 *imgItems;
 	IDirectDrawSurface7 *imgLava;
+//	IDirectDrawSurface7 *imgLoadingSector;
 	IDirectDrawSurface7 *imgLExplosion;
 	IDirectDrawSurface7 *imgMiniMapColors;
 	IDirectDrawSurface7 *imgMoneyBox;

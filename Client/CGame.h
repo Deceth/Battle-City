@@ -57,8 +57,8 @@ const int TIMER_SHOOT_ADMIN = 50;
 const int TIMER_SHOOT_LASER = 650;
 const int TIMER_SHOOT_ROCKET = 650;
 
-//const int TCPPORT = 5643;
-const int TCPPORT = 6643;
+const int TCPPORT = 5643;
+//const int TCPPORT = 6643;
 
 #include "CLogin.h"
 #include "CNew.h"

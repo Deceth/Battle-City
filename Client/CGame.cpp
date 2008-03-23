@@ -128,6 +128,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	if (CheckFile("imgItems.bmp") == 0) Exit = 1;
 	if (CheckFile("imgLava.bmp") == 0) Exit = 1;
 	if (CheckFile("imgLExplosion.bmp") == 0) Exit = 1;
+//	if (CheckFile("imgLoadingSector.bmp") == 0) Exit = 1;
 	if (CheckFile("imgMiniMapColors.bmp") == 0) Exit = 1;
 	if (CheckFile("imgMoneyBox.bmp") == 0) Exit = 1;
 	if (CheckFile("imgMoneyDown.bmp") == 0) Exit = 1;
@@ -319,6 +320,7 @@ void CGame::Restructure()
 	if (SilentCheckFile("img//imgItems.bmp") == 1) rename("img//imgItems.bmp", "imgItems.bmp");
 	if (SilentCheckFile("img//imgLava.bmp") == 1) rename("img//imgLava.bmp", "imgLava.bmp");
 	if (SilentCheckFile("img//imgLExplosion.bmp") == 1) rename("img//imgLExplosion.bmp", "imgLExplosion.bmp");
+//	if (SilentCheckFile("img//imgLoadingSector.bmp") == 1) rename("img//imgLoadingSector.bmp", "imgLoadingSector.bmp");
 	if (SilentCheckFile("img//imgMiniMapColors.bmp") == 1) rename("img//imgMiniMapColors.bmp", "imgMiniMapColors.bmp");
 	if (SilentCheckFile("img//imgMuzzleFlash.bmp") == 1) rename("img//imgMuzzleFlash.bmp", "imgMuzzleFlash.bmp");
 	if (SilentCheckFile("img//imgPopulation.bmp") == 1) rename("img//imgPopulation.bmp", "imgPopulation.bmp");

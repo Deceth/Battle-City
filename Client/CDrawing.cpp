@@ -69,7 +69,7 @@ void CDrawing::ClearDrawing() {
 	if (p->Options->resolution1024) {
 		this->defaultPlayerOffsetX = (this->MaxMapX / 2) - 24;
 		this->defaultPlayerOffsetY = (this->MaxMapY / 2) - 24;
-		this->groundTilesToDraw = 8;
+		this->groundTilesToDraw = 7;
 		this->tilesToDraw = 18;
 		this->demoCursorOffsetX = 4;
 		this->demoCursorOffsetY = -12;
@@ -136,23 +136,23 @@ void CDrawing::DrawMap() {
 			// If the tile is on the map,
 			if (tX > 0 && tY > 0 && tX <= 512 && tY <= 512) {
 
-				// If the player has the sector loaded,
-				if (p->InGame->HasSector[(tX / SectorSize)][(tY / SectorSize)] == 1) {
-
-					// If the map square is Lava, draw Lava
-					if (p->Map->map[tX][tY] == MAP_SQUARE_LAVA) {
-						p->DDraw->Draw(p->DDraw->imgLava, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);
-					}
-					// Else if the map square is Rock, draw Rock
-					else if (p->Map->map[tX][tY] == MAP_SQUARE_ROCK) {
-						p->DDraw->Draw(p->DDraw->imgRocks, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
-					}
+				// If the map square is Lava, draw Lava
+				if (p->Map->map[tX][tY] == MAP_SQUARE_LAVA) {
+					p->DDraw->Draw(p->DDraw->imgLava, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);
+				}
+				// Else if the map square is Rock, draw Rock
+				else if (p->Map->map[tX][tY] == MAP_SQUARE_ROCK) {
+					p->DDraw->Draw(p->DDraw->imgRocks, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
 				}
 
-				// Else (player doesn't have the sector), paint it black
-				else {
-					p->DDraw->DFillRect((myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48);
-				}
+// TODO: implement
+// What to do when player doesn't have the sector?
+// Overlay semi-transparent gray? "Fog of war"?
+//				If the player does not have the sector loaded,
+//				if (p->InGame->HasSector[(tX / SectorSize)][(tY / SectorSize)] == 0) {
+//					p->DDraw->Draw(p->DDraw->imgRocks, (myX-tX)*48+this->PlayerOffsetX+offX, (myY-tY)*48+this->PlayerOffsetY+offY, 48, 48, p->Map->tiles[tX][tY], 0, MaxMapX, MaxMapY);	
+//				}
+
 			}
 
 			// Else (tile is off the map), paint it black
