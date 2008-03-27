@@ -1,7 +1,7 @@
 #ifndef _CGAME
 #define _CGAME
 
-#define VERSION "3.4.8"
+#define VERSION "3.4.9"
 
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
