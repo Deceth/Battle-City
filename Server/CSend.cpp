@@ -208,7 +208,7 @@ void CSend::SendCityList(int Index) {
 		memset(packet, 0, 3);
 		packet[0] = this->p->Player[Index]->RentalCity;
 		packet[1] = this->p->City[p->Player[Index]->RentalCity]->Mayor;
-		packet[1] = this->p->City[p->Player[Index]->RentalCity]->PlayerCount();
+		packet[2] = this->p->City[p->Player[Index]->RentalCity]->PlayerCount();
 		this->p->Winsock->SendData(Index,smAddRemCity,packet,2);
 	}
 
