@@ -263,7 +263,7 @@ void CProcess::ProcessError(int error)
 		case 69: //Message E
 			{MessageBox(p->hWnd, "Account is currently in use", "BattleCity", 0); p->Login->ShowLoginDlg(); break;}
 		case 70: //Message F
-			{MessageBox(p->hWnd, "Outdated version", 0, 0); SendMessage(p->hWnd, WM_CLOSE, 0, 0); break;}
+			{MessageBox(p->hWnd, "Please download the latest version of BattleCity at http://battlecity.looble.com", 0, 0); SendMessage(p->hWnd, WM_CLOSE, 0, 0); break;}
 		case 71: //Message G
 			{MessageBox(p->hWnd, "Banned", 0, 0); SendMessage(p->hWnd, WM_CLOSE, 0, 0); break;}
 		case 72: //Message H
