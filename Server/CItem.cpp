@@ -26,16 +26,17 @@ CItem::CItem(int x, int y, int type, int City, unsigned short id, CServer *Serve
 	// Switch on item type
 	switch (type) {
 
-		// Item: 
-		case 8:
-			break;
-
 		// Item: WALL
-		case 11:
+		case 8:
 			life = 40;
 			break;
 
 		// Item: PLASMA
+		case 11:
+			life = 40;
+			break;
+
+		// Item: TURRET
 		case 9:
 			life = 32;
 			break;
