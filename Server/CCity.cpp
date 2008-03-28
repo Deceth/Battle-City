@@ -6,9 +6,7 @@
  **************************************************************/
 CCity::CCity(CServer *Server) {
 	p = Server;
-	notHiring = 0;
-	Orbs = 0;
-	hiring = -1;
+
 	destroy();
 }
 
@@ -29,7 +27,7 @@ void CCity::destroy() {
 	CBuilding *bld;
 	CItem *itm;
 
-	// Rset active to 1
+	// Reset active to 1
 	this->active = 1;
 
 	// Remove all the buildings
@@ -51,16 +49,23 @@ void CCity::destroy() {
 		}
 	}
 
-	// Reset the mayor
+	// Reset the mayor, stats, hiring info, etc.  
+	// Note that maxBuildingCount starts at 1 for CC.
 	this->Mayor = -1;
+	this->Successor = -1;
+	this->Orbs = 0;
+	this->currentBuildingCount = 1;
+	this->startTime= 0;
+	this->hiring = -1;
+	this->notHiring = 0;
+	this->maxBuildingCount = 1;
+	this->bombFactoryCount = 0;
+	this->orbFactoryCount = 0;
 
-	// If the city had hiring on, tell any applicants that the mayor changed
+	// If the mayor had an applicant, tell any applicants that the mayor changed
 	if (hiring > -1) {
 		p->Winsock->SendData(hiring, smMayorChanged, " ");
 	}
-
-	// Turn off hiring
-	this->hiring = -1;
 
 	// Reset the build tree
 	for (i = 0; i <= 26; i++) {
@@ -75,18 +80,12 @@ void CCity::destroy() {
 	this->canBuild[2] = 1;
 	this->canBuild[4] = 1;
 
-	// Reset the orb counter to 0
-	this->Orbs = 0;
-
 	// Reset all money values to default
 	this->cash = MONEY_STARTING_VALUE;
 	this->income = 0;
 	this->itemproduction = 0;
 	this->cashresearch = 0;
 	this->hospital = 0;
-
-	// Reset successor to -1
-	this->Successor = -1;
 
 	// Reset the destruct timer to 0
 	this->DestructTimer = 0;
@@ -144,7 +143,7 @@ void CCity::setCanBuild(int i, int can) {
 	}
 
 	// If this city's mayor is in-game, tell the mayor about the build-tree change
-	if (this->p->Player[this->Mayor]->State == State_Game) {
+	if (this->p->Player[this->Mayor]->isInGame()) {
 		packet[0] = i+1;
 		packet[1] = iCan;
 		packet[2] = 0;
@@ -227,7 +226,7 @@ void CCity::wasOrbed() {
 	for (int i = 0; i < MaxPlayers; i++) {
 
 		// If the player is in the city and in game,
-		if (this->p->Player[i]->City == id && this->p->Player[i]->State == State_Game) {
+		if (this->p->Player[i]->City == id && this->p->Player[i]->isInGame()) {
 
 			// Boot the player
 			cout << "Orbed::" << this->p->Player[i]->Name << endl;
@@ -236,7 +235,6 @@ void CCity::wasOrbed() {
 	}
 
 	// Destroy this city
-	
 	this->destroy();
 }
 
@@ -247,24 +245,29 @@ void CCity::wasOrbed() {
  * @param index
  **************************************************************/
 void CCity::didOrb(int City, int index) {
-	int pointsgiven;
+	int pointsGiven;
+	int orberCityPoints;
 	sSMOrbedCity orbed;
 
-	// Get the point value of the orbed city
-	pointsgiven = p->Build->GetOrbPointCount(City);
+	// Add one to the city's orb total
+	this->Orbs++;
+
+	// Get the value of the orbed city and the orber's city
+	pointsGiven = p->City[City]->getOrbValue();
+	orberCityPoints = p->City[id]->getOrbValue();
 
 	// Tell each player about the orb
-	orbed.points = (unsigned int)pointsgiven;
+	orbed.points = pointsGiven;
 	orbed.OrberCity = id;
 	orbed.City = City;
-	orbed.OrberCityPoints = p->Build->GetOrbPointCount(id);
+	orbed.OrberCityPoints = orberCityPoints;
 	p->Send->SendAllBut(-1,smOrbed,(char *)&orbed,sizeof(orbed));
 
 	// For each possible player,
 	for (int i = 0; i < MaxPlayers; i++) {
 
 		// If the player is in the city and in game,
-		if (p->Player[i]->City == id && p->Player[i]->State == State_Game) {
+		if (p->Player[i]->City == id && p->Player[i]->isInGame()) {
 
 			// If the player was the orber, add an orb
 			if (i == index) {
@@ -277,12 +280,10 @@ void CCity::didOrb(int City, int index) {
 			}
 
 			// Add the points for the orb
-			p->Account->AddPoints(i, pointsgiven);
+			p->Account->AddPoints(i, pointsGiven);
 		}
 	}
 
-	// Add one to the city's orb total
-	this->Orbs++;
 }
 
 /***************************************************************
@@ -298,7 +299,7 @@ int CCity::PlayerCount() {
 	for (int i = 0; i < MaxPlayers; i++) {
 
 		// If the player is in the city and in game,
-		if (p->Player[i]->State == State_Game && p->Player[i]->City == id) {
+		if (p->Player[i]->isInGame() && p->Player[i]->City == this->id) {
 
 			// Increment the player count
 			count++;
@@ -308,3 +309,142 @@ int CCity::PlayerCount() {
 	return count;
 }
 
+/***************************************************************
+ * Function:	addBuilding
+ **************************************************************/
+void CCity::addBuilding(int type) {
+
+	// Increment the current building count
+	this->currentBuildingCount++;
+
+	// If the current building count is greater than the max building count,
+	if (this->currentBuildingCount > this->maxBuildingCount ) {
+
+		// Set the max building count to the current building count
+		this->maxBuildingCount = this->currentBuildingCount;
+	}
+
+	// If Bomb Factory (8), increment bombFactoryCount
+	if (type == 8) {
+		this->bombFactoryCount++;
+	}
+
+	// If Orb Factory (16), increment orbFactoryCount
+	else if (type == 16) {
+		this->orbFactoryCount++;
+	}
+
+	// If the building is now orbable, but startTime isn't set, set it
+	if (this->isOrbable() && (this->startTime==0)) {
+		this->startTime = this->p->Tick;
+	}
+}
+
+/***************************************************************
+ * Function:	subtractBuilding
+ **************************************************************/
+void CCity::subtractBuilding(int type) {
+
+	// Decrement the current building count
+	this->currentBuildingCount--;
+
+	// If Bomb Factory (8), decrement bombFactoryCount
+	if (type == 8) {
+		this->bombFactoryCount--;
+	}
+
+	// If Orb Factory (16), decrement orbFactoryCount
+	else if (type == 16) {
+		this->orbFactoryCount--;
+	}
+}
+
+/***************************************************************
+ * Function:	getOrbValue
+ *
+ **************************************************************/
+int CCity::getOrbValue() {
+	int pointsgiven = 0;
+
+	// Get the base point value from the city's max building count
+
+	// SIZE: ORBABLE_SIZE+10+
+	if (this->maxBuildingCount >= ORBABLE_SIZE+10) {
+		pointsgiven = 50;
+	}
+	// SIZE: ORBABLE_SIZE+5+
+	else if (this->maxBuildingCount >= ORBABLE_SIZE+5) {
+		pointsgiven = 40;
+	}
+	// SIZE: ORBABLE_SIZE+
+	else if (this->maxBuildingCount >= ORBABLE_SIZE) {
+		pointsgiven = 30;
+	}
+	// Orb Factory
+	else if (this->hasOrbFactory()) {
+		pointsgiven = 20;
+	}
+	// Bom Factory
+	else if (this->hasBombFactory()) {
+		pointsgiven = 10;
+	}
+	else {
+		pointsgiven = 0;
+	}
+
+	// Add 5 points for each of the city's Orbs
+	pointsgiven += (this->Orbs * 5);
+
+	return pointsgiven;
+}
+
+/***************************************************************
+ * Function:	hasBombFactory
+ *
+ **************************************************************/
+bool CCity::hasBombFactory() {
+	return this->bombFactoryCount > 0;
+}
+
+/***************************************************************
+ * Function:	hasOrbFactory
+ *
+ **************************************************************/
+bool CCity::hasOrbFactory() {
+	return this->orbFactoryCount > 0;
+}
+
+/***************************************************************
+ * Function:	isOrbable
+ *
+ **************************************************************/
+bool CCity::isOrbable() {
+	return
+		this->hasBombFactory() ||
+		this->hasOrbFactory() ||
+		(this->maxBuildingCount >= ORBABLE_SIZE);
+}
+
+/***************************************************************
+ * Function:	getUptime
+ *
+ **************************************************************/
+int CCity::getUptime() {
+	return (this->p->Tick - this->startTime);
+}
+
+/***************************************************************
+ * Function:	getUptimeInSeconds
+ *
+ **************************************************************/
+int CCity::getUptimeInSeconds() {
+	return this->getUptime() / 1000;
+}
+
+/***************************************************************
+ * Function:	getUptimeInMinutes
+ *
+ **************************************************************/
+int CCity::getUptimeInMinutes() {
+	return this->getUptimeInSeconds() / 60;
+}
