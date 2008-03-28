@@ -72,9 +72,13 @@ class CBuildingList {
 		}
 
 		void cycle();
+
+// Moved to CCity
+/*
 		int GetBuildingCount(int theCity);
 		int GetOrbBuildingCount(int theCity);
 		int GetOrbPointCount(int theCity);
+*/
 		CServer *p;
 	};
 

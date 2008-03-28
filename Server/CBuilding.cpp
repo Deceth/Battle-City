@@ -38,6 +38,9 @@ CBuilding::CBuilding(int x, int y, int type, int City, unsigned short id, CServe
  *
  **************************************************************/
 CBuilding::~CBuilding() {
+	// Tell the city it is subtracting a building
+	this->p->City[this->City]->subtractBuilding(this->type);
+
 	// Tell the surrounding buildings to bypass this building in the list
 	if (this->next) {
 		this->next->prev = this->prev;
@@ -78,40 +81,6 @@ CBuilding *CBuildingList::findBuilding(unsigned short id) {
 
 	// If the building was not found, return 0
 	return 0;
-}
-
-/***************************************************************
- * Function:	GetOrbPointCount
- *
- * @param theCity
- **************************************************************/
-int CBuildingList::GetOrbPointCount(int theCity) {
-	int pointsgiven = 0;
-	int count = this->p->Build->GetOrbBuildingCount(theCity);
-
-	// Get the base point value from the city's building count
-
-	// SIZE: 0-ORBABLE_SIZE-1
-	if (count < ORBABLE_SIZE) {
-		pointsgiven = 0;
-	}
-	// SIZE: ORBABLE_SIZE-15
-	else if (count < 16) {
-		pointsgiven = 20;
-	}
-	// SIZE: 16-20
-	else if (count < 21) {
-		pointsgiven = 30;
-	}
-	// SIZE: 21+
-	else {
-		pointsgiven = 50;
-	}
-
-	// Add 5 points for each of the city's Orbs
-	pointsgiven += (this->p->City[theCity]->Orbs * 5);
-
-	return pointsgiven;
 }
 
 /***************************************************************
@@ -335,7 +304,7 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	else {
 		buildings = 0;
 	}
-	
+
 	// Delete the building
 	delete buildingToDelete;
 	
@@ -451,88 +420,6 @@ bool CBuilding::isResearch(int buildingType) {
 		((buildingType % 2)==1)
 		&&
 		(buildingType > 2);
-}
-
-/***************************************************************
- * Function:	GetBuildingCount
- *
- * @param theCity
- **************************************************************/
-int CBuildingList::GetBuildingCount(int theCity) {
-	CBuilding *bld = buildings;
-	int count = 1;
-
-	// If there are no buildings, return 0
-	if (!bld) {
-		return 0;
-	}
-
-	// Move bld to the head of the buildings linked list
-	while (bld->prev) {
-		bld = bld->prev;
-	}
-
-	// For each building,
-	while (bld) {
-
-		// If the building belongs to this city, increment count
-		if (bld->City == theCity) {
-			count++;
-		}
-
-		// Get the next building
-		bld = bld->next;
-	}
-
-	// Return count
-	return count;
-}
-
-/***************************************************************
- * Function:	GetOrbBuildingCount
- *
- * @param theCity
- **************************************************************/
-int CBuildingList::GetOrbBuildingCount(int theCity) {
-	CBuilding *bld = buildings;
-	int count = 1;
-	int foundorbfactory = 0;
-
-	// If there are no buildings, return 0
-	if (!bld) {
-		return 0;
-	}
-
-	// Move bld to the head of the buildings linked list
-	while (bld->prev) {
-		bld = bld->prev;
-	}
-
-	// For each building,
-	while (bld) {
-
-		// If the building belongs to this city, increment count
-		if (bld->City == theCity) {
-			count++;
-
-			// If the building is an Orb Factory (type 16), set foundorbfactory true
-			if (bld->type == 16) {
-				foundorbfactory = 1;
-			}
-		}
-
-		// Get the next building
-		bld = bld->next;
-	}
-
-	// If less than ORBABLE_SIZE buildings were found, but one was an orb factory, return ORBABLE_SIZE
-	if (count < ORBABLE_SIZE && foundorbfactory == 1) {
-		return ORBABLE_SIZE;
-	}
-	// Else (no orb fac or more than ORBABLE_SIZE buildings), return building count
-	else {
-		return count;
-	}
 }
 
 /***************************************************************
