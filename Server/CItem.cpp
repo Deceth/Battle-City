@@ -120,8 +120,7 @@ void CItem::drop(int x, int y, int owner) {
 					if ((CalcY == 2) && (CalcX >= 0) && (CalcX <= 2)) {
 
 						// If the city is orbable,
-						buildingCount = p->Build->GetOrbBuildingCount(i);
-						if (buildingCount >= ORBABLE_SIZE) {
+						if (p->City[i]->isOrbable()) {
 
 							// Trigger the orb
 							this->p->Log->logOrb(owner, i, buildingCount);
