@@ -449,7 +449,7 @@ void CSend::SendCommandos(int Index) {
 				&& 
 				(p->City[j]->active)
 				&&
-				(p->City[j]->PlayerCount() < 4)
+				(p->City[j]->PlayerCount() < PLAYERS_PER_CITY)
 				&&
 				(p->City[j]->Mayor > -1)
 			) {
