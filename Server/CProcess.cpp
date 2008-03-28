@@ -295,6 +295,9 @@ void CProcess::ProcessBuild(char *TheData,int Index) {
 			// Subtract the cost of the building,
 			p->City[p->Player[Index]->City]->cash -= COST_BUILDING;
 
+			// Tell the city it is adding a building
+			this->p->City[p->Player[Index]->City]->addBuilding(data->type);
+
 			// Create the building with the next ID, add it to the server linked list
 			bd.City = p->Player[Index]->City;
 			bd.count = 0;
@@ -953,10 +956,12 @@ void CProcess::ProcessDemolish(sCMDemolish *data, int Index) {
 		return;
 	}
 
-	// If the building is found, and it belongs to the player's city, delete it
+	// If the building is found, and it belongs to the player's city,
 	bld = p->Build->findBuilding(data->id);
 	if (bld) {
 		if (bld->City == p->Player[Index]->City) {
+
+			// Delete building
 			p->Build->delBuilding(bld);
 		}
 	}
@@ -1474,35 +1479,13 @@ void CProcess::ProcessRequestInfo(int Index) {
 	int SearchX = (int)p->Player[Index]->X/48;
 	int SearchY = (int)p->Player[Index]->Y/48;
 
-	int closest20Index = -1;
-	int closest20Distance = -1;
-	int closest30Index = -1;
-	int closest30Distance = -1;
-	int closest50Index = -1;
-	int closest50Distance = -1;
 	short int selectedCity = 255;
 
-	short int CityDistance[MAX_CITIES];
-	short int BuildCount[MAX_CITIES];
-	memset(CityDistance, 0, sizeof(CityDistance));
-	memset(BuildCount, 0, sizeof(BuildCount));
+	int bestOrbValue = 0;
+	int bestDistance = 255;
 
-	CBuilding *bld = p->Build->buildings;
-	if (bld) {
-		while(bld->prev) {
-			bld = bld->prev;
-		}
-
-		// For each building,
-		while (bld) {
-
-			// Add that building to a count for its city
-			if (bld->City != -1) {
-				BuildCount[bld->City] += 1;
-			}
-			bld = bld->next;
-		}
-	}
+	int orbValue;
+	int distance;
 
 	// For each possible city,
 	for (int i = 0; i < MAX_CITIES; i++) {
@@ -1510,52 +1493,32 @@ void CProcess::ProcessRequestInfo(int Index) {
 		// If the city isn't this player's city,
 		if (i != p->Player[Index]->City) {
 
-			// ??
-			if (p->City[i]->x == 0 || p->City[i]->y == 0) {
-				p->City[i]->x = (unsigned short)(512*48)-(32+(i % 8*MAX_CITIES)) * 48;
-				p->City[i]->y = (unsigned short)(512*48)-(32+(i / 8*MAX_CITIES)) * 48; 
-			}
-
-			// Get the distance between this city and the possible city
-			CityDistance[i] = (int)sqrt((float)((p->City[i]->x - SearchX)^2 + (p->City[i]->y - SearchY)^2));
-
 			// If the city is orbable,
-			if (BuildCount[i] > ORBABLE_SIZE) {
+			if (p->City[i]->isOrbable()) {
 
-				// 20 pointer
-				if (BuildCount[i] < 15) {
-					if ((closest20Distance < 0) || (CityDistance[i] < closest20Distance)) {
-						closest20Index = i;
-						closest20Distance = CityDistance[i];
-					}
+				// ??
+				if (p->City[i]->x == 0 || p->City[i]->y == 0) {
+					p->City[i]->x = (unsigned short)(512*48)-(32+(i % 8*MAX_CITIES)) * 48;
+					p->City[i]->y = (unsigned short)(512*48)-(32+(i / 8*MAX_CITIES)) * 48; 
 				}
 
-				// 30 pointer
-				else if (BuildCount[i] < 20) {
-					if ((closest30Distance < 0) || (CityDistance[i] < closest30Distance)) {
-						closest30Index = i;
-						closest30Distance = CityDistance[i];
-					}
+				// Get the city's orb value and distance from the player's city
+				orbValue = p->City[i]->getOrbValue();
+				distance = (int)sqrt((float)((p->City[i]->x - SearchX)^2 + (p->City[i]->y - SearchY)^2));
+
+				// If the city is worth more than the others found so far, select it
+				if (orbValue > bestOrbValue) {
+					selectedCity = i;
+					bestDistance = distance;
+					bestOrbValue = orbValue;
 				}
 
-				// 50 pointer
-				else {
-					if ((closest50Distance < 0) || (CityDistance[i] < closest50Distance)) {
-						closest50Index = i;
-						closest50Distance = CityDistance[i];
-					}
+				// Else, if the city is worth the same as the max but is closer, select it
+				else if ( (orbValue==bestOrbValue) && (distance < bestDistance) ) {
+					selectedCity = i;
+					bestDistance = distance;
+					bestOrbValue = orbValue;
 				}
-			}
-
-			// Set the city, in preference of 50, 30, 20, none found
-			if( closest50Index > 0 ) {
-				selectedCity = closest50Index;
-			}
-			else if( closest30Index > 0 ) {
-				selectedCity = closest30Index;
-			}
-			else if( closest20Index > 0 ) {
-				selectedCity = closest20Index;
 			}
 		}
 	}
@@ -1573,9 +1536,12 @@ void CProcess::ProcessRightClickCity(int City, int Index) {
 	sSMRightClickCity cityinfo;
 
 	// Send the city's building count and orb points
-	cityinfo.BuildingCount = p->Build->GetBuildingCount(City);
+	cityinfo.BuildingCount = p->City[City]->currentBuildingCount;
 	cityinfo.City = City;
-	cityinfo.OrbPoints = p->Build->GetOrbPointCount(City);
+	cityinfo.IsOrbable = p->City[City]->isOrbable();
+	cityinfo.Orbs = p->City[City]->Orbs;
+	cityinfo.OrbPoints = p->City[City]->getOrbValue();
+	cityinfo.UptimeInMinutes = p->City[City]->getUptimeInMinutes();
 	p->Winsock->SendData(Index, smRightClickCity, (char *)&cityinfo, sizeof(cityinfo));
 }
 

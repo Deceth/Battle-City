@@ -215,8 +215,11 @@ struct sSMPlayer
 struct sSMRightClickCity
 {
 	char City;
-	unsigned char BuildingCount;
+	unsigned short BuildingCount;
+	bool IsOrbable;
+	unsigned short Orbs;
 	unsigned short OrbPoints;
+	unsigned short UptimeInMinutes;
 };
 
 struct sSMClickPlayer
