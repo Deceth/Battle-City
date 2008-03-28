@@ -411,7 +411,10 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			if (p->InGame->IsBuilding == -1) {
 
 				// If the demolish timer is up,
+// COMMENTED OUT: Demo Timer
+/*
 				if (p->Tick > DemolishTimer) {
+*/
 					CBuilding *TestBuilding;
 
 					// Check whether there is a building under the cursor
@@ -429,12 +432,15 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 								NeedRelease = 1;
 
 								// Reset the demolish timer
+// COMMENTED OUT: Demo Timer
+/*
 								if (p->Tick - DemolishTimer < 1000) {
 									DemolishTimer = p->Tick + TIMER_DEMOLISH;
 								}
 								else {
 									DemolishTimer = p->Tick;
 								}
+*/
 
 								// Save the mouse state and return
 								this->endMouseDown(mouse_state);
@@ -442,7 +448,10 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 							}
 						}
 					}
+// COMMENTED OUT: Demo Timer
+/*
 				}
+*/
 			}
 
 			/************************************************

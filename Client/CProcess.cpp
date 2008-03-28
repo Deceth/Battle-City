@@ -1355,62 +1355,77 @@ void CProcess::ProcessMayorChanged() {
  * @param cityinfo
  **************************************************************/
 void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo) {
-	int commandocount = 0;
-	int CityMayor = -1;
+	stringstream converter;
+	int playerCount = 0;
+	int cityMayor = -1;
+	bool cityHasMayor;
 
 	for (int i = 0; i < MaxPlayers; i++) {
 		if (p->Player[i]->isInGame) {
 			if (p->Player[i]->City == cityinfo->City) {
 				if (p->Player[i]->isMayor) {
-					CityMayor = i;
+					cityMayor = i;
 				}
-				else {
-					commandocount += 1;
-				}
+				playerCount++;
 			}
 		}
 	}
+	cityHasMayor = (cityMayor > -1);
 
-	std::string tmpString;
-	char newLine = 13;
-	char Commandos[2];
-	char Buildings[10];
-	memset(Commandos, 0, 2);
-	memset(Buildings, 0, 10);
-	itoa(commandocount, Commandos, 10);
-	itoa(cityinfo->BuildingCount, Buildings, 10);
-
+	// Clear the panel
 	p->Draw->ClearPanel();
 
-	p->Draw->PanelLine1 = "City of ";
-	p->Draw->PanelLine1.append(CityList[cityinfo->City]);
+	// City
+	converter.str("");
+	converter << CityList[cityinfo->City];
+	p->Draw->PanelLine1 = converter.str();
 
-	if (CityMayor > -1)  {
-		p->Draw->PanelLine2 = "Mayor ";
-		p->Draw->PanelLine2.append(p->Player[CityMayor]->Name);
+	// Mayor
+	converter.str("");
+	converter << "Mayor:   ";
+	converter << ( cityHasMayor ? p->Player[cityMayor]->Name : "(none)" );
+	p->Draw->PanelLine2 = converter.str();
+
+	// Players
+	converter.str("");
+	converter << "Players: ";
+	converter << playerCount;
+	p->Draw->PanelLine3 = converter.str();
+
+	// Buildings
+	converter.str("");
+	converter << "Size:    ";
+	converter << cityinfo->BuildingCount;
+	converter << (cityinfo->BuildingCount == 1 ? " building" : " buildings");
+	p->Draw->PanelLine4 = converter.str();
+
+	// If the city is orbable,
+	if (cityinfo->IsOrbable) {
+
+		// Points
+		converter.str("");
+		converter << "Bounty:  ";
+		converter << cityinfo->OrbPoints;
+		converter << " points";
+		p->Draw->PanelLine5 = converter.str();
+
+		// Orbs
+		converter.str("");
+		converter << "Orbs:    ";
+		converter << cityinfo->Orbs;
+		p->Draw->PanelLine6 = converter.str();
+
+		// Uptime
+		converter.str("");
+		converter << "Uptime:  ";
+		converter << (cityinfo->UptimeInMinutes / 60);
+		converter << "h ";
+		converter << (cityinfo->UptimeInMinutes % 60);
+		converter << "m";
+		p->Draw->PanelLine7 = converter.str();
 	}
-	else {
-		p->Draw->PanelLine2 = "No Mayor";
-	}
 
-	p->Draw->PanelLine3 = "Commandos: ";
-	p->Draw->PanelLine3 += Commandos;
-
-	p->Draw->PanelLine4 = "Buildings: ";
-	p->Draw->PanelLine4 += Buildings;
-
-	p->Draw->PanelLine5 = "Orb Points: ";
-	ostringstream OrbPoints;
-	OrbPoints << cityinfo->OrbPoints;
-	p->Draw->PanelLine5 += OrbPoints.str();
-	if (CityMayor != -1 || cityinfo->BuildingCount > 0) {
-		p->Engine->MsgQueue = 0;
-	}
-	else {
-		p->Draw->ClearPanel();
-
-		p->Engine->MsgQueue = 0;
-	}
+	p->Engine->MsgQueue = 0;
 }
 
 /***************************************************************
