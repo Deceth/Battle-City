@@ -313,7 +313,7 @@ void CPlayer::LeaveGame(int showmessage) {
 
 			// If that successor is in game, in this city, and not the mayor
 			if (	
-				(this->p->Player[this->p->City[this->City]->Successor]->State == State_Game)
+				(this->p->Player[this->p->City[this->City]->Successor]->isInGame())
 				&&
 				(this->p->Player[this->p->City[this->City]->Successor]->City == this->City)
 				&&
@@ -354,7 +354,7 @@ void CPlayer::LeaveGame(int showmessage) {
 			if (this->p->City[this->City]->Mayor == id) {
 
 				// If the city is not orbable, destroy it
-				if (this->p->Build->GetOrbBuildingCount(this->City) < ORBABLE_SIZE) {
+				if (this->p->City[this->City]->isOrbable()==false) {
 					this->p->City[this->City]->destroy();
 				}
 
