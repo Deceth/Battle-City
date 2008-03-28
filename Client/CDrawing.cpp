@@ -79,6 +79,7 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 25;
 		this->clickOffsetX = 9;
 		this->clickOffsetY = 9;
+		this->chatBarWidth = 103;
 	}
 	// 800
 	else {
@@ -94,6 +95,7 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 7;
 		this->clickOffsetX = 7;
 		this->clickOffsetY = 7;
+		this->chatBarWidth = 75;
 	}
 
 	arrowTick = 0;

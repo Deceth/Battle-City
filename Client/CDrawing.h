@@ -49,6 +49,7 @@ class CDrawing {
 		int minimapOffsetY;
 		int clickOffsetX;
 		int clickOffsetY;
+		int chatBarWidth;
 
 		float arrowTick;
 		int lastArrow;

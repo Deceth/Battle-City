@@ -92,50 +92,72 @@ string CInGame::ReturnRank(int Points)
 {
 	string rank;
 
-	if (Points < 100)
+	if (Points < 100) {
 		rank = "Private";
-	if (Points >= 100 && Points < 200)
+	}
+	else if (Points < 200) {
 		rank = "Corporal";
-	if (Points >= 200 && Points < 500)
+	}
+	else if (Points < 500) {
 		rank = "Sergeant";
-	if (Points >= 500 && Points < 1000)
+	}
+	else if (Points < 1000) {
 		rank = "Sergeant Major";
-	if (Points >= 1000 && Points < 2000)
+	}
+	else if (Points < 2000) {
 		rank = "Lieutenant";
-	if (Points >= 2000 && Points < 4000)
+	}
+	else if (Points < 4000) {
 		rank = "Captain";
-	if (Points >= 4000 && Points < 8000)
+	}
+	else if (Points < 8000) {
 		rank = "Major";
-	if (Points >= 8000 && Points < 16000)
+	}
+	else if (Points < 16000) {
 		rank = "Colonel";
-	if (Points >= 15000 && Points < 30000)
+	}
+	else if (Points < 30000) {
 		rank = "Brigadier";
-	if (Points >= 30000 && Points < 45000)
+	}
+	else if (Points < 45000) {
 		rank = "General";
-	if (Points >= 45000 && Points < 60000)
+	}
+	else if (Points < 60000) {
 		rank = "Baron";
-	if (Points >= 60000 && Points < 80000)
+	}
+	else if (Points < 80000) {
 		rank = "Earl";
-	if (Points >= 80000 && Points < 100000)
+	}
+	else if (Points < 100000) {
 		rank = "Count";
-	if (Points >= 100000 && Points < 125000)
+	}
+	else if (Points < 125000) {
 		rank = "Duke";
-	if (Points >= 125000 && Points < 150000)
+	}
+	else if (Points < 150000) {
 		rank = "Archduke";
-	if (Points >= 150000 && Points < 200000)
+	}
+	else if (Points < 200000) {
 		rank = "Grand Duke";
-	if (Points >= 200000 && Points < 250000)
+	}
+	else if (Points < 250000) {
 		rank = "Lord";
-	if (Points >= 250000 && Points < 300000)
+	}
+	else if (Points < 300000) {
 		rank = "Chancellor";
-	if (Points >= 300000 && Points < 350000)
+	}
+	else if (Points < 350000) {
 		rank = "Royaume";
-	if (Points >= 350000 && Points < 400000)
+	}
+	else if (Points < 400000) {
 		rank = "Emperor";
-	if (Points >= 400000 && Points < 500000)
+	}
+	else if (Points < 500000) {
 		rank = "Auror";
-	if (Points >= 500000)
+	}
+	else {
 		rank = "King";
+	}
 
 	return rank;
 }
@@ -172,9 +194,8 @@ void CInGame::PrintWhoData()
 
 void CInGame::AppendChat(string ChatText, COLORREF color)
 {
-	unsigned int MessageLength = 75;
-	while (ChatText.length() > MessageLength)
-	{
+	unsigned int MessageLength = this->p->Draw->chatBarWidth;
+	while (ChatText.length() > MessageLength) {
 		AppendLine(ChatText.substr(0, MessageLength), color);
 		ChatText = ChatText.substr(MessageLength, ChatText.length());
 	}
