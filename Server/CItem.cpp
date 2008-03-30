@@ -53,12 +53,6 @@ CItem::CItem(int x, int y, int type, int City, unsigned short id, CServer *Serve
  *
  **************************************************************/
 CItem::~CItem() {
-	if (this->next) {
-		next->prev = this->prev;
-	}
-	if (this->prev) {
-		prev->next = this->next;
-	}
 }
 
 /***************************************************************
@@ -191,8 +185,8 @@ void CItem::drop(int x, int y, int owner) {
  **************************************************************/
 CItemList::CItemList(CServer *Server) {
 	this->p = Server;
-	this->items = 0;
 	this->itmID = 1;
+	this->itemListHead = 0;
 }
 
 /***************************************************************
@@ -200,8 +194,8 @@ CItemList::CItemList(CServer *Server) {
  *
  **************************************************************/
 CItemList::~CItemList() {
-	while (this->items) {
-		this->delItem(this->items);
+	while (this->itemListHead) {
+		this->delItem(this->itemListHead);
 	}
 }
 
@@ -211,18 +205,12 @@ CItemList::~CItemList() {
  * @param id
  **************************************************************/
 CItem *CItemList::findItem(unsigned short id) {
-	CItem *itm = items;
-
-	if (!itm) {
-		return 0;
-	}
-
-	while (itm->prev) {
-		itm = itm->prev;
-	}
+	CItem *itm = this->itemListHead;
 
 	// For each item,
 	while (itm) {
+
+		cout << itm->id << endl;
 
 		// If the item matches the id param, return it
 		if (itm->id == id) {
@@ -244,35 +232,24 @@ CItem *CItemList::findItem(unsigned short id) {
  * @param id
  **************************************************************/
 CItem *CItemList::newItem(int x, int y, int type, int City, unsigned short id) {
-	CItem *itm = items;
+	CItem *itm = new CItem(x,y,type,City,id,p);
 
-	// If there are no other items,
-	if (!itm) {
+	// If there are other items,
+	if (this->itemListHead) {
 
-		// Create this item
-		items = new CItem(x,y,type,City,id,p);
-			
-		// Increment the city's item counter for this item, return
-		this->p->City[City]->itemC[type] += 1;
-		return items;
+		// Tell the current head the new item is before it
+		this->itemListHead->prev = itm;
+		itm->next = this->itemListHead;
 	}
 
-	// Else (there are other items)
-	else {
-		while(itm->next) {
-			itm = itm->next;
-		}
-		
-		// Set this item as next on the list
-		itm->next = new CItem(x,y,type,City,id,p);
-		itm->next->prev = itm;
+	// Add the new item as the new head
+	this->itemListHead = itm;
 
-		// Increment the city's item counter for this item, return
-		p->City[City]->itemC[type] += 1;
-		return itm->next;
-	}
+	// Increment the city's item counter for this item
+	p->City[City]->itemC[type] += 1;
 
-	return 0;
+	// Return a pointer to the new item
+	return itm;
 }
 
 /***************************************************************
@@ -282,26 +259,10 @@ CItem *CItemList::newItem(int x, int y, int type, int City, unsigned short id) {
  **************************************************************/
 CItem *CItemList::delItem(CItem *del) {
 	sSMItem packet;
-
-	if (!items) {
-		return 0;
-	}
-
-	if (del->prev) {
-		items = del->prev;
-	}
-	else if (del->next) {
-		items = del->next;
-	}
-	else {
-		items = 0;
-	}
+	packet.id = del->id;
 
 	// Decrement the city's counter for this item  type
 	p->City[del->City]->itemC[del->type] -= 1;
-
-
-	packet.id = del->id;
 
 	// If the item is not being held, tell the sector it is gone
 	if (del->holder == -1) {
@@ -312,9 +273,8 @@ CItem *CItemList::delItem(CItem *del) {
 		p->Winsock->SendData(del->holder, smRemItem,(char *)&packet,sizeof(packet));
 	}
 
-	delete del;
-	
-	return items;
+	// Remove the item
+	return this->remItem(del);
 };
 
 /***************************************************************
@@ -322,78 +282,150 @@ CItem *CItemList::delItem(CItem *del) {
  *
  **************************************************************/
 void CItemList::cycle() {
-	CItem *itm = items;
+	CItem *itm = this->itemListHead;
 	sSMExplode bomb;
 	CBuilding *buildingToExplode;
 	CItem *itemsToExplode;
+	bool alreadyHasNextItem;
 
-	if (!itm) {
-		return;
-	}
-
-	while (itm->prev) {
-		itm = itm->prev;
-	}
-
+	// For each item in the item list,
 	while (itm) {
+		alreadyHasNextItem = false;
 
 		// Item: BOMB (active)
-		if (itm->type == 3 && itm->active == 1) {
+		if ( (itm->type == 3) && (itm->active == 1)) {
 
 			// If the Explode timer is up, and the item is not being held,
-			if ( (p->Tick > itm->explodetick) && (itm->holder == -1)) {
+			if ( (this->p->Tick > itm->explodetick) && (itm->holder == -1)) {
 
 				// Tell the sector about the explosion
 				bomb.City = itm->City;
 				bomb.x = (unsigned short)itm->x+1;
 				bomb.y = (unsigned short)itm->y+1;
+				this->p->Send->SendSectorArea(bomb.x*48, bomb.y*48, smExplosion, (char *)&bomb, sizeof(bomb));
+
+				// Delete the item (note that delItem returns item->next)
 				itm = this->delItem(itm);
-				p->Send->SendSectorArea(bomb.x*48, bomb.y*48, smExplosion, (char *)&bomb, sizeof(bomb));
+				alreadyHasNextItem = true;
 
-				// Get a pointer to the buildingToExplode
-				buildingToExplode = this->p->Build->buildings;
-				if (buildingToExplode) {
-					while (buildingToExplode->prev) {
-						buildingToExplode = buildingToExplode->prev;
+				// For each buildingToExplode,
+				buildingToExplode = this->p->Build->buildingListHead;
+				while (buildingToExplode) {
+
+					// If the buildingToExplode is adjacent to the bomb 
+					if ( (abs(buildingToExplode->x - bomb.x) < 3) && (abs(buildingToExplode->y - bomb.y) < 3) && (buildingToExplode->City >= 0) ) {
+
+						// Delete the building
+						buildingToExplode = this->p->Build->delBuilding(buildingToExplode);
 					}
-
-					// For each buildingToExplode,
-					while (buildingToExplode) {
-
-						// If the buildingToExplode is adjacent to the bomb 
-						if ( (abs(buildingToExplode->x - bomb.x) < 3) && (abs(buildingToExplode->y - bomb.y) < 3) && (buildingToExplode->City >= 0) ) {
-
-							// Delete the building
-							buildingToExplode = p->Build->delBuilding(buildingToExplode);
-						}
+					else {
 						buildingToExplode = buildingToExplode->next;
 					}
 				}
 
-				// Get a pointer to the itemsToExplode
-				itemsToExplode = p->Item->items;
-				if (itemsToExplode) {
-					while (itemsToExplode->prev) {
-						itemsToExplode = itemsToExplode->prev;
+				// For each itemToExplode,
+				itemsToExplode = this->itemListHead;
+				while (itemsToExplode) {
+
+					// If the itemToExplode is adjacent to the bomb 
+					if ( (abs((itemsToExplode->x + 1) - bomb.x) < 2) && (abs((itemsToExplode->y + 1) - bomb.y) < 2) && (itemsToExplode->holder == -1) ) {
+
+						// Delete the itemToExplode (note that delItem returns item->next)
+						itemsToExplode = this->delItem(itemsToExplode);
 					}
-
-					// For each itemToExplode,
-					while (itemsToExplode) {
-
-						// If the itemToExplode is adjacent to the bomb 
-						if ( (abs((itemsToExplode->x + 1) - bomb.x) < 2) && (abs((itemsToExplode->y + 1) - bomb.y) < 2) && (itemsToExplode->holder == -1) ) {
-
-							// Delete the itemToExplode
-							itemsToExplode = delItem(itemsToExplode);
-						}
+					// Else, get the next item
+					else {
 						itemsToExplode = itemsToExplode->next;
 					}
 				}
 			}
 		}
 
-		// Get the next item in the list
-		if (itm) {
+		// If not alreadyHasNextItem, get the next item in the list
+		if (alreadyHasNextItem == false) {
+			itm = itm->next;
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	deleteItemsByCity
+ *
+ * Note that this function uses remItem instead of delItem,
+ * so it doesn't send out item-destroyed packets
+ *
+ * @param city
+ * @param type
+ **************************************************************/
+void CItemList::deleteItemsByCity(int city) {
+	CItem *itm = this->itemListHead;
+
+	// For each item in the linked list,
+	while (itm) {
+
+		// If the item belongs to this city,
+		if (itm->City == city) {
+
+			// Delete the item and move the pointer to the next item in the linked list
+			itm = this->remItem(itm);
+		}
+		// Else (item belongs to other city),
+		else {
+
+			// Move the pointer to the next item in the linked list
+			itm = itm->next;
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	deleteItemsByFactory
+ *
+ * @param city
+ * @param type
+ **************************************************************/
+void CItemList::deleteItemsByFactory(int city, int type) {
+	CItem *itm = this->itemListHead;
+
+	// For each item in the linked list,
+	while (itm) {
+
+		// If the item belongs to this city, and the item was made by this Factory
+		if ((itm->City == city) && (itm->type == itemTypes[(type - 2) / 2 - 1])) {
+			
+			// Delete the item and move the pointer to the next item in the linked list
+			itm = this->delItem(itm);
+		}
+		// Else (item belongs to other city, or item not made by this Factory),
+		else {
+
+			// Move the pointer to the next item in the linked list
+			itm = itm->next;
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	deleteItemsByPlayer
+ *
+ * @param id
+ **************************************************************/
+void CItemList::deleteItemsByPlayer(int id) {
+	CItem *itm = this->itemListHead;
+
+	// For each item in the linked list,
+	while (itm) {
+
+		// If the item is being held by the player,
+		if (itm->holder == id) {
+			
+			// Delete the item and move the pointer to the next item in the linked list
+			itm = this->delItem(itm);
+		}
+		// Else (item belongs to other city, or item not made by this Factory),
+		else {
+
+			// Move the pointer to the next item in the linked list
 			itm = itm->next;
 		}
 	}
@@ -402,30 +434,29 @@ void CItemList::cycle() {
 /***************************************************************
  * Function:	remItem
  *
- * @param x
- * @param y
- * @param owner
+ * @param del
  **************************************************************/
 CItem *CItemList::remItem(CItem *del) {
-	
-	// If there are no items, return
-	if (!this->items) {
-		return 0;
+	CItem *returnItem = del->next;
+
+	// If item has a next, tell that next to skip this over node
+	if (del->next) {
+		del->next->prev = del->prev;
 	}
 
-	// Reset the neighboring items' next/prev pointers
+	// If item has a prev, tell that prev to skip this over node
 	if (del->prev) {
-		items = del->prev;
-	}
-	else if (del->next) {
-		items = del->next;
-	}
-	else {
-		items = 0;
+		del->prev->next = del->next;
 	}
 
-	// Delete the item
+	// Else (item has no prev), item is head, point head to next node
+	else {
+		this->itemListHead = del->next;
+	}
+
+	// Delete del
 	delete del;
 	
-	return items;
+	// Return what was del->next
+	return returnItem;
 };

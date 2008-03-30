@@ -24,8 +24,8 @@ class CCity {
 		int currentBuildingCount;
 		int maxBuildingCount;
 		float startTime;
-		int bombFactoryCount;
-		int orbFactoryCount;
+		bool hadBombFactory;
+		bool hadOrbFactory;
 
 		long cash;
 		long cashresearch;
@@ -51,8 +51,6 @@ class CCity {
 		void addBuilding(int type);
 		void subtractBuilding(int type);
 		int getOrbValue();
-		bool hasBombFactory();
-		bool hasOrbFactory();
 		bool isOrbable();
 		int getUptime();
 		int getUptimeInSeconds();

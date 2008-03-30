@@ -262,19 +262,23 @@ void CLog::logOrb(int Orber, int EnemyCity, int BuildCount) {
 	PlayersHome.clear();
 	PlayersEnemy.clear();
 
-	// For each player,
-	for (int pl = 0; pl < MaxPlayers; pl++) {
+	// For each possible player,
+	for (int pl = 0; pl < MAX_PLAYERS; pl++) {
 
-		// If the player was in the city that orbed, append the player's name to playersHome
-		if (p->Player[pl]->City == p->Player[Orber]->City) {
-			PlayersHome += p->Player[pl]->Name;
-			PlayersHome += "  ";
-		}
+		// If the player is in game,
+		if (p->Player[pl]->isInGame()) {
 
-		// If the player was in the city that got orbed, append the player's name to playersEnemy
-		if (p->Player[pl]->City == EnemyCity) {
-			PlayersEnemy += p->Player[pl]->Name;
-			PlayersEnemy += "   ";
+			// If the player was in the city that orbed, append the player's name to playersHome
+			if (p->Player[pl]->City == p->Player[Orber]->City) {
+				PlayersHome += p->Player[pl]->Name;
+				PlayersHome += "  ";
+			}
+
+			// Else if the player was in the city that got orbed, append the player's name to playersEnemy
+			else if (p->Player[pl]->City == EnemyCity) {
+				PlayersEnemy += p->Player[pl]->Name;
+				PlayersEnemy += "   ";
+			}
 		}
 	}
 

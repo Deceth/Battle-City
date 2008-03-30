@@ -32,7 +32,7 @@ CSend::~CSend() {
 void CSend::SendAllBut(int DoNotSend, unsigned char PacketID, char *TheData, int len) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game/apply/chat, and not the DoNotSend index,
 		if (p->Player[i]->isInGameApplyOrChat() && (i != DoNotSend)) {
@@ -54,7 +54,7 @@ void CSend::SendAllBut(int DoNotSend, unsigned char PacketID, char *TheData, int
 void CSend::SendGameAllBut(int DoNotSend, unsigned char PacketID, char *TheData, int len) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game, and not the DoNotSend index,
 		if (p->Player[i]->isInGame() && (i != DoNotSend)) {
@@ -76,7 +76,7 @@ void CSend::SendGameAllBut(int DoNotSend, unsigned char PacketID, char *TheData,
 void CSend::SendRadarNotIndex(int Index, unsigned char PacketID, char *TheData, int len) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game, and not the DoNotSend index,
 		if (p->Player[i]->isInGame() && (i != Index)) {
@@ -100,7 +100,7 @@ void CSend::SendMeetingPlayers(int Index) {
 	char tmpPacket[5];
 	
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in Chat,
 		if (p->Player[i]->isInChat()) {
@@ -151,7 +151,7 @@ void CSend::SendMeetingRoom(unsigned char Index) {
 void CSend::SendRadarAndTeam(int Index, unsigned char PacketID, char *TheData, int len) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game, and not the sender,
 		if (p->Player[i]->isInGame() && (i != Index)) {
@@ -178,7 +178,7 @@ void CSend::SendRadarAndTeam(int Index, unsigned char PacketID, char *TheData, i
 void CSend::SendRadar(int x, int y, unsigned char PacketID, char *TheData, int len) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game, 
 		if (p->Player[i]->State == State_Game) {
@@ -248,7 +248,7 @@ void CSend::SendChatMessage(int WhoSent, char Message[255], char global) {
 		case State_Chat:
 
 			// For each possible player,
-			for (int i = 0; i < MaxPlayers; i++){
+			for (int i = 0; i < MAX_PLAYERS; i++){
 
 				// If the player is in chat, and isn't the sender,
 				if (p->Player[i]->isInChat() && (i != WhoSent)) {
@@ -306,7 +306,7 @@ void CSend::SendChatMessage(int WhoSent, char Message[255], char global) {
 void CSend::SendToChat(char PacketID, char *TheData, int len) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in the chat room,
 		if (p->Player[i]->isInChat()) {
@@ -327,7 +327,7 @@ void CSend::SendCurrentPlayers(int Index) {
 	sSMPoints points;
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game, apply, or chat,
 		if (p->Player[i]->isInGameApplyOrChat()) {	
@@ -336,7 +336,7 @@ void CSend::SendCurrentPlayers(int Index) {
 			strcpy(player.Name, p->Player[i]->Name.c_str());
 			strcpy(player.Town, p->Player[i]->Town.c_str());
 			player.Index = i;
-			player.isAdmin = p->Player[i]->isAdmin;
+			player.playerType = p->Player[i]->playerType;
 			player.Red = p->Player[i]->Red;
 			player.Green = p->Player[i]->Green;
 			player.Blue = p->Player[i]->Blue;
@@ -417,7 +417,7 @@ void CSend::SendGameData(int Index) {
 	p->Winsock->SendData(Index, smNextStep, "A");
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game, and isn't the sender,
 		if (p->Player[i]->isInGame() && (i != Index)) {	
@@ -449,7 +449,7 @@ void CSend::SendCommandos(int Index) {
 				&& 
 				(p->City[j]->active)
 				&&
-				(p->City[j]->PlayerCount() < PLAYERS_PER_CITY)
+				(p->City[j]->PlayerCount() < MAX_PLAYERS_PER_CITY)
 				&&
 				(p->City[j]->Mayor > -1)
 			) {
@@ -482,19 +482,12 @@ void CSend::SendSector(int Index, int XSector, int YSector) {
 	int checksum;
 	sCMSector sector;
 
-	// Get a pointer to the start of the item list
-	itm = this->p->Item->items;
-	if (itm) {
-		while (itm->prev) {
-			itm = itm->prev;
-		}
-	}
-
 	// For each item,
+	itm = this->p->Item->itemListHead;
 	while (itm) {
 
 		// If the item is in this sector, and is not being held,
-		if ((itm->x / SectorSize) == XSector && (itm->y / SectorSize) == YSector && itm->holder == -1) {
+		if (((itm->x / SectorSize) == XSector) && ((itm->y / SectorSize) == YSector) && (itm->holder == -1)) {
 
 			// Create a packet for the item
 			itemPacket.x = itm->x;
@@ -529,12 +522,8 @@ void CSend::SendSector(int Index, int XSector, int YSector) {
 			}
 		}
 
-		if (itm->next) {
-			itm = itm->next;
-		}
-		else {
-			break;
-		}
+		// Get the next item
+		itm = itm->next;
 	}
 
 	// If there is still data to send, send it
@@ -544,15 +533,8 @@ void CSend::SendSector(int Index, int XSector, int YSector) {
 		SendStringLength = 0;
 	}
 
-	// Get a pointer to the start of the building list
-	bld = this->p->Build->buildings;
-	if (bld) {
-		while (bld->prev) {
-			bld = bld->prev;
-		}
-	}
-
 	// For each building,
+	bld = this->p->Build->buildingListHead;
 	while (bld) {
 
 		// If the building is in the sector and is not a CC,
@@ -602,12 +584,8 @@ void CSend::SendSector(int Index, int XSector, int YSector) {
 				SendStringLength = 0;
 			}
 		}
-		if (bld->next) {
-			bld = bld->next;
-		}
-		else {
-			break;
-		}
+
+		bld = bld->next;
 	}
 
 	// If there is still data to send, send it
@@ -637,7 +615,7 @@ void CSend::SendSectorArea(int x, int y, unsigned char PacketID, char *TheData, 
 	unsigned char SectorY = ((y / 48) / SectorSize);
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game,
 		if (p->Player[i]->isInGame()) {
@@ -675,19 +653,14 @@ void CSend::SendMiniMap(unsigned char Index) {
 	int length;
 	int XSector = (int)p->Player[Index]->X/48/SectorSize;
 	int YSector = (int)p->Player[Index]->Y/48/SectorSize;
-	CBuilding *bld = p->Build->buildings;
+	CBuilding *bld;
 	char SendString[255];
 	int checksum;
 
 	memset(SendString, 0, 255);
 
-	if (bld) {
-		while (bld->prev) {
-			bld = bld->prev;
-		}
-	}
-
 	// For each building,
+	bld = p->Build->buildingListHead;
 	while (bld) {
 
 		// If the building is in the sector and is not a CC,
@@ -739,12 +712,7 @@ void CSend::SendMiniMap(unsigned char Index) {
 			}
 		}
 
-		if (bld->next) {
-			bld = bld->next;
-		}
-		else {
-			break;
-		}
+		bld = bld->next;
 	}
 
 	// If there is still data to send, send it
@@ -772,7 +740,7 @@ void CSend::SendTheCities(int Index) {
 	char packet[4];
 
 	// Count the number of players in game
-	for (int j = 0; j < MaxPlayers; j++) {
+	for (int j = 0; j < MAX_PLAYERS; j++) {
 		if (p->Player[j]->isInGameApplyOrChat()) {
 			totalPlayers++;
 		}

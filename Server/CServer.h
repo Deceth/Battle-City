@@ -1,9 +1,9 @@
 #ifndef _CSERVER
 #define _CSERVER
 
-#define VERSION "3.4.9"
+#define VERSION "3.5.0"
 
-const unsigned char MaxPlayers = 63;
+const unsigned char MAX_PLAYERS = 64;
 const unsigned char SectorSize = 16;
 const unsigned char MaxSectors = (512 / SectorSize);
 const short int RadarSize = 1800;
@@ -11,6 +11,7 @@ const short int RadarSize = 1800;
 const int MAX_CITIES = 64;
 const int MONEY_MAX_VALUE = 95000000;
 const int MONEY_STARTING_VALUE = 95000000;
+const float MOVEMENT_SPEED_BULLET = 0.80f;
 const int COST_BUILDING = 500000;
 const int COST_ITEM = 750000;
 const int COST_INCOME_POPULATION = 10000;
@@ -21,7 +22,7 @@ const int TIMER_BOMB = 5000;
 const int TIMER_RESEARCH = 10000;
 const int TIMER_RESPAWN = 10000;
 const int ORBABLE_SIZE = 21;
-const int PLAYERS_PER_CITY = 4;
+const int MAX_PLAYERS_PER_CITY = 4;
 const int POPULATION_MAX_HOUSE = 100;
 const int POPULATION_MAX_NON_HOUSE = 50;
 
@@ -130,7 +131,7 @@ class CServer {
 		~CServer();
 
 		CSocket *Winsock;
-		CPlayer *Player[MaxPlayers];
+		CPlayer *Player[MAX_PLAYERS];
 		CCity *City[MAX_CITIES];
 		CProcess *Process;
 		CAccount *Account;

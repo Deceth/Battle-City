@@ -25,7 +25,7 @@ CServer::CServer() {
 	Database = new CDatabase(this);
 
 	// For each possible player, create player objects
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 		Player[i] = new CPlayer(this);
 	}
 
@@ -55,7 +55,7 @@ CServer::~CServer() {
 	delete Database;
 
 	// For each possible player, delete the player object
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 		delete Player[i];
 	}
 
@@ -108,7 +108,7 @@ void CServer::Init() {
 int CServer::FreePlayer() {
 
 	// For each possible player,
-	for (int i = 1; i < MaxPlayers; i++) {
+	for (int i = 1; i < MAX_PLAYERS; i++) {
 
 		// If no player is connected in that slot,
 		if (Player[i]->State == State_Disconnected) {
@@ -234,7 +234,7 @@ int CServer::TotalPlayers() {
 	int totalPlayers = 0;
 
 	// For every possible player,
-	for (int j = 0; j < MaxPlayers; j++) {
+	for (int j = 0; j < MAX_PLAYERS; j++) {
 
 		// If the player is in Chat, Game, or Apply, increment the count
 		if ( Player[j]->isInGameApplyOrChat() ) {
@@ -273,7 +273,7 @@ void CServer::respawnPlayers() {
 	char respawnPacket[2];
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in game,
 		if (this->Player[i]->isInGame()) {

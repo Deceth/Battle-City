@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 	cout << "Server::Close" << endl;
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is not disconnected,
 		if (Server.Player[i]->State > State_Disconnected) {

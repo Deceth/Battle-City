@@ -13,6 +13,7 @@ class CBullet {
 		float x;
 		float y;
 		int type;
+		int damage;
 		unsigned short owner;
 		float life;
 		char angle;
@@ -29,7 +30,7 @@ class CBullet {
 
 class CBulletList {
 	public:
-		CBullet *bullets;
+		CBullet *bulletListHead;
 
 		CBullet *newBullet(int x, int y, int type, int angle, int owner = 999);
 		CBullet *delBullet(CBullet *del);

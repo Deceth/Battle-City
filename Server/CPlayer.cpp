@@ -93,7 +93,7 @@ void CPlayer::Clear() {
 
 	// If the player is in game, boot the player
 	if (this->p->Player[this->id]->State == State_Game) {
-		this->p->Player[this->id]->LeaveGame(1);
+		this->p->Player[this->id]->LeaveGame(true);
 	}
 
 	// Tell everyone to clear the player
@@ -129,7 +129,7 @@ void CPlayer::ResetPlayer() {
 	memset(this->Buffer, 0, 2048);
 	this->BufferLength = 0;
 
-	this->isAdmin = 1;
+	this->playerType = 1;
 	this->displayTank = 0;
 	this->Tank = 0;
 	this->Tank2 = 0;
@@ -172,6 +172,15 @@ int CPlayer::FindApplyMayor() {
 	return -1;
 }
 
+
+/***************************************************************
+ * Function:	isAdmin
+ *
+ * Returns true if the player is an admin
+ **************************************************************/
+bool CPlayer::isAdmin() {
+	return (this->playerType == 2);
+}
 
 /***************************************************************
  * Function:	isInApply
@@ -275,94 +284,88 @@ void CPlayer::StartJoin() {
 /***************************************************************
  * Function:	LeaveGame
  *
- * @param showmessage
+ * @param showMessage
  **************************************************************/
-void CPlayer::LeaveGame(int showmessage) {
-	CItem *itm = this->p->Item->items;
+void CPlayer::LeaveGame(bool showMessage) {
+	this->LeaveGame(showMessage, true);
+}
+/***************************************************************
+ * Function:	LeaveGame
+ *
+ * @param showMessage
+ * @param transferMayor
+ **************************************************************/
+void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 	int failed = 0;
 	char packet[2];
 
-	if (itm) {
-		while (itm->prev) {
-			itm = itm->prev;
-		}
+	// Delete the items the player is holding
+	this->p->Item->deleteItemsByPlayer(this->id);
 
-		// For each item,
-		while (itm) {
+	// If transferMayor is true,
+	// Handle transfering mayor to another player in the city.
+	// This is optional (doesn't happen when orbed) to prevent conflicts that migth cause the Balkh bug
+	if (transferMayor) {
 
-			// If the player is holding the item,
-			if (itm->holder == this->id) {
+		// If the player is mayor,
+		if (this->Mayor) {
 
-				// Delete the item
-				itm = this->p->Item->delItem(itm);
-			}
-			if (itm) {
-				itm = itm->next;
-			}
-		}
-	}
+			// If there is a successor,
+			if (this->p->City[this->City]->Successor > -1) {
 
-	// TODO: Consider skipping this whole step if the city is being orbed?
-	// Prevent balkh bug?
+				// If that successor is in game, in this city, and not the mayor
+				if (	
+					(this->p->Player[this->p->City[this->City]->Successor]->isInGame())
+					&&
+					(this->p->Player[this->p->City[this->City]->Successor]->City == this->City)
+					&&
+					(this->p->City[this->City]->Successor != this->id)
+					) {
 
-	// If the player is mayor,
-	if (this->Mayor) {
+					// Set the successor to mayor
+					this->p->Player[this->p->City[this->City]->Successor]->setMayor(1);
+				}
 
-		// If there is a successor,
-		if (this->p->City[this->City]->Successor > -1) {
-
-			// If that successor is in game, in this city, and not the mayor
-			if (	
-				(this->p->Player[this->p->City[this->City]->Successor]->isInGame())
-				&&
-				(this->p->Player[this->p->City[this->City]->Successor]->City == this->City)
-				&&
-				(this->p->City[this->City]->Successor != this->id)
-				) {
-
-				// Set the successor to mayor
-				this->p->Player[this->p->City[this->City]->Successor]->setMayor(1);
+				// Else (successor not in game), set failed = 1
+				else {
+					failed = 1;
+				}
 			}
 
-			// Else (successor not in game), set failed = 1
+			// Else (no successor), set failed = 1
 			else {
 				failed = 1;
 			}
-		}
 
-		// Else (no successor), set failed = 1
-		else {
-			failed = 1;
-		}
+			// If we failed to find a successor,
+			if (failed == 1) {
 
-		// If we failed to find a successor,
-		if (failed == 1) {
+				// For each possible player,
+				for (int j = 0; j < MAX_PLAYERS; j++) {
 
-			// For each possible player,
-			for (int j = 0; j < MaxPlayers; j++) {
+					// If that player is in game, in this city, and not the mayor
+					if ( (this->p->Player[j]->isInGame()) && (this->p->Player[j]->City == this->City) && (this->id != j) ) {
 
-				// If that player is in game, in this city, and not the mayor
-				if ( (this->p->Player[j]->City == this->City) && (this->id != j) && (this->p->Player[j]->State == State_Game) ) {
-
-					// Make the player the new mayor
-					this->p->Player[j]->setMayor(1);
-					break;
-				}
-			}
-
-			// If this player is still the mayor,
-			if (this->p->City[this->City]->Mayor == id) {
-
-				// If the city is not orbable, destroy it
-				if (this->p->City[this->City]->isOrbable()==false) {
-					this->p->City[this->City]->destroy();
+						// Make the player the new mayor
+						this->p->Player[j]->setMayor(1);
+						break;
+					}
 				}
 
-				// Else (orbable), start the Destruct timer
-				else {
-					this->p->City[this->City]->DestructTimer = this->p->Tick + TIMER_CITY_DESTRUCT;
-					this->p->City[this->City]->Mayor = -1;
-					this->p->City[this->City]->notHiring = 0;
+				// If this player is still the mayor,
+				if (this->p->City[this->City]->Mayor == id) {
+
+					// If the city is not orbable, destroy it
+					if (this->p->City[this->City]->isOrbable()==false) {
+						this->p->City[this->City]->destroy();
+					}
+
+					// Else (orbable), start the Destruct timer
+					else {
+						this->p->City[this->City]->DestructTimer = this->p->Tick + TIMER_CITY_DESTRUCT;
+						this->p->City[this->City]->Mayor = -1;
+						this->p->City[this->City]->notHiring = 0;
+					}
 				}
 			}
 		}
@@ -376,13 +379,13 @@ void CPlayer::LeaveGame(int showmessage) {
 	this->p->Player[this->id]->timeDeath = 0;
 
 	// If the player is in game,
-	if (this->State == State_Game) {
+	if (this->isInGame()) {
 
 		// Save the player's stats
 		this->p->Account->SaveStats(this->id);
 
-		// If showmessage == 1, tell everyone you left
-		if (showmessage == 1) {
+		// If showMessage, tell everyone you left
+		if (showMessage) {
 			packet[0] = (char)this->id;
 			packet[1] = 69;
 			this->p->Send->SendGameAllBut(this->id, smChatCommand, packet, 2); 
@@ -413,25 +416,25 @@ void CPlayer::LoggedIn(string User) {
 
 	cout << "LoggedIn::" << User << "\n";
 
-	// HACK: Increment admin
-	if (this->isAdmin == 1) {
-		this->isAdmin = 2;
+	// HACK: Increment playerType
+	if (this->playerType == 1) {
+		this->playerType = 2;
 	}
 	else {
-		this->isAdmin = 1;
+		this->playerType = 1;
 	}
 
 	// Tell everyone you logged in
 	memset(&TempString, 0, sizeof(TempString));
 	TempString[0] = (unsigned char)id;
-	TempString[1] = (unsigned char)isAdmin;
+	TempString[1] = (unsigned char)playerType;
 	this->p->Winsock->SendData(id, 1, TempString, 2); //Log in succesful
 
 	// Send everyone your player data
 	strcpy(player.Name, this->Name.c_str());
 	strcpy(player.Town, this->Town.c_str());
 	player.Index = this->id;
-	player.isAdmin = this->isAdmin;
+	player.playerType = this->playerType;
 	player.Red = this->Red;
 	player.Green = this->Green;
 	player.Blue = this->Blue;

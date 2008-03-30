@@ -23,31 +23,12 @@ CCity::~CCity() {
  *
  **************************************************************/
 void CCity::destroy() {
-	int i;
-	CBuilding *bld;
-	CItem *itm;
 
 	// Reset active to 1
 	this->active = 1;
 
 	// Remove all the buildings
-	bld = p->Build->buildings;
-	if (bld) {
-		while (bld->prev) {
-			bld = bld->prev;
-		}
-
-		while (bld) {
-			if (bld->City == id) {
-				bld = p->Build->remBuilding(bld);
-			}
-			else {
-				if (bld) {
-					bld = bld->next;
-				}
-			}
-		}
-	}
+	this->p->Build->deleteBuildingsByCity(this->id);
 
 	// Reset the mayor, stats, hiring info, etc.  
 	// Note that maxBuildingCount starts at 1 for CC.
@@ -59,8 +40,8 @@ void CCity::destroy() {
 	this->hiring = -1;
 	this->notHiring = 0;
 	this->maxBuildingCount = 1;
-	this->bombFactoryCount = 0;
-	this->orbFactoryCount = 0;
+	this->hadBombFactory = false;
+	this->hadOrbFactory = false;
 
 	// If the mayor had an applicant, tell any applicants that the mayor changed
 	if (hiring > -1) {
@@ -68,7 +49,7 @@ void CCity::destroy() {
 	}
 
 	// Reset the build tree
-	for (i = 0; i <= 26; i++) {
+	for (int i = 0; i <= 26; i++) {
 		this->canBuild[i] = 0;
 	}
 
@@ -91,28 +72,14 @@ void CCity::destroy() {
 	this->DestructTimer = 0;
 
 	// Destroy all the city's items
-	itm = p->Item->items;
-	if (itm) {
-		while (itm->prev) {
-			itm = itm->prev;
-		}
-
-		while (itm) {
-			if (itm->City == id) {
-				itm = p->Item->remItem(itm);
-			}
-			else if (itm) {
-				itm = itm->next;
-			}
-		}
-	}
+	this->p->Item->deleteItemsByCity(this->id);
 
 	// Reset all research to not-finished
-	for (i = 0; i < 20; i++)
+	for (int i = 0; i < 20; i++)
 		research[i] = 0;
 
 	// Reset all item counters to 0
-	for (i = 0; i < 12; i++)
+	for (int i = 0; i < 12; i++)
 		itemC[i] = 0;
 
 	// Tell all players the city was destroyed
@@ -223,14 +190,14 @@ void CCity::cycle() {
 void CCity::wasOrbed() {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
-		// If the player is in the city and in game,
-		if (this->p->Player[i]->City == id && this->p->Player[i]->isInGame()) {
+		// If the player is in game, and is in this city,
+		if ((this->p->Player[i]->isInGame()) && (this->p->Player[i]->City == id)) {
 
-			// Boot the player
+			// Boot the player, passing 
 			cout << "Orbed::" << this->p->Player[i]->Name << endl;
-			this->p->Player[i]->LeaveGame(0);
+			this->p->Player[i]->LeaveGame(false, false);
 		}
 	}
 
@@ -264,10 +231,10 @@ void CCity::didOrb(int City, int index) {
 	p->Send->SendAllBut(-1,smOrbed,(char *)&orbed,sizeof(orbed));
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
-		// If the player is in the city and in game,
-		if (p->Player[i]->City == id && p->Player[i]->isInGame()) {
+		// If the player is in game, and is in the city,
+		if (p->Player[i]->isInGame() && (p->Player[i]->City == id)) {
 
 			// If the player was the orber, add an orb
 			if (i == index) {
@@ -296,7 +263,7 @@ int CCity::PlayerCount() {
 	int count = 0;
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is in the city and in game,
 		if (p->Player[i]->isInGame() && p->Player[i]->City == this->id) {
@@ -324,14 +291,14 @@ void CCity::addBuilding(int type) {
 		this->maxBuildingCount = this->currentBuildingCount;
 	}
 
-	// If Bomb Factory (8), increment bombFactoryCount
+	// If Bomb Factory (8), set hadBombFactory
 	if (type == 8) {
-		this->bombFactoryCount++;
+		this->hadBombFactory = true;
 	}
 
-	// If Orb Factory (16), increment orbFactoryCount
+	// If Orb Factory (16), set hadOrbFactory
 	else if (type == 16) {
-		this->orbFactoryCount++;
+		this->hadOrbFactory = true;
 	}
 
 	// If the building is now orbable, but startTime isn't set, set it
@@ -347,16 +314,6 @@ void CCity::subtractBuilding(int type) {
 
 	// Decrement the current building count
 	this->currentBuildingCount--;
-
-	// If Bomb Factory (8), decrement bombFactoryCount
-	if (type == 8) {
-		this->bombFactoryCount--;
-	}
-
-	// If Orb Factory (16), decrement orbFactoryCount
-	else if (type == 16) {
-		this->orbFactoryCount--;
-	}
 }
 
 /***************************************************************
@@ -381,11 +338,11 @@ int CCity::getOrbValue() {
 		pointsgiven = 30;
 	}
 	// Orb Factory
-	else if (this->hasOrbFactory()) {
+	else if (this->hadOrbFactory) {
 		pointsgiven = 20;
 	}
 	// Bom Factory
-	else if (this->hasBombFactory()) {
+	else if (this->hadBombFactory) {
 		pointsgiven = 10;
 	}
 	else {
@@ -399,29 +356,13 @@ int CCity::getOrbValue() {
 }
 
 /***************************************************************
- * Function:	hasBombFactory
- *
- **************************************************************/
-bool CCity::hasBombFactory() {
-	return this->bombFactoryCount > 0;
-}
-
-/***************************************************************
- * Function:	hasOrbFactory
- *
- **************************************************************/
-bool CCity::hasOrbFactory() {
-	return this->orbFactoryCount > 0;
-}
-
-/***************************************************************
  * Function:	isOrbable
  *
  **************************************************************/
 bool CCity::isOrbable() {
 	return
-		this->hasBombFactory() ||
-		this->hasOrbFactory() ||
+		this->hadBombFactory ||
+		this->hadOrbFactory ||
 		(this->maxBuildingCount >= ORBABLE_SIZE);
 }
 

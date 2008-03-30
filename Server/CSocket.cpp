@@ -192,7 +192,7 @@ void CSocket::TCPCycle() {
     }
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player is connected,
 		if (p->Player[i]->isConnected()) {
@@ -244,7 +244,7 @@ void CSocket::TCPCycle() {
 void CSocket::ProcessData() {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If there is data in the player's buffer,
 		if (this->p->Player[i]->BufferLength > 0) {

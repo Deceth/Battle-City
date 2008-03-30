@@ -38,36 +38,164 @@ CBuilding::CBuilding(int x, int y, int type, int City, unsigned short id, CServe
  *
  **************************************************************/
 CBuilding::~CBuilding() {
-	// Tell the city it is subtracting a building
-	this->p->City[this->City]->subtractBuilding(this->type);
+}
 
-	// Tell the surrounding buildings to bypass this building in the list
-	if (this->next) {
-		this->next->prev = this->prev;
+/***************************************************************
+ * Function:	hasMaxPopulation
+ *
+ * @return Returns true if this building is at its max population
+ **************************************************************/
+bool CBuilding::hasMaxPopulation() {
+	if (this->isHouse()) {
+		return this->pop == POPULATION_MAX_HOUSE;
 	}
-	if (this->prev) {
-		this->prev->next = this->next;
+	else {
+		return this->pop == POPULATION_MAX_NON_HOUSE;
 	}
 }
+
+/***************************************************************
+ * Function:	isCC
+ *
+ * @return Returns true if this building is a CC
+ **************************************************************/
+bool CBuilding::isCC() {
+	return this->isCC(this->type);
+}
+/***************************************************************
+ * Function:	isCC
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a CC
+ **************************************************************/
+bool CBuilding::isCC(int buildingType) {
+	return (buildingType == 0);
+}
+
+/***************************************************************
+ * Function:	isFactory
+ *
+ * @return Returns true if this building is a Factory
+ **************************************************************/
+bool CBuilding::isFactory() {
+	return this->isFactory(this->type);
+}
+/***************************************************************
+ * Function:	isFactory
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a Factory
+ **************************************************************/
+bool CBuilding::isFactory(int buildingType) {
+	return
+		((buildingType % 2)==0)
+		&&
+		(buildingType > 2);
+}
+
+/***************************************************************
+ * Function:	isHospital
+ *
+ * @return Returns true if this building is a Hospital
+ **************************************************************/
+bool CBuilding::isHospital() {
+	return this->isHospital(this->type);
+}
+/***************************************************************
+ * Function:	isHospital
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a House
+ **************************************************************/
+bool CBuilding::isHospital(int buildingType) {
+	return (buildingType == 1);
+}
+
+/***************************************************************
+ * Function:	isHouse
+ *
+ * @return Returns true if this building is a House
+ **************************************************************/
+bool CBuilding::isHouse() {
+	return this->isHouse(this->type);
+}
+/***************************************************************
+ * Function:	isHouse
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a House
+ **************************************************************/
+bool CBuilding::isHouse(int buildingType) {
+	return (buildingType == 2);
+}
+
+/***************************************************************
+ * Function:	isResearch
+ *
+ * @return Returns true if this building is a Research
+ **************************************************************/
+bool CBuilding::isResearch() {
+	return this->isResearch(this->type);
+}
+/***************************************************************
+ * Function:	isResearch
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a Research
+ **************************************************************/
+bool CBuilding::isResearch(int buildingType) {
+	return
+		((buildingType % 2)==1)
+		&&
+		(buildingType > 2);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/***************************************************************
+ * Constructor:	CBuildingList
+ *
+ **************************************************************/
+CBuildingList::CBuildingList(CServer *Server) {
+	this->p = Server;
+	this->buildingListHead = 0;
+	this->bldID = 1;
+}
+
+/***************************************************************
+ * Destroyer:	CBuildingList
+ *
+ **************************************************************/
+CBuildingList::~CBuildingList() {
+	while (this->buildingListHead) {
+		this->remBuilding(this->buildingListHead);
+	}
+}
+
 /***************************************************************
  * Function:	findBuilding
  *
  * @param id
  **************************************************************/
 CBuilding *CBuildingList::findBuilding(unsigned short id) {
-	CBuilding *bld = this->buildings;
+	CBuilding *bld = this->buildingListHead;
 
-	// If there are no buildings, return 0
-	if (!bld) {
-		return 0;
-	}
-
-	// Move to the start of the building linked list
-	while (bld->prev) {
-		bld = bld->prev;
-	}
-
-	// While there are buildings in the linked list,
+	// For each building,
 	while (bld) {
 
 		// If the building is the one you're looking for, return a pointer to it
@@ -93,34 +221,53 @@ CBuilding *CBuildingList::findBuilding(unsigned short id) {
  * @param id
  **************************************************************/
 CBuilding *CBuildingList::newBuilding(int x, int y, int type, int City, unsigned short id) {
-	CBuilding *bld = this->buildings;
+	CBuilding *bld = new CBuilding(x, y, type, City, id, this->p);
 
-	// If there are no buildings in the building linked list,
-	if (!bld) {
+	// If there are other buildings,,
+	if (this->buildingListHead) {
 
-		// Set the linked list to point to the new building
-		this->buildings = new CBuilding(x, y, type, City, id, this->p);
-
-		// Return a pointer to the new building (happens to also be a pointer to the linked list)
-		return this->buildings;
+		// Tell the current head the new building is before it
+		this->buildingListHead->prev = bld;
+		bld->next = this->buildingListHead;
 	}
-	
-	// Else (there are buildings),
-	else {
 
-		// Move to the end of the linked list
-		while(bld->next) {
+	// Add the new building as the new head
+	this->buildingListHead = bld;
+
+	// Tell the city to add a building
+	this->p->City[City]->addBuilding(bld->type);
+
+	// Return a pointer to the new building
+	return bld;
+}
+
+/***************************************************************
+ * Function:	deleteBuildingsByCity
+ *
+ * Note that this function uses remItem instead of delItem,
+ * so it doesn't send out item-destroyed packets
+ *
+ * @param city
+ * @param type
+ **************************************************************/
+void CBuildingList::deleteBuildingsByCity(int city) {
+	CBuilding *bld = this->buildingListHead;
+
+	// For each building in the linked list,
+	while (bld) {
+
+		// If the building belongs to this city, and building isn't a CC,
+		if ((bld->City == city) && (bld->isCC() == false)) {
+
+			// Delete the building and move the pointer to the next item in the linked list
+			bld = this->remBuilding(bld);
+		}
+		// Else (building belongs to other city),
+		else {
+
+			// Move the pointer to the next building in the linked list
 			bld = bld->next;
 		}
-
-		// Add the new building at the end of the list
-		bld->next = new CBuilding(x, y, type, City, id, this->p);
-
-		// Tell the new building about the building before it
-		bld->next->prev = bld;
-
-		// Return a pointer to the new building
-		return bld->next;
 	}
 }
 
@@ -130,45 +277,14 @@ CBuilding *CBuildingList::newBuilding(int x, int y, int type, int City, unsigned
  * @param buildingToDelete
  **************************************************************/
 CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
-	CItem *item;
 	CBuilding *otherBuilding;
-
-	// If there are no buildings, return 0
-	if (!this->buildings) {
-		return 0;
-	}
 
 	/************************************************
 	 * Handle items and build-tree
 	 ************************************************/
 	// Building: FACTORY
 	if (buildingToDelete->isFactory()) {
-
-		// If there are items in the item linked list,
-		if (p->Item->items) {
-
-			// Move to the start of the linked list
-			item = p->Item->items;
-			while (item->prev) {
-				item = item->prev;
-			}
-			
-			// For each item in the linked list,
-			while (item) {
-				// If the item belongs to this city, and the item was made by this Factory
-				if ((item->City == buildingToDelete->City) && (item->type == itemTypes[(buildingToDelete->type - 2) / 2 - 1])) {
-					
-					// Delete the item and move the pointer to the next item in the linked list
-					item = p->Item->delItem(item);
-				}
-				// Else (item belongs to other city, or item not made by this Factory),
-				else {
-
-					// Move the pointer to the next item in the linked list
-					item = item->next;
-				}
-			}
-		}
+		this->p->Item->deleteItemsByFactory(buildingToDelete->City, buildingToDelete->type);
 	}
 
 	// Building: RESEARCH
@@ -292,134 +408,8 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	bv.x = 1;
 	this->p->Send->SendSectorArea(buildingToDelete->x*48, buildingToDelete->y*48,smRemBuilding,(char *)&bv,sizeof(bv));
 
-	// If the building had a building before it, point the buildings list pointer at that building
-	if (buildingToDelete->prev) {
-		buildings = buildingToDelete->prev;
-	}
-	// Else, if the building had a building after it, point the buildings list pointer at that building
-	else if (buildingToDelete->next) {
-		buildings = buildingToDelete->next;
-	}
-	// Else, no buildings exist, point buildings at 0
-	else {
-		buildings = 0;
-	}
-
-	// Delete the building
-	delete buildingToDelete;
-	
-	// Return the linked list pointer
-	return buildings;
-}
-
-/***************************************************************
- * Function:	hasFullPopulation
- *
- * @return Returns true if this building is at its max population
- **************************************************************/
-bool CBuilding::hasMaxPopulation() {
-	if (this->isHouse()) {
-		return this->pop == POPULATION_MAX_HOUSE;
-	}
-	else {
-		return this->pop == POPULATION_MAX_NON_HOUSE;
-	}
-}
-
-/***************************************************************
- * Function:	isCC
- *
- * @return Returns true if this building is a CC
- **************************************************************/
-bool CBuilding::isCC() {
-	return this->isCC(this->type);
-}
-/***************************************************************
- * Function:	isCC
- *
- * @param buildingType
- * @return Returns true if the buildingType is a CC
- **************************************************************/
-bool CBuilding::isCC(int buildingType) {
-	return (buildingType == 0);
-}
-
-/***************************************************************
- * Function:	isFactory
- *
- * @return Returns true if this building is a Factory
- **************************************************************/
-bool CBuilding::isFactory() {
-	return this->isFactory(this->type);
-}
-/***************************************************************
- * Function:	isFactory
- *
- * @param buildingType
- * @return Returns true if the buildingType is a Factory
- **************************************************************/
-bool CBuilding::isFactory(int buildingType) {
-	return
-		((buildingType % 2)==0)
-		&&
-		(buildingType > 2);
-}
-
-/***************************************************************
- * Function:	isHospital
- *
- * @return Returns true if this building is a Hospital
- **************************************************************/
-bool CBuilding::isHospital() {
-	return this->isHospital(this->type);
-}
-/***************************************************************
- * Function:	isHospital
- *
- * @param buildingType
- * @return Returns true if the buildingType is a House
- **************************************************************/
-bool CBuilding::isHospital(int buildingType) {
-	return (buildingType == 1);
-}
-
-/***************************************************************
- * Function:	isHouse
- *
- * @return Returns true if this building is a House
- **************************************************************/
-bool CBuilding::isHouse() {
-	return this->isHouse(this->type);
-}
-/***************************************************************
- * Function:	isHouse
- *
- * @param buildingType
- * @return Returns true if the buildingType is a House
- **************************************************************/
-bool CBuilding::isHouse(int buildingType) {
-	return (buildingType == 2);
-}
-
-/***************************************************************
- * Function:	isResearch
- *
- * @return Returns true if this building is a Research
- **************************************************************/
-bool CBuilding::isResearch() {
-	return this->isResearch(this->type);
-}
-/***************************************************************
- * Function:	isResearch
- *
- * @param buildingType
- * @return Returns true if the buildingType is a Research
- **************************************************************/
-bool CBuilding::isResearch(int buildingType) {
-	return
-		((buildingType % 2)==1)
-		&&
-		(buildingType > 2);
+	// Remove the building
+	return this->remBuilding(buildingToDelete);
 }
 
 /***************************************************************
@@ -428,30 +418,30 @@ bool CBuilding::isResearch(int buildingType) {
  * @param del
  **************************************************************/
 CBuilding *CBuildingList::remBuilding(CBuilding *del) {
+	CBuilding *returnBuilding = del->next;
 
-	// If there are no buildings, return 0
-	if (!buildings) {
-		return 0;
+	// If building has a next, tell that next to skip this over node
+	if (del->next) {
+		del->next->prev = del->prev;
 	}
 
-	// If there's a building before this one, point the linked list pointer at that building
+	// If building has a prev, tell that prev to skip this over node
 	if (del->prev) {
-		buildings = del->prev;
+		del->prev->next = del->next;
 	}
-	// Else, if there's a building after this one, point the linked list pointer at that building
-	else if (del->next) {
-		buildings = del->next;
-	}
-	// Else, point the linked list pointer at 0
+	// Else (building has no prev), building is head, point head to next node
 	else {
-		buildings = 0;
+		this->buildingListHead = del->next;
 	}
+	
+	// Tell the city it is subtracting a building
+	this->p->City[del->City]->subtractBuilding(del->type);
 
 	// Delete the building
 	delete del;
 	
-	// Return the linked list pointer
-	return buildings;
+	// Return what was del->next
+	return returnBuilding;
 }
 
 /***************************************************************
@@ -459,32 +449,23 @@ CBuilding *CBuildingList::remBuilding(CBuilding *del) {
  *
  **************************************************************/
 void CBuildingList::cycle() {
+	CBuilding *bld = this->buildingListHead;
+	CBuilding *otherBuilding;
 	sSMItem item;
 	sSMItemCount c;
 	sSMPop pop;
 
-	// Get a pointer to the list of all buildings
-	CBuilding *bld = p->Build->buildings;
-	CBuilding *otherBuilding;
-
-	// If there are buildings to process, move to the first building in the linked list
-	if (bld) {
-		while (bld->prev) {
-			bld = bld->prev;
-		}
-	}
-
-	// While there are buildings to process,
+	// For each building,
 	while (bld) {
 
 		/************************************************
 		 * Population timer
 		 ************************************************/
 		// If the population timer is up,
-		if (p->Tick > bld->PopulationTick) {
+		if (this->p->Tick > bld->PopulationTick) {
 
 			// Reset the population timer
-			bld->PopulationTick = p->Tick + 250;
+			bld->PopulationTick = this->p->Tick + 250;
 
 			// If the building doesn't have full population and is not a House
 			if ((! bld->hasMaxPopulation()) && (! bld->isHouse())) {
@@ -501,7 +482,7 @@ void CBuildingList::cycle() {
 					}
 
 					// Try to find the House attached to this building
-					otherBuilding = p->Build->findBuilding(bld->AttachedID);
+					otherBuilding = this->p->Build->findBuilding(bld->AttachedID);
 
 					// If the House was found,
 					if (otherBuilding) {
@@ -533,58 +514,48 @@ void CBuildingList::cycle() {
 					// Send the updated building population to the sector
 					pop.id = bld->id;
 					pop.pop = bld->pop / 8;
-					p->Send->SendSectorArea(bld->x*48, bld->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
+					this->p->Send->SendSectorArea(bld->x*48, bld->y*48,smUpdatePop,(char *)&pop,sizeof(sSMPop));
 				}
 
 				// Else (building is not attached to a house)
 				else {
-					// Get the building list
-					otherBuilding = p->Build->buildings;
 
-					// If any buildings exist,
-					if (otherBuilding) {
+					// For each building,
+					otherBuilding = this->buildingListHead;
+					while (otherBuilding) {
 
-						// Move to the head of the building linked list
-						while (otherBuilding->prev) {
-							otherBuilding = otherBuilding->prev;
-						}
+						// If the ListBuilding belongs to the same city as this building
+						if (otherBuilding->City == bld->City) {
 
-						// While there are buildings "ListBuildings" in the linked list,
-						while (otherBuilding) {
+							// If the ListBuilding is a House
+							if (otherBuilding->type == 2) {
 
-							// If the ListBuilding belongs to the same city as this building
-							if (otherBuilding->City == bld->City) {
+								// If House has an opening in slot 1,
+								if (otherBuilding->AttachedID == 0) {
 
-								// If the ListBuilding is a House
-								if (otherBuilding->type == 2) {
+									// Attach the building to the House in slot 1, break out of the while loop
+									otherBuilding->AttachedPop = bld->pop;
+									otherBuilding->AttachedID = bld->id;
+									otherBuilding->pop = otherBuilding->AttachedPop + otherBuilding->AttachedPop2;
+									bld->AttachedID = otherBuilding->id;
+									break;
+								}
 
-									// If House has an opening in slot 1,
-									if (otherBuilding->AttachedID == 0) {
+								// Else, if House has an opening in slot 2,
+								else if (otherBuilding->AttachedID2 == 0) {
 
-										// Attach the building to the House in slot 1, break out of the while loop
-										otherBuilding->AttachedPop = bld->pop;
-										otherBuilding->AttachedID = bld->id;
-										otherBuilding->pop = otherBuilding->AttachedPop + otherBuilding->AttachedPop2;
-										bld->AttachedID = otherBuilding->id;
-										break;
-									}
-
-									// Else, if House has an opening in slot 2,
-									else if (otherBuilding->AttachedID2 == 0) {
-
-										// Attach the building to the House in slot 2, break out of the while loop
-										otherBuilding->AttachedPop2 = bld->pop;
-										otherBuilding->AttachedID2 = bld->id;
-										otherBuilding->pop = otherBuilding->AttachedPop + otherBuilding->AttachedPop2;
-										bld->AttachedID = otherBuilding->id;
-										break;
-									}
+									// Attach the building to the House in slot 2, break out of the while loop
+									otherBuilding->AttachedPop2 = bld->pop;
+									otherBuilding->AttachedID2 = bld->id;
+									otherBuilding->pop = otherBuilding->AttachedPop + otherBuilding->AttachedPop2;
+									bld->AttachedID = otherBuilding->id;
+									break;
 								}
 							}
-
-							// Move the pointer to the next building in the linked list
-							otherBuilding = otherBuilding->next;
 						}
+
+						// Move the pointer to the next building in the linked list
+						otherBuilding = otherBuilding->next;
 					}
 				}
 			}
@@ -594,7 +565,7 @@ void CBuildingList::cycle() {
 		 * Money timer
 		 ************************************************/
 		// If the money timer is up,
-		if (p->Tick > bld->MoneyTick) {
+		if (this->p->Tick > bld->MoneyTick) {
 
 			// Reset the money timer,
 			bld->MoneyTick = p->Tick + 7000;
@@ -603,24 +574,24 @@ void CBuildingList::cycle() {
 			if (bld->isHouse()) {
 
 				// Add COST_INCOME_POPULATION cash per population
-				p->City[bld->City]->cash += bld->pop * COST_INCOME_POPULATION;
-				p->City[bld->City]->income += bld->pop * COST_INCOME_POPULATION;
+				this->p->City[bld->City]->cash += bld->pop * COST_INCOME_POPULATION;
+				this->p->City[bld->City]->income += bld->pop * COST_INCOME_POPULATION;
 			}
 
 			// Building: RESEARCH (full population)
 			else if (bld->isResearch() && bld->hasMaxPopulation()) {
 
 				// Subtract research upkeep
-				p->City[bld->City]->cash -= COST_ITEM;
-				p->City[bld->City]->cashresearch += COST_ITEM;
+				this->p->City[bld->City]->cash -= COST_ITEM;
+				this->p->City[bld->City]->cashresearch += COST_ITEM;
 			}
 
 			// Building: HOSPITAL
 			else if (bld->isHospital()) {
 
 				// Subtract hospital upkeep
-				p->City[bld->City]->cash -= COST_UPKEEP_HOSPITAL;
-				p->City[bld->City]->hospital += COST_UPKEEP_HOSPITAL;
+				this->p->City[bld->City]->cash -= COST_UPKEEP_HOSPITAL;
+				this->p->City[bld->City]->hospital += COST_UPKEEP_HOSPITAL;
 			}
 		}
 
@@ -628,7 +599,7 @@ void CBuildingList::cycle() {
 		 * Research timer
 		 ************************************************/
 		// If the research timer is up,
-		if (p->Tick > bld->ResearchTick) {
+		if (this->p->Tick > bld->ResearchTick) {
 
 			// Increase the research timer
 			bld->ResearchTick = p->Tick + 1000;
@@ -637,25 +608,25 @@ void CBuildingList::cycle() {
 			if ( bld->isResearch() ) {
 
 				// If research is in progress,
-				if (p->City[bld->City]->research[(bld->type - 3) / 2] > 0) {
+				if (this->p->City[bld->City]->research[(bld->type - 3) / 2] > 0) {
 
 					// If the population isn't full, abort research
 					if (! bld->hasMaxPopulation()) {
-						p->City[bld->City]->research[(bld->type - 3) / 2] = 0;
+						this->p->City[bld->City]->research[(bld->type - 3) / 2] = 0;
 					}
 
 					// Else if the research is now complete,
-					else if (p->City[bld->City]->research[(bld->type - 3) / 2] < p->Tick) {
+					else if (this->p->City[bld->City]->research[(bld->type - 3) / 2] < p->Tick) {
 
 						// Tell the Research to stop researching
-						p->City[bld->City]->research[(bld->type - 3) / 2] = -1;
+						this->p->City[bld->City]->research[(bld->type - 3) / 2] = -1;
 
 						// Set canBuild to true for this Research's Factory (setCanBuild does it's own type++)
-						p->City[bld->City]->setCanBuild(bld->type, 1);
+						this->p->City[bld->City]->setCanBuild(bld->type, 1);
 						
 						// If this building is a Med Research (type 9), set canBuild on Hospital (type is really 1... setCanBuild does type++)
 						if (bld->type == 9) {
-							p->City[bld->City]->setCanBuild(0, 1);
+							this->p->City[bld->City]->setCanBuild(0, 1);
 						}
 
 						// For each building in the build tree,
@@ -665,18 +636,18 @@ void CBuildingList::cycle() {
 							if (buildTree[l] == (bld->type - 3) / 2) {
 
 								// Set canBuild true on that building
-								p->City[bld->City]->setCanBuild((unsigned char)l * 2 + 2, 1);
+								this->p->City[bld->City]->setCanBuild((unsigned char)l * 2 + 2, 1);
 							}
 						}
 					}
 				}
 
 				// Else if research has not yet started,
-				else if (p->City[bld->City]->research[(bld->type - 3) / 2] == 0) {
+				else if (this->p->City[bld->City]->research[(bld->type - 3) / 2] == 0) {
 					
 					// If the population is full, start research
 					if (bld->hasMaxPopulation()) {
-						p->City[bld->City]->research[(bld->type - 3) / 2] = p->Tick + TIMER_RESEARCH;
+						this->p->City[bld->City]->research[(bld->type - 3) / 2] = this->p->Tick + TIMER_RESEARCH;
 					}
 				}
 			}
@@ -686,7 +657,7 @@ void CBuildingList::cycle() {
 		 * Item production timer
 		 ************************************************/
 		// If the item production timer is up,
-		if (p->Tick > bld->ProduceTick) {
+		if (this->p->Tick > bld->ProduceTick) {
 
 			// If the building is a functioning Factory (full population),
 			if (bld->isFactory() && bld->hasMaxPopulation()) {
@@ -695,23 +666,23 @@ void CBuildingList::cycle() {
 				item.type = itemTypes[(bld->type - 2) / 2 - 1];
 
 				// If the city's itemCount is less than this item's item limit, and the city can build the item,
-				if ((p->City[bld->City]->itemC[item.type] < maxItems[item.type]) && (p->City[bld->City]->canBuild[bld->type - 2] == 2) ) {
+				if ((this->p->City[bld->City]->itemC[item.type] < maxItems[item.type]) && (this->p->City[bld->City]->canBuild[bld->type - 2] == 2) ) {
 
 					// TODO:  add check whether research has full population
 
 					// If the city can afford a new item,
-					if (p->City[bld->City]->cash >= COST_ITEM) {
+					if (this->p->City[bld->City]->cash >= COST_ITEM) {
 
 						// If the building has yet been set to produce,
 						// TODO: reset bld->ProduceTick when its Research is destroyed
 						if (bld->ProduceTick == 0) {
 							
 							// Prepare the building for production by setting the count of items left to produce as "max - itemCount"
-							c.count = maxItems[item.type] - (unsigned char)p->City[bld->City]->itemC[item.type];
+							c.count = maxItems[item.type] - (unsigned char)this->p->City[bld->City]->itemC[item.type];
 							c.id = bld->id;
 							
 							// Send the sector and reset the production timer, WITHOUT BUILDING AN ITEM
-							p->Send->SendSectorArea(bld->x*48, bld->y*48,smItemCount,(char *)&c,sizeof(c));
+							this->p->Send->SendSectorArea(bld->x*48, bld->y*48,smItemCount,(char *)&c,sizeof(c));
 							bld->ProduceTick = p->Tick + 7000;
 						}
 
@@ -719,8 +690,8 @@ void CBuildingList::cycle() {
 						else {
 
 							// Transfer the price of an item into the city's production budget
-							p->City[bld->City]->cash -= COST_ITEM;
-							p->City[bld->City]->itemproduction += COST_ITEM;
+							this->p->City[bld->City]->cash -= COST_ITEM;
+							this->p->City[bld->City]->itemproduction += COST_ITEM;
 							
 							// Create an item on the factory bay with the next available item ID
 							item.x = bld->x - 1;
@@ -730,17 +701,17 @@ void CBuildingList::cycle() {
 							item.id = p->Item->itmID++;
 
 							// HACK: if more than 30000 items, cycle back to 1
-							if (p->Item->itmID > 30000) {
-								p->Item->itmID = 1;
+							if (this->p->Item->itmID > 30000) {
+								this->p->Item->itmID = 1;
 							}
 							// Create the item, tell everyone in the sector about the new item
-							p->Item->newItem(item.x,item.y,item.type,item.City,item.id);
-							p->Send->SendSectorArea(item.x*48, item.y*48,smAddItem,(char *)&item, sizeof(item));
+							this->p->Item->newItem(item.x,item.y,item.type,item.City,item.id);
+							this->p->Send->SendSectorArea(item.x*48, item.y*48,smAddItem,(char *)&item, sizeof(item));
 
 							// Set the city's itemCount for the item type, tell everyone in the sector about the new itemCount
-							c.count = maxItems[item.type] - (unsigned char)p->City[bld->City]->itemC[item.type];
+							c.count = maxItems[item.type] - (unsigned char)this->p->City[bld->City]->itemC[item.type];
 							c.id = bld->id;
-							p->Send->SendSectorArea(item.x*48, item.y*48,smItemCount,(char *)&c,sizeof(c));
+							this->p->Send->SendSectorArea(item.x*48, item.y*48,smItemCount,(char *)&c,sizeof(c));
 
 							// If the Factory can't make any more items, set ProduceTick to 0
 							if (c.count == 0) {
@@ -748,7 +719,7 @@ void CBuildingList::cycle() {
 							}
 							// Else (Factory can make more items), reset the item production counter
 							else {
-								bld->ProduceTick = p->Tick + 7000;
+								bld->ProduceTick = this->p->Tick + 7000;
 							}
 						}
 					}

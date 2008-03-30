@@ -49,36 +49,22 @@ class CBuilding {
 class CBuildingList {
 
 	public:
-		CBuilding *buildings;
+		CBuilding *buildingListHead;
 
 		CBuilding *findBuilding(unsigned short id);
 
 		CBuilding *newBuilding(int x, int y, int type, int City, unsigned short id);
 		CBuilding *delBuilding(CBuilding *del);
 		CBuilding *remBuilding(CBuilding *del);
+		void deleteBuildingsByCity(int city);
 
 		int bldID;
 
-		CBuildingList(CServer *Server) {
-			p = Server;
-			buildings = 0;
-			bldID = 1;
-		}
-
-		~CBuildingList() {
-			while (buildings) {
-				remBuilding(buildings);
-			}
-		}
+		CBuildingList(CServer *Server);
+		~CBuildingList();
 
 		void cycle();
 
-// Moved to CCity
-/*
-		int GetBuildingCount(int theCity);
-		int GetOrbBuildingCount(int theCity);
-		int GetOrbPointCount(int theCity);
-*/
 		CServer *p;
 	};
 

@@ -18,7 +18,7 @@ class CPlayer {
 		string UniqID;
 		string IPAddress;
 
-		int isAdmin;
+		int playerType;
 		unsigned char displayTank;
 		unsigned char Tank;
 		unsigned char Tank2;
@@ -53,11 +53,14 @@ class CPlayer {
 		void setMayor(int set);
 		void JoinGame();
 		void StartJoin();
-		void LeaveGame(int showmessage);
+		void LeaveGame(bool showMessage);
+		void LeaveGame(bool showMessage, bool transferMayor);
 		void LoggedIn(string User);
 		void Death(int killer);
 		void Clear();
 		int FindApplyMayor();
+
+		bool isAdmin();
 		bool isInApply();
 		bool isInChat();
 		bool isConnected();

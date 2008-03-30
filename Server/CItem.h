@@ -29,13 +29,17 @@ class CItem {
 class CItemList {
 
 	public:
-		CItem *items;
+		CItem *itemListHead;
 
 		CItem *findItem(unsigned short id);
 
 		CItem *newItem(int x, int y, int type, int City, unsigned short id);
 		CItem *delItem(CItem *del);
 		CItem *remItem(CItem *del);
+		
+		void deleteItemsByCity(int city);
+		void deleteItemsByFactory(int city, int type);
+		void deleteItemsByPlayer(int id);
 
 		int itmID;
 
