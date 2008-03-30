@@ -5,83 +5,41 @@
 
 class CGame;
 
-class CBullet
-{
-public:
-	CGame *p;
+class CBullet {
 
-	float X;
-	float Y;
-	int Type;
-	unsigned short Owner;
-	float Life;
-	char Angle;
-	char Animation;
-	unsigned short TurretID;
+	public:
+		CGame *p;
 
-	CBullet *next;
-	CBullet *prev;
+		float x;
+		float y;
+		int type;
+		int damage;
+		unsigned short owner;
+		float life;
+		char angle;
+		char animation;
+		unsigned short turretId;
 
-	CBullet(int X, int Y, int Type, int Angle, unsigned short Owner, CGame *Game)
-	{
-		p = Game;
-		this->Owner = Owner;
-		this->X = (float)X;
-		this->Y = (float)Y;
-		this->Type = Type;
-		this->Animation = 0;
-		this->Angle = Angle;
-		if (this->Type > 2) 
-		{
-			this->TurretID = this->Owner;
-			this->Owner = 0;
-			this->Type -= 3;
-		}
-		else this->TurretID = 0;
-		switch(this->Type)
-		{
-			case 0:
-				this->Life = 260;
-				break;
-			case 1:
-			case 2:
-				this->Life = 340;
-				break;
-		}
+		CBullet *next;
+		CBullet *prev;
 
-		prev = 0;
-		next = 0;
-	}
-	~CBullet()
-	{
-		if (next)
-			next->prev = prev;
-		if (prev)
-			prev->next = next;
-	}
+		CBullet(int x, int y, int type, int angle, unsigned short owner, CGame *game);
+		~CBullet();
 };
 
-class CBulletList
-{
-public:
-	CBullet *bullets;
 
-	CBullet *newBullet(int x, int Y, int Type, int Angle, int Owner = 999);
-	CBullet *delBullet(CBullet *del);
+class CBulletList {
+	public:
+		CBullet *bulletListHead;
 
-	CBulletList(CGame *game)
-	{
-		p = game;
-		bullets = 0;
-	}
-	~CBulletList()
-	{
-		while (bullets)
-			delBullet(bullets);
-	}
+		CBullet *newBullet(int x, int y, int type, int angle, int owner = 999);
+		CBullet *delBullet(CBullet *del);
 
-	void Cycle();
-	CGame *p;
+		CBulletList(CGame *game);
+		~CBulletList();
+
+		void Cycle();
+		CGame *p;
 };
 
 #endif

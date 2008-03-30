@@ -161,7 +161,7 @@ void CAdmin::DrawPlayerList()
 	memset(cityPlayers, 0, sizeof(cityPlayers));
 
 	SendDlgItemMessage(p->Admin->hWnd, IDPLAYERS, LB_RESETCONTENT, 0, 0);
-	for (int i = 0; i < MaxPlayers; i++)
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
 		string tmpString;
 		if (p->Player[i]->Name.length() > 0)

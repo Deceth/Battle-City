@@ -43,7 +43,7 @@ int CALLBACK AdminEditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 					p->AdminEdit->tank7 = GetDlgItemInt(hwnd, IDTANK7, NULL, 0);
 					p->AdminEdit->tank8 = GetDlgItemInt(hwnd, IDTANK8, NULL, 0);
 					p->AdminEdit->tank9 = GetDlgItemInt(hwnd, IDTANK9, NULL, 0);
-					p->AdminEdit->admin = IsDlgButtonChecked(hwnd, IDC_ADMIN);
+					p->AdminEdit->playerType = IsDlgButtonChecked(hwnd, IDC_ADMIN);
 					p->AdminEdit->member = IsDlgButtonChecked(hwnd, IDC_MEMBER);
 					p->AdminEdit->rentalcity = GetDlgItemInt(hwnd, IDRENTAL, NULL, 0);
 					p->AdminEdit->red = GetDlgItemInt(hwnd, IDRED, NULL, 0);
@@ -78,7 +78,7 @@ int CALLBACK AdminEditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 					AdminEdit.Tank7 = p->AdminEdit->tank7;
 					AdminEdit.Tank8 = p->AdminEdit->tank8;
 					AdminEdit.Tank9 = p->AdminEdit->tank9;
-					AdminEdit.IsAdmin = p->AdminEdit->admin;
+					AdminEdit.playerType = p->AdminEdit->playerType;
 					AdminEdit.Member = p->AdminEdit->member;
 					AdminEdit.Red = p->AdminEdit->red;
 					AdminEdit.Green = p->AdminEdit->green;

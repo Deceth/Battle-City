@@ -36,7 +36,7 @@ CGame::CGame() {
 
 	Timer = new CTime();
 
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 		Player[i] = new CPlayer(this, i);
 	}
 
@@ -95,7 +95,7 @@ CGame::~CGame() {
 
 	delete Timer;
 
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 		delete Player[i];
 	}
 
@@ -384,7 +384,7 @@ void CGame::handleChatKey(WPARAM wParam) {
 		if (this->InGame->ChatLine.length() > 0) {
 
 			// If GLOBAL and ADMIN,
-			if ((this->InGame->ChatLine.find("/g",0) == 0) && (this->Player[this->Winsock->MyIndex]->isAdmin == 2)) {
+			if ((this->InGame->ChatLine.find("/g",0) == 0) && (this->Player[this->Winsock->MyIndex]->isAdmin())) {
 				this->Send->SendGlobal();
 			}
 

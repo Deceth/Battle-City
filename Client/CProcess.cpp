@@ -222,14 +222,14 @@ int CProcess::ProcessData(char *TheData)
 #endif
 }
 
-void CProcess::ProcessLogin(unsigned char Index, unsigned char isAdmin)
+void CProcess::ProcessLogin(unsigned char Index, unsigned char playerType)
 {
 #ifndef _DEBUG
 	try {
 #endif
 	p->Player[Index]->ClearPlayer();
 	p->Winsock->MyIndex = Index;
-	p->Player[Index]->isAdmin = isAdmin;
+	p->Player[Index]->playerType = playerType;
 	p->Player[Index]->Name.clear();
 	p->Player[Index]->Name = p->Login->user;
 	p->Meeting->ShowMeetingDlg();
@@ -328,24 +328,19 @@ void CProcess::ProcessChatMessage(char *TheData, char global)
 	switch (p->State)
 	{
 		case STATE_GAME:
-			if (p->Player[Index]->isAdmin == 2)
-			{
+			if (p->Player[Index]->isAdmin()) {
 				p->InGame->AppendChat(tmpstring, RGB(255, 165, 0));
 			}
-			else
-			{
-				if (p->Player[Index]->isDead == true)
-				{
+			else {
+
+				if (p->Player[Index]->isDead == true) {
 					p->InGame->AppendChat(tmpstring, RGB(135, 135, 135));
 				}
-				else
-				{
-					if (p->Player[Index]->City == p->Player[p->Winsock->MyIndex]->City)
-					{
+				else {
+					if (p->Player[Index]->City == p->Player[p->Winsock->MyIndex]->City) {
 						p->InGame->AppendChat(tmpstring, RGB(0, 255, 0));
 					}
-					else
-					{
+					else {
 						p->InGame->AppendChat(tmpstring, RGB(255, 0, 0));
 					}
 				}
@@ -493,7 +488,7 @@ void CProcess::ProcessPlayerData(sSMPlayer *player)
 	try {
 #endif
 	int i = player->Index;
-	p->Player[i]->isAdmin = player->isAdmin;
+	p->Player[i]->playerType = player->playerType;
 	p->Player[i]->Red = player->Red;
 	p->Player[i]->Green = player->Green;
 	p->Player[i]->Blue = player->Blue;
@@ -879,7 +874,7 @@ void CProcess::ProcessShot(sSMShot *shotsfired)
 	try {
 #endif
 	int me = p->Winsock->MyIndex;
-	if (p->Player[shotsfired->id]->isAdmin == 2)
+	if (p->Player[shotsfired->id]->isAdmin())
 	{
 		float fDir = (float)-p->Player[shotsfired->id]->Direction+32;
 		int FlashY = (int)p->Player[shotsfired->id]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
@@ -917,17 +912,9 @@ void CProcess::ProcessShot(sSMShot *shotsfired)
 #endif
 }
 
-void CProcess::ProcessDestroyCity(char City)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	p->Item->DestroyCity(City);
-	p->Build->DestroyCity(City);
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "ProcessDestroyCity"); p->Engine->logerror("ProcessDestroyCity");}
-#endif
+void CProcess::ProcessDestroyCity(char City) {
+	p->Item->deleteItemsByCity(City);
+	p->Build->deleteBuildingsByCity(City);
 }
 
 void CProcess::ProcessRemoveBuilding(sSMBuild *build)
@@ -988,7 +975,7 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed)
 		thing2 << orbed->OrberCityPoints;
 		msg.append(thing2.str());
 		msg.append(" Points!");
-		for (int i = 0; i < MaxPlayers; i++)
+		for (int i = 0; i < MAX_PLAYERS; i++)
 		{
 			if (p->Player[i]->City == orbed->City)
 			{
@@ -1048,8 +1035,7 @@ void CProcess::ProcessExplosion(sSMExplode *bomb)
 	p->Explode->newExplosion(bomb->x*48, bomb->y*48, 2);
 	if ((abs(bomb->x - (p->Player[me]->X / 48) - 1) <= 1) && (abs(bomb->y - (p->Player[me]->Y / 48) - 1) <= 1))
 	{
-		if (p->Player[me]->isAdmin != 2 && p->Player[p->Winsock->MyIndex]->isDead == false)
-		{
+		if ((p->Player[me]->isAdmin() == false) && (p->Player[p->Winsock->MyIndex]->isDead == false)) {
 			char packet[3];
 			packet[0] = (char)bomb->City;
 			packet[1] = 0;
@@ -1360,7 +1346,7 @@ void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo) {
 	int cityMayor = -1;
 	bool cityHasMayor;
 
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 		if (p->Player[i]->isInGame) {
 			if (p->Player[i]->City == cityinfo->City) {
 				if (p->Player[i]->isMayor) {
@@ -1489,7 +1475,7 @@ void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit) {
 	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK8, adminedit->Tank8, false);
 	SetDlgItemInt(p->AdminEdit->hWnd, IDTANK9, adminedit->Tank9, false);
 
-	CheckDlgButton(p->AdminEdit->hWnd, IDC_ADMIN, adminedit->IsAdmin);
+	CheckDlgButton(p->AdminEdit->hWnd, IDC_ADMIN, adminedit->playerType);
 	CheckDlgButton(p->AdminEdit->hWnd, IDC_MEMBER, adminedit->Member);
 	if (adminedit->Red == 255 && adminedit->Green == 255 && adminedit->Blue == 255) {
 		CheckDlgButton(p->AdminEdit->hWnd, IDC_RAINBOW, 1);

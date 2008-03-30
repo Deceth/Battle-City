@@ -9,17 +9,18 @@ CCollision::~CCollision() {
 }
 
 int CCollision::CheckPlayerCollision(unsigned short id) {
-	
-	// If the player is an admin, return
-	if (p->Player[id]->isAdmin == 2) {
-		return 0;
-	}
-
+	CBuilding *bld;
+	CItem *itm;
 	Rect PlayerRect;
 	Rect tPlayerRect;
 	Rect BuildingRect;
 	Rect ItemRect;
 	int gap = 8;
+
+	// If the player is an admin, return
+	if (p->Player[id]->isAdmin()) {
+		return 0;
+	}
 
 	PlayerRect.X = (long)p->Player[id]->X + gap;
 	PlayerRect.Y = (long)p->Player[id]->Y + gap;
@@ -44,40 +45,34 @@ int CCollision::CheckPlayerCollision(unsigned short id) {
 	if (p->Map->map[(int)(PlayerRect.X+PlayerRect.w)/48][(int)(PlayerRect.Y+PlayerRect.h)/48] != 0) return 2; //bottom right corner
 	if (p->Map->map[(int)(PlayerRect.X-1)/48][(int)(PlayerRect.Y+PlayerRect.h)/48] != 0) return 2; //bottom left corner
 
-	CBuilding *bld = p->Build->buildings;
-	if (bld) {
-		while (bld->prev) {
-			bld = bld->prev;
-		}
+	// For each building,
+	bld = p->Build->buildingListHead;
+	while (bld) {
 
-		while (bld) {
-			BuildingRect.X = (bld->X-2)*48;
-			BuildingRect.Y = (bld->Y-2)*48;
-			BuildingRect.w = 144;
-			BuildingRect.h = 144;
+		// Create a rectangle for measuring collision
+		BuildingRect.X = (bld->X-2)*48;
+		BuildingRect.Y = (bld->Y-2)*48;
+		BuildingRect.w = 144;
+		BuildingRect.h = 144;
 
-			if (bld->Type / 100 <= 2) {
+		// ???
+		if (bld->Type / 100 <= 2) {
 
-				if (bld->Type == 200 && p->Tick > p->InGame->hospTick) {
+			if (bld->Type == 200 && p->Tick > p->InGame->hospTick) {
 
-					if (id == p->Winsock->MyIndex && RectCollision(tPlayerRect, BuildingRect)) {
+				if (id == p->Winsock->MyIndex && RectCollision(tPlayerRect, BuildingRect)) {
 
-						BuildingRect.Y = (bld->Y-1)*48;
-						BuildingRect.h = 96;
+					BuildingRect.Y = (bld->Y-1)*48;
+					BuildingRect.h = 96;
 
-						if (!RectCollision(tPlayerRect, BuildingRect)) {
-							p->Player[p->Winsock->MyIndex]->SetHP(p->Player[p->Winsock->MyIndex]->HP + 5);
+					if (!RectCollision(tPlayerRect, BuildingRect)) {
+						p->Player[p->Winsock->MyIndex]->SetHP(p->Player[p->Winsock->MyIndex]->HP + 5);
 
-							if (p->Player[p->Winsock->MyIndex]->HP > 40) {
-								p->Player[p->Winsock->MyIndex]->SetHP(40);
-							}
-
-							p->InGame->hospTick = p->Tick + 500;
+						if (p->Player[p->Winsock->MyIndex]->HP > 40) {
+							p->Player[p->Winsock->MyIndex]->SetHP(40);
 						}
-					}
-					else {
-						BuildingRect.Y = (bld->Y-1)*48;
-						BuildingRect.h = 96;
+
+						p->InGame->hospTick = p->Tick + 500;
 					}
 				}
 				else {
@@ -85,51 +80,63 @@ int CCollision::CheckPlayerCollision(unsigned short id) {
 					BuildingRect.h = 96;
 				}
 			}
-
-			/*
-			if (RectCollision(tPlayerRect, BuildingRect)) {
-				return 2;
+			else {
+				BuildingRect.Y = (bld->Y-1)*48;
+				BuildingRect.h = 96;
 			}
-			*/
-			
-			if (RectCollision(PlayerRect, BuildingRect)) {
-				return 2;
-			}
-
-			bld = bld->next;
 		}
+
+		/*
+		if (RectCollision(tPlayerRect, BuildingRect)) {
+			return 2;
+		}
+		*/
+		
+		if (RectCollision(PlayerRect, BuildingRect)) {
+			return 2;
+		}
+
+		// Get the next building
+		bld = bld->next;
 	}
 
-	CItem *itm = p->Item->items;
-	if (itm)
-	{
-		while (itm->prev)
-			itm = itm->prev;
+	// For each item,
+	itm = p->Item->itemListHead;
+	while (itm) {
 
-		while (itm)
-		{
-			ItemRect.X = itm->X*48+gap;
-			ItemRect.Y = itm->Y*48+gap;
-			ItemRect.w = 48-gap;
-			ItemRect.h = 48-gap;
-			
-			if (RectCollision(tPlayerRect, ItemRect) && itm->Type >= 8 && itm->active == 1) //collision when placed on top of an item
-			{
+		// Create a rectangle for measuring collision
+		ItemRect.X = itm->X*48+gap;
+		ItemRect.Y = itm->Y*48+gap;
+		ItemRect.w = 48-gap;
+		ItemRect.h = 48-gap;
+		
+		// collision when placed on top of an item
+		if (RectCollision(tPlayerRect, ItemRect) && itm->Type >= 8 && itm->active == 1) {
+			return 2;
+		}
+		
+		// If the item is active,
+		if (itm->active) {
+
+			// walls and turrets
+			if (RectCollision(PlayerRect, ItemRect) && itm->Type >= 8 && itm->active) {
 				return 2;
 			}
-			
-			if (itm->active)
-			{
-				if (RectCollision(PlayerRect, ItemRect) && itm->Type >= 8 && itm->active)	return 2; //walls and turrets
 
-				//Mine and DFG checking, use smaller player collision area for player
-				if (RectCollision(tPlayerRect, ItemRect) && itm->Type == 4 && p->Player[id]->City != itm->City) return 101;
-				if (RectCollision(tPlayerRect, ItemRect) && itm->Type == 7 && p->Player[id]->City != itm->City) return 103;
-
+			// Mine and DFG checking, use smaller player collision area for player
+			if (RectCollision(tPlayerRect, ItemRect) && itm->Type == 4 && p->Player[id]->City != itm->City) {
+				return 101;
 			}
-			itm = itm->next; //isMoving to next item
+			if (RectCollision(tPlayerRect, ItemRect) && itm->Type == 7 && p->Player[id]->City != itm->City) {
+				return 103;
+			}
+
 		}
+
+		// Get the next item
+		itm = itm->next;
 	}
+
 	return 0;
 }
 
@@ -154,6 +161,8 @@ int CCollision::RectCollision(Rect rect1, Rect rect2) {
 
 int CCollision::CheckBuildingCollision(int X, int Y) {
 	int me = p->Winsock->MyIndex;
+	CBuilding *bld;
+	CItem *itm;
 
 	if (X < 0 || Y < 0) return 1;
 
@@ -163,42 +172,45 @@ int CCollision::CheckBuildingCollision(int X, int Y) {
 			if (p->Map->map[X-j][Y-i] != 0)
 				return 1;
 
-	CItem *itm = p->Item->items;
-	if (itm)
-	{
-		while (itm->prev)
-			itm = itm->prev;
+	// For each item,
+	itm = p->Item->itemListHead;
+	while (itm) {
 
-		while (itm)
-		{
-			for (int i = 0; i < 3; i++)
-				for (int j = 0; j < 3; j++)
-				if (X == itm->X+j && Y == itm->Y+i)
+		// For each square around it,
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+
+				// ???
+				if (X == itm->X+j && Y == itm->Y+i) {
 					return 1;
-			itm = itm->next;
+				}
+			}
+		}
+
+		// Get the next item
+		itm = itm->next;
+	}
+
+	// For each building,
+	bld = p->Build->buildingListHead;
+	while (bld) {
+
+		// If there is collision, return 1
+		if (X >= bld->X-2 && X <= bld->X+2 && Y >= bld->Y-2 && Y <= bld->Y+2) {
+			return 1;
+		}
+		bld = bld->next;
+	}
+
+	// For each possible player,
+	for (int a = 0; a < MAX_PLAYERS; a++) {
+		if (p->Player[a]->X-48 <= X*48 && p->Player[a]->X+48 >= (X-2)*48 && p->Player[a]->Y-48 <= Y*48 && p->Player[a]->Y+48 >= (Y-2)*48) {
+			return 1;
 		}
 	}
-
-	CBuilding *bld = p->Build->buildings;
-	if (bld)
-	{
-		while (bld->prev)
-			bld = bld->prev;
-
-		while (bld)
-		{
-			if (X >= bld->X-2 && X <= bld->X+2 && Y >= bld->Y-2 && Y <= bld->Y+2)
-				return 1;
-			bld = bld->next;
-		}
+	if (p->Player[me]->X-48 <= X*48 && p->Player[me]->X+48 >= (X-2)*48 && p->Player[me]->Y-48 <= Y*48 && p->Player[me]->Y+48 >= (Y-2)*48) {
+		return 1;
 	}
-
-	//players
-	for (int a = 0; a < MaxPlayers; a++)
-	{
-		if (p->Player[a]->X-48 <= X*48 && p->Player[a]->X+48 >= (X-2)*48 && p->Player[a]->Y-48 <= Y*48 && p->Player[a]->Y+48 >= (Y-2)*48) return 1;		
-	}
-	if (p->Player[me]->X-48 <= X*48 && p->Player[me]->X+48 >= (X-2)*48 && p->Player[me]->Y-48 <= Y*48 && p->Player[me]->Y+48 >= (Y-2)*48) return 1;
 
 	return 0; //no colliding object
 }

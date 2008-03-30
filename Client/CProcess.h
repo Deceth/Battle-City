@@ -15,7 +15,7 @@ public:
 	int ProcessData(char *TheData);
 	void ProcessEvent(int Event);
 
-	void ProcessLogin(unsigned char Index, unsigned char isAdmin);
+	void ProcessLogin(unsigned char Index, unsigned char playerType);
 	void ProcessClearPlayer(unsigned char Index);
 	void ProcessChatMessage(char *TheData, char global);
 	void ProcessChatCommand(int Index, int message);

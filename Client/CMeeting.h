@@ -41,7 +41,7 @@ class CMeeting {
 		void AddCity(int City, int isMayor, int playerCount);
 		int FreeCity();
 
-		int lstPlayers[MaxPlayers];
+		int lstPlayers[MAX_PLAYERS];
 
 		Cities City[30];
 

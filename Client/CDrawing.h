@@ -68,6 +68,15 @@ class CDrawing {
 		void ClearPanel();
 		void resetPlayerOffset();
 
+		int getOffsetX(int x);
+		int getOffsetY(int y);
+		bool isPositionInSight(int myX, int myY, int positionX, int positionY);
+		bool isTileInSight(int myX, int myY, int locationX, int locationY);
+		COLORREF getPlayerCityColor(CPlayer *player, CPlayer *me);
+		COLORREF getPlayerNameColor(CPlayer *player, CPlayer *me);
+		int getPlayerTankImage(CPlayer *player, CPlayer *me);
+		void drawPlayerName(CPlayer *player, CPlayer *me);
+
 	private:
 		CGame *p;
 

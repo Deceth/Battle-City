@@ -5,61 +5,38 @@
 
 class CGame;
 
-class CExplosion
-{
-public:
-	CGame *p;
+class CExplosion {
 
-	int X, Y;
-	int Type;
-	int Animation;
-	float tick;
+	public:
+		CGame *p;
 
-	CExplosion *next;
-	CExplosion *prev;
+		int x;
+		int y;
+		int type;
+		int animation;
+		float tick;
 
-	CExplosion(int X, int Y, int Type, CGame *Game)
-	{
-		p = Game;
-		this->X = X;
-		this->Y = Y;
-		this->Type = Type;
-		this->Animation = 0;
-		this->tick = 0;
+		CExplosion *next;
+		CExplosion *prev;
 
-		prev = 0;
-		next = 0;
-	}
-	~CExplosion()
-	{
-		if (next)
-			next->prev = prev;
-		if (prev)
-			prev->next = next;
-	}
+		CExplosion(int x, int y, int type, CGame *game);
+		~CExplosion();
 };
 
-class CExplosionList
-{
-public:
-	CExplosion *explosions;
 
-	CExplosion *newExplosion(int X, int Y, int Type);
-	CExplosion *delExplosion(CExplosion *del);
+class CExplosionList {
 
-	CExplosionList(CGame *game)
-	{
-		p = game;
-		explosions = 0;
-	}
-	~CExplosionList()
-	{
-		while (explosions)
-			delExplosion(explosions);
-	}
+	public:
+		CExplosion *explosionListHead;
 
-	void Cycle();
-	CGame *p;
+		CExplosion *newExplosion(int X, int Y, int Type);
+		CExplosion *delExplosion(CExplosion *del);
+
+		CExplosionList(CGame *game);
+		~CExplosionList();
+
+		void Cycle();
+		CGame *p;
 };
 
 #endif

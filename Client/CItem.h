@@ -6,93 +6,75 @@
 class CGame;
 class CBullet;
 
-class CItem
-{
-public:
-	CGame *p;
-	CItem(int X, int Y, int Type, int City, unsigned short id, int active, CGame *game);
-	~CItem();
-	int X;
-	int Y;
-	int active;
-	unsigned short id;
-	int Life;
-	int Type;
-	int City;
+class CItem {
 
-	float Angle;
-	char status;
-	char dmg;
-	float lastturn;
-	int target;
-	CBullet *bullet;
+	public:
+		CGame *p;
+		
+		CItem(int X, int Y, int Type, int City, unsigned short id, int active, CGame *game);
+		~CItem();
+		int X;
+		int Y;
+		int active;
+		unsigned short id;
+		int Life;
+		int Type;
+		int City;
 
-	int Animation;
-	float Animationtick;
+		float Angle;
+		char status;
+		char dmg;
+		float lastturn;
+		int target;
+		CBullet *bullet;
 
-	CItem *next;
-	CItem *prev;
+		int Animation;
+		float Animationtick;
+
+		CItem *next;
+		CItem *prev;
 };
 
-class CItemList
-{
-public:
-	CItem *items;
+class CItemList {
 
-	CItem *findItem(unsigned short id);
+	public:
+		CItem *itemListHead;
+		CGame *p;
 
-	CItem *newItem(int X, int Y, int Type, int City, unsigned short id, int active);
-	CItem *delItem(CItem *del);
-	CItem *findItembyLocation(int X, int Y);
-	CItem *findItembyLocationAndType(int X, int Y, int Type);
+		CItem *findItem(unsigned short id);
 
-	CItemList(CGame *game)
-	{
-		p = game;
-		items = 0;
-	}
-	~CItemList()
-	{
-		while (items)
-			delItem(items);
-	}
+		CItem *newItem(int X, int Y, int Type, int City, unsigned short id, int active);
+		CItem *delItem(CItem *del);
+		CItem *findItembyLocation(int X, int Y);
+		CItem *findItembyLocationAndType(int X, int Y, int Type);
+		void deleteItemsByCity(char theCity);
 
-	void DestroyCity(char theCity);
-	void Cycle();
-	CGame *p;
+		CItemList(CGame *game);
+		~CItemList();
+		void Cycle();
 };
 
-class CInventory
-{
-public:
-	CItem *items;
+class CInventory {
 
-	CItem *findItem(unsigned short id);
+	public:
+		CItem *itemListHead;
 
-	CItem *newItem(int X, int Y, int Type, int City, unsigned short id, int active );
-	CItem *delItem(CItem *del);
-	CItem *findItembyType(int Type);
+		CItem *findItem(unsigned short id);
 
-	int SelectedItemType;
+		CItem *newItem(int X, int Y, int Type, int City, unsigned short id, int active );
+		CItem *delItem(CItem *del);
+		CItem *findItembyType(int Type);
 
-	void ItemCheck();
-	void Drop();
+		int SelectedItemType;
 
-	CInventory(CGame *game)
-	{
-		p = game;
-		items = 0;
+		void ItemCheck();
+		void Drop();
 
-		SelectedItemType = 0;
-	}
-	~CInventory()
-	{
-		while (items)
-			delItem(items);
-	}
+		CInventory(CGame *game);
+		~CInventory();
 
-	void Cycle();
-	CGame *p;
+		void Cycle();
+		CGame *p;
 };
 
 #endif

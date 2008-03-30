@@ -204,7 +204,7 @@ struct sSMPlayer
 	char Name[16];
 	char Town[16];
 
-	unsigned char isAdmin;
+	unsigned char playerType;
 	unsigned char Red;
 	unsigned char Green;
 	unsigned char Blue;
@@ -374,7 +374,7 @@ struct sCMAdminEdit
 	int Deaths;
 	int Orbs;
 	int Assists;
-	unsigned char IsAdmin;
+	int playerType;
 	unsigned char Member;
 	unsigned char Red;
 	unsigned char Green;

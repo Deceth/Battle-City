@@ -50,7 +50,7 @@ CInGame::~CInGame()
 void CInGame::Cycle()
 {
 	float curTick = p->Tick;
-	for (int j = 0; j < MaxPlayers; j++)
+	for (int j = 0; j < MAX_PLAYERS; j++)
 	{
 		p->Player[j]->Cycle();
 	}
@@ -166,7 +166,7 @@ void CInGame::PrintWhoData()
 {
 		string Players;
 		int PlayerCount = 0;
-		for (int i = 0; i < MaxPlayers; i++)
+		for (int i = 0; i < MAX_PLAYERS; i++)
 		{
 			if (p->Player[i]->Name.length() > 0)
 			{
@@ -182,14 +182,14 @@ void CInGame::PrintWhoData()
 			}
 		}
 
-		string JoinString;
-		JoinString = "There are ";
 		ostringstream Converter;
+		Converter << "There ";
+		Converter << (PlayerCount == 1 ? "is " : "are ");
 		Converter << PlayerCount;
-		JoinString += Converter.str();
-		JoinString += " other players currently online:  ";
-		JoinString += Players;
-		AppendChat(JoinString, RGB(255, 215, 0));
+		Converter << (PlayerCount == 1 ? " player" : " players");
+		Converter << " currently online:  ";
+		Converter << Players;
+		AppendChat(Converter.str(), RGB(255, 215, 0));
 }
 
 void CInGame::AppendChat(string ChatText, COLORREF color)
@@ -223,8 +223,9 @@ void CInGame::AppendLine(string ChatText, COLORREF color)
 	chatColor8 = color;	
 }
 
-void CInGame::ClearOut()
-{
+void CInGame::ClearOut() {
+	CBuilding *bld;
+
 	p->Draw->ClearDrawing();
 
 	lastTick = 0;
@@ -254,97 +255,62 @@ void CInGame::ClearOut()
 
 	p->Personnel->DenyApplicants = 0;
 
-	for (int i = 0; i < 27; i++)
-	{
+	for (int i = 0; i < 27; i++) {
 		CanBuild[i] = 0;
 	}
 
-	CBuilding *bld = p->Build->buildings;
-	if (bld)
-	{
-		while (bld->prev)
-			bld = bld->prev;
+	// For each building,
+	bld = this->p->Build->buildingListHead;
+	while (bld) {
 
-		while (bld)
-		{
-			if (bld->Type != 6)
-			{
-				p->Build->delBuilding(bld);
-				bld = p->Build->buildings;
-				if (bld)
-				{
-					while (bld->prev)
-						bld = bld->prev;
-				}
-			}
+		// If the city is not a CC, delete it (which gets the next building)
+		if (bld->isCC() == false) {
+			bld = this->p->Build->delBuilding(bld);
+		}
+
+		// Else (didn't delete), get the next building
+		else {
 			bld = bld->next;
 		}
 	}
 
-	CItem *itm = p->Item->items;
-	if (itm)
-	{
-		while (itm->prev)
-			itm = itm->prev;
+	// For each item,
+	while (this->p->Item->itemListHead) {
 
-		while (itm)
-		{
-			p->Item->delItem(itm);
-			itm = p->Item->items;
-			if (itm)
-			{
-				while (itm->prev)
-					itm = itm->prev;
-			}
-		}
+		// Delete the item
+		this->p->Item->delItem(this->p->Item->itemListHead);
 	}
 
-	CExplosion *Xpl = p->Explode->explosions;
-	if (Xpl)
-	{
-		while (Xpl->prev)
-			Xpl = Xpl->prev;
+	// For each explosion,
+	while (this->p->Explode->explosionListHead) {
 
-		while (Xpl)
-		{
-			p->Explode->delExplosion(Xpl);
-			Xpl = p->Explode->explosions;
-			if (Xpl)
-			{
-				while (Xpl->prev)
-					Xpl = Xpl->prev;
-			}
-		}
+		// Delete the explosion
+		this->p->Explode->delExplosion(this->p->Explode->explosionListHead);
 	}
 
-	CBullet *blt = p->Bullet->bullets;
-	if (blt)
-	{
-		while (blt->prev)
-			blt = blt->prev;
+	// For each bullet,
+	while (this->p->Bullet->bulletListHead) {
 
-		while (blt)
-		{
-			blt = p->Bullet->delBullet(blt);
-			if (blt)
-			{
-				while (blt->prev)
-					blt = blt->prev;
-			}
-		}
+		// Delete the bullet
+		this->p->Bullet->delBullet(this->p->Bullet->bulletListHead);
 	}
 
-	while (p->Inventory->items)
-	{
-		p->Inventory->delItem(p->Inventory->items);
+	// For each inventory item,
+	while (this->p->Inventory->itemListHead) {
+
+		// Delete the item
+		this->p->Inventory->delItem(this->p->Inventory->itemListHead);
 	}
 	p->Inventory->SelectedItemType = 0;
 
-	for (int j = 0; j < MaxPlayers; j++)
-	{
+	// For each possible player,
+	for (int j = 0; j < MAX_PLAYERS; j++) {
+
+		// Clear the player from the game
 		p->Player[j]->InGameClear();
 	}
 
+	// Clear all sectors
 	p->InGame->ClearAllSectors();
 }
 
@@ -464,64 +430,44 @@ void CInGame::RefreshArea() {
  * @param SectorY the Y position of the sector
  **************************************************************/
 void CInGame::ClearSector(int SectorX, int SectorY) {
+	CBuilding *bld;
+	CItem *itm;
 
 	// If the sector is on the map, and the minimap is not open,
 	if (SectorX >= 0 && SectorY >= 0 && SectorX <= MaxSectors && SectorY <= MaxSectors && p->InGame->ShowMap == 0) {
 		p->InGame->HasSector[SectorX][SectorY] = 0;
 		p->InGame->RequestedSector[SectorX][SectorY] = false;
 
-		CItem *itm = p->Item->items;
-		if (itm) {
-			while (itm->prev) {
-				itm = itm->prev;
+		// For each item,
+		itm = p->Item->itemListHead;
+		while (itm) {
+
+			// If the item is in the sector,
+			if ((itm->X / SectorSize) == SectorX && (itm->Y / SectorSize) == SectorY) {
+
+				// Delete the item (from the client)
+				itm = p->Item->delItem(itm);
 			}
 
-			// For each item,
-			while (itm) {
-
-				// If the item is in the sector,
-				if ((itm->X / SectorSize) == SectorX && (itm->Y / SectorSize) == SectorY) {
-
-					// Delete the item (from the client)
-					p->Item->delItem(itm);
-					itm = p->Item->items;
-
-					if (!itm) {
-						break;
-					}
-					while (itm->prev) {
-						itm = itm->prev;
-					}
-				}
-
-				// Get the next item
+			// Else (item not in the sector), get the next item
+			else {
 				itm = itm->next;
 			}
 		}
 
-		CBuilding *bld = p->Build->buildings;
-		if (bld) {
-			while (bld->prev) {
-				bld = bld->prev;
+		// For each building,
+		bld = p->Build->buildingListHead;
+		while (bld) {
+
+			// If the building is in the sector (and not a CC),
+			if ((bld->X / SectorSize) == SectorX && (bld->Y / SectorSize) == SectorY && bld->Type != 6) {
+
+				// Delete the item (from the client)
+				bld = p->Build->delBuilding(bld);
 			}
 
-			// For each building,
-			while (bld) {
-
-				// If the building is in the sector (and not a CC),
-				if ((bld->X / SectorSize) == SectorX && (bld->Y / SectorSize) == SectorY && bld->Type != 6) {
-
-					// Delete the item (from the client)
-					p->Build->delBuilding(bld);
-					
-					bld = p->Build->buildings;
-					if (!bld) {
-						break;
-					}
-					while (bld->prev) {
-						bld = bld->prev;
-					}
-				}
+			// Else (building is not in the sector),
+			else {
 
 				// Get the next building
 				bld = bld->next;
@@ -535,55 +481,33 @@ void CInGame::ClearSector(int SectorX, int SectorY) {
  *
  **************************************************************/
 void CInGame::ClearAllSectors() {
+	CBuilding *bld;
+	CItem *itm;
+
 	memset(HasSector, 0, sizeof(HasSector));
 	memset(RequestedSector, 0, sizeof(RequestedSector));
 
-	CItem *itm = p->Item->items;
-	if (itm) {
-		while (itm->prev) {
-			itm = itm->prev;
-		}
+	// For each item,
+	itm = p->Item->itemListHead;
+	while (itm) {
 
-		// For each item,
-		while (itm) {
-
-			// Delete the item (from the client)
-			p->Item->delItem(itm);
-			itm = p->Item->items;
-			if (!itm) {
-				break;
-			}
-			while (itm->prev) {
-				itm = itm->prev;
-			}
-
-			// Get the next item
-			itm = itm->next;
-		}
+		// Delete the item (from the client)
+		itm = p->Item->delItem(itm);
 	}
 
-	CBuilding *bld = p->Build->buildings;
-	if (bld) {
-		while (bld->prev) {
-			bld = bld->prev;
+	// For each building,
+	bld = p->Build->buildingListHead;
+	while (bld) {
+
+		// If the is not a CC,
+		if (bld->isCC() == false) {
+
+			// Delete the building (from the client)
+			bld = p->Build->delBuilding(bld);
 		}
 
-		// For each building,
-		while (bld) {
-
-			// If the is not a CC,
-			if (bld->Type != 6) {
-
-				// Delete the building (from the client)
-				p->Build->delBuilding(bld);
-				bld = p->Build->buildings;
-				if (!bld) {
-					break;
-				}
-				while (bld->prev) {
-					bld = bld->prev;
-				}
-			}
+		// Else (building is not in the sector),
+		else {
 
 			// Get the next building
 			bld = bld->next;

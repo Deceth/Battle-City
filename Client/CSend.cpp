@@ -122,7 +122,7 @@ void CSend::SendWhisper() {
 			recipientName = recipient;
 
 			// Loop through the players, looking for the recipient
-			for (int i = 0; i < MaxPlayers; i++) {
+			for (int i = 0; i < MAX_PLAYERS; i++) {
 				
 				// If the player isn't the person sending the whisper,
 //				if (i != p->Winsock->MyIndex ) {
@@ -201,7 +201,7 @@ void CSend::SendMessage() {
 	
 	// Append the message to the sender's chat
 	// If sent by ADMIN player, show Admin color
-	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+	if (p->Player[p->Winsock->MyIndex]->isAdmin()) {
 		p->InGame->AppendChat(tmpString, RGB(255, 165, 0));
 	}
 	// Else, if sent by DEAD player, show Dead color

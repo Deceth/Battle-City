@@ -5,77 +5,79 @@
 
 class CGame;
 
-class CPlayer
-{
-private:
-	CGame *p;
-protected:
-public:
-	int isMoving;
-	float timeMove;
-	int isTurning;
-	float timeTurn;
-	int Direction;
-	float X;
-	float Y;
-	int SectorX;
-	int SectorY;
+class CPlayer {
 
-	char City;
-	int CityX;
-	int CityY;
+	public:
+		int isMoving;
+		float timeMove;
+		int isTurning;
+		float timeTurn;
+		int Direction;
+		float X;
+		float Y;
+		int SectorX;
+		int SectorY;
 
-	int HP;
-	int refHP1;
-	int refHP2;
+		char City;
+		int CityX;
+		int CityY;
 
-	int Points;
-	int Orbs;
-	int Deaths;
-	int Assists;
-	int MonthlyPoints;
-	char isMayor;
-	char isShooting;
-	char isFrozen;
-	char isLagging;
-	char isInGame;
-	bool isDead;
-	float timeFrozen;
+		int HP;
+		int refHP1;
+		int refHP2;
 
-	char isAdmin;
-	bool RainbowName;
-	unsigned char Red;
-	unsigned char Green;
-	unsigned char Blue;
-	unsigned char Member;
-	unsigned char Tank;
-	unsigned char Tank2;
-	unsigned char Tank3;
-	unsigned char Tank4;
+		int Points;
+		int Orbs;
+		int Deaths;
+		int Assists;
+		int MonthlyPoints;
+		char isMayor;
+		char isShooting;
+		char isFrozen;
+		char isLagging;
+		char isInGame;
+		bool isDead;
+		float timeFrozen;
 
-	string Name;
-	string NameString;
-	string Town;
-	string TownString;
+		char playerType;
+		bool RainbowName;
+		unsigned char Red;
+		unsigned char Green;
+		unsigned char Blue;
+		unsigned char Member;
+		unsigned char Tank;
+		unsigned char Tank2;
+		unsigned char Tank3;
+		unsigned char Tank4;
 
-	float lastUpdate;
+		string Name;
+		string NameString;
+		string Town;
+		string TownString;
 
-	unsigned short id;
+		float lastUpdate;
 
-	void Cycle();
+		unsigned short id;
 
-	void InGameClear();
-	void ClearPlayer();
-	void RelocatePlayer();
-	void GenerateNameString();
+		void Cycle();
 
-	void SetHP(int HP);
+		void InGameClear();
+		void ClearPlayer();
+		void RelocatePlayer();
+		void GenerateNameString();
+		bool isAdmin();
 
-	void HitMine();
-	void HitDFG();
+		void SetHP(int HP);
 
-	CPlayer(CGame *game, int initid);
-	virtual ~CPlayer();
+		void HitMine();
+		void HitDFG();
+
+		CPlayer(CGame *game, int initid);
+		virtual ~CPlayer();
+
+	private:
+		CGame *p;
+
 };
 
 #endif

@@ -1,264 +1,403 @@
 #include "CBullet.h"
 
-CBullet *CBulletList::newBullet(int x, int Y, int Type, int Angle, int Owner)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	CBullet *blt = bullets;
+/***************************************************************
+* Constructor:	CBullet
+*
+* @param x
+* @param y
+* @param type
+* @param angle
+* @param owner
+* @param game
+**************************************************************/
+CBullet::CBullet(int x, int y, int type, int angle, unsigned short owner, CGame *game) {
+	this->p = game;
+	this->owner = owner;
+	this->x = (float)x;
+	this->y = (float)y;
+	this->type = type;
+	this->animation = 0;
+	this->angle = angle;
+	this->prev = 0;
+	this->next = 0;
 
-	if (!blt)
-	{
-		bullets = new CBullet(x, Y, Type, Angle, Owner, p);
-		return bullets;
-	}
-	else
-	{
-		while(blt->next)
-			blt = blt->next;
-		blt->next = new CBullet(x, Y, Type, Angle, Owner, p);
-		blt->next->prev = blt;
-		return blt->next;
+	// Owner: TURRET
+	if (this->type > 2)  {
+		this->turretId = this->owner;
+		this->type -= 3;
 	}
 
-	return 0;
-
-#ifndef _DEBUG
+	// Owner: PLAYER
+	else {
+		this->turretId = 0;
 	}
-	catch (...) {p->Winsock->SendData(cmCrash, "NewBullet"); p->Engine->logerror("NewBullet"); return 0;}
-#endif
+
+	/***************************************************************
+	* Life, Damage
+	**************************************************************/
+
+	// Type: LASER
+	if (this->type == 0) {
+		this->life = 260;
+		this->damage = 5;
+	}
+
+	// Type: GREEN, ZOOK, SLEEPER
+	else if (this->type == 1) {
+		this->life = 340;
+		this->damage = 8;
+	}
+
+	// Type: PLASMA
+	else if (this->type == 2) {
+		this->life = 340;
+		this->damage = 12;
+	}
 }
 
-void CBulletList::Cycle()
-{
+/***************************************************************
+* Destructor: CBullet
+*
+**************************************************************/
+CBullet::~CBullet() {
+}
+
+
+
+
+/***************************************************************
+* Constructor:	CBulletList
+*
+* @param game
+**************************************************************/
+CBulletList::CBulletList(CGame *game) {
+	this->p = game;
+	this->bulletListHead = 0;
+}
+
+/***************************************************************
+* Destructor:	CBulletList
+*
+**************************************************************/
+CBulletList::~CBulletList() {
+	while (this->bulletListHead) {
+		this->delBullet(this->bulletListHead);
+	}
+}
+
+/***************************************************************
+ * Function:	newBullet
+ *
+ * @param x
+ * @param y
+ * @param type
+ * @param angle
+ * @param owner
+ **************************************************************/
+CBullet *CBulletList::newBullet(int x, int y, int type, int angle, int owner) {
+	CBullet *blt = new CBullet(x, y, type, angle, owner, p);
+
+	// If there are other bullets,
+	if (this->bulletListHead) {
+
+		// Tell the current head the new bullet is before it
+		this->bulletListHead->prev = blt;
+		blt->next = this->bulletListHead;
+	}
+
+	// Add the new bullet as the new head
+	this->bulletListHead = blt;
+
+	// Return a pointer to the new bullet
+	return blt;
+}
+
+/***************************************************************
+ * Function:	cycle
+ *
+ **************************************************************/
+void CBulletList::Cycle() {
 	float tick = p->Tick;
-
-	CBullet *blt = bullets;
-
-#ifndef _DEBUG
-	try {
-#endif
-
+	CBullet *blt;
 	Rect rp, rb;
 	rb.w = 4;
 	rb.h = 4;
 	int me = p->Winsock->MyIndex;
-	if (!blt)
-		return;
+	CBuilding *bld;
+	CItem *itm;
+	float fDir;
+	float MoveY;
+	float MoveX;
+	char dmg = 0;
+	char deathPacket[3];
 
-	while (blt->prev)
-		blt = blt->prev;
+	// For each bullet,
+	blt = this->bulletListHead;
+	while (blt) {
 
-	while (blt)
-	{
-		float fDir = (float)-blt->Angle+32;
-		float MoveY = (float)(cos((float)(fDir)/16*3.14)) * (p->TimePassed * 0.80f);
-		float MoveX = (float)(sin((float)(fDir)/16*3.14)) * (p->TimePassed * 0.80f);
-		if (MoveX > 20) MoveX = 20;
-		if (MoveY > 20) MoveY = 20;
+		// Calculate direction and movement values
+		fDir = (float)-blt->angle+32;
+		MoveY = (float)(cos((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_BULLET);
+		MoveX = (float)(sin((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_BULLET);
+		if (MoveX > 20) {
+			MoveX = 20;
+		}
+		if (MoveY > 20) {
+			MoveY = 20;
+		}
 
-		blt->Y += MoveY;
-		blt->X += MoveX;
+		blt->y += MoveY;
+		blt->x += MoveX;
 
-		blt->Life -= (p->TimePassed * 0.80f);
+		// Calculate "bullet life" based on time
+		blt->life -= (p->TimePassed * MOVEMENT_SPEED_BULLET);
 
-		if (blt->X < 0)	{blt->X = 0; blt->Life = -1;}
-		if (blt->Y < 0)	{blt->Y = 0; blt->Life = -1;}
-		if (blt->X > 24576)	{blt->X = 0; blt->Life = -1;}
-		if (blt->Y > 24576)	{blt->Y = 0; blt->Life = -1;}
+		// If the bullet is off the screen, kill it
+		if ((blt->x < 0) || (blt->x > 24576)) {
+			blt->x = 0;
+			blt->life = -1;
+		}
+		if ((blt->y < 0) || (blt->y > 24576))	{
+			blt->y = 0;
+			blt->life = -1;
+		}
 
-		rb.X = (long)blt->X;
-		rb.Y = (long)blt->Y;
+		// Set rectangles for collision measurements
+		rb.X = (long)blt->x;
+		rb.Y = (long)blt->y;
 		rp.w = 48;
 		rp.h = 48;
 
-		if (blt->TurretID == 0 && p->Player[blt->Owner]->isAdmin == 2) 
-		{
-			switch(blt->Type)
-			{
-			case 1:
-				 p->Explode->newExplosion((int)blt->X+24, (int)blt->Y+24, 1);
-				 break;
-			case 2:
-				 p->Explode->newExplosion((int)blt->X+72, (int)blt->Y+72, 2);
-				 break;
-			case 3:
-				 p->Explode->newExplosion((int)blt->X+2, (int)blt->Y+2, 3);
-				 break;
+
+		// Bullet: ADMIN
+		if (blt->turretId == 0 && p->Player[blt->owner]->isAdmin()) {
+
+			// Switch on bullet type
+			switch(blt->type) {
+
+				// Type: 1
+				case 1:
+					 p->Explode->newExplosion((int)blt->x+24, (int)blt->y+24, 1);
+					 break;
+
+				// Type: 2
+				case 2:
+					 p->Explode->newExplosion((int)blt->x+72, (int)blt->y+72, 2);
+					 break;
+
+				// Type: 3
+				case 3:
+					 p->Explode->newExplosion((int)blt->x+2, (int)blt->y+2, 3);
+					 break;
 			}
 		}
 
-		for (int pl = 0; pl < MaxPlayers; pl++)
-		{
-			if (p->Player[pl]->isInGame && pl != blt->Owner)
-			{
-				if (p->Player[pl]->isDead == true)
-				{
+		/***************************************************************
+		 * Players
+		 **************************************************************/
+		// If the bullet has life left,
+		if (blt->life > 0) {
 
-				}
-				else
-				{
- 					rp.X = (long)p->Player[pl]->X-48;
+			// For each possible player,
+			for (int pl = 0; pl < MAX_PLAYERS; pl++) {
+
+				// If the player is in game, didn't shoot the bullet, and is alive,
+				if ((p->Player[pl]->isInGame) && (pl != blt->owner) && (p->Player[pl]->isDead == false)) {
+
+					// If the bullet hit the player,
+					rp.X = (long)p->Player[pl]->X-48;
 					rp.Y = (long)p->Player[pl]->Y-48;
-					if (p->Collision->RectCollision(rp,rb))
-					{
-						blt->Life = -1;
-						if (pl == p->Winsock->MyIndex && p->Player[pl]->isAdmin != 2)
-						{
-							char dmg = 0;
-							switch (blt->Type)
-							{
-								case 0:
-									dmg = 5;
-									break;
-								case 1:
-									dmg = 8;
-									break;
-								case 2:
- 									dmg = 12;
-									break;
-							}
-							if (p->Player[pl]->HP <= dmg || (blt->TurretID == 0 && p->Player[blt->Owner]->isAdmin == 2))
-							{
-								char packet[3];
-								if (blt->TurretID == 0)
-								{
-									packet[0] = p->Player[blt->Owner]->City;
+					if (p->Collision->RectCollision(rp,rb)) {
+
+						// Kill the bullet
+						blt->life = -1;
+						
+						// If the player is me, and I'm not an admin,
+						if ((pl == p->Winsock->MyIndex) && (p->Player[pl]->isAdmin() == false)) {
+
+							// Subtract health, play hit wav
+							p->Sound->PlayWav(sHit, 13);
+							p->Player[pl]->SetHP(p->Player[pl]->HP - blt->damage);
+
+							// If the bullet will kill me,
+							if (p->Player[pl]->HP <= 0) {
+//							if (p->Player[pl]->HP <= 0 || (blt->turretId == 0 && p->Player[blt->owner]->isAdmin())) {
+								
+								// Owner: PLAYER
+								if (blt->turretId == 0) {
+
+									// Set deathPacket[0] to the shooter's city
+									deathPacket[0] = p->Player[blt->owner]->City;
 								}
-								else
-								{
-									CItem *itm = p->Item->findItem(blt->TurretID);
-									if (itm)
-									{
-										packet[0] = itm->City;
+
+								// Owner: TURRET
+								else {
+
+									// Find the item, find its city, set deathPacket[0] to the turret's city
+									itm = p->Item->findItem(blt->turretId);
+									if (itm) {
+										deathPacket[0] = itm->City;
 									}
 								}
-								packet[1] = 0;
+
+								// Send the death packet
+								deathPacket[1] = 0;
 								p->Player[p->Winsock->MyIndex]->isDead = true;
 								p->InGame->timeDeath = p->Tick;
-								p->Winsock->SendData(cmDeath, packet, 1);
+								p->Winsock->SendData(cmDeath, deathPacket, 1);
 								p->Sound->PlayWav(sDie, 5);
 							}
-							p->Player[pl]->SetHP(p->Player[pl]->HP - dmg);
-							p->Sound->PlayWav(sHit, 13);
 						}
 					}
 				}
 			}
 		}
 
-		CItem *itm = p->Item->items;
-		if (itm)
-			while(itm->prev)
-				itm = itm->prev;
+		/***************************************************************
+		 * Items
+		 **************************************************************/
+		// If the bullet has life left,
+		if (blt->life > 0) {
 
-		while (itm)
-		{
-			rp.X = itm->X * 48 - 48;
-			rp.Y = itm->Y * 48 - 48;
-			if (p->Collision->RectCollision(rp,rb) && itm->id != blt->TurretID)
-			{
-				if (blt->TurretID > 0)
-				{
-					if (itm->active && itm->Type >= 8)
-					{
-						blt->Life = -1;
-						if ((abs(blt->X - p->Player[me]->X) < 1000) && (abs(blt->Y - p->Player[me]->Y) < 1000))
-						{
-							p->Explode->newExplosion((int)blt->X+24, (int)blt->Y+24, 1);
-							p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->X, blt->Y);
+			// For each item,
+			itm = p->Item->itemListHead;
+			while (itm) {
+
+				// Set the collision rectangle for the item
+				rp.X = itm->X * 48 - 48;
+				rp.Y = itm->Y * 48 - 48;
+
+				// If the bullet hit the item other than its owner
+				if (p->Collision->RectCollision(rp,rb) && itm->id != blt->turretId) {
+
+					// Owner: TURRET
+					if (blt->turretId > 0) {
+
+						// If the item is active and type >= 8 (collision)
+						if (itm->active && itm->Type >= 8) {
+
+							// Kill the bullet
+							blt->life = -1;
+
+							// If I am within range, play a sound, break
+							if ((abs(blt->x - p->Player[me]->X) < 1000) && (abs(blt->y - p->Player[me]->Y) < 1000)) {
+								p->Explode->newExplosion((int)blt->x+24, (int)blt->y+24, 1);
+								p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->x, blt->y);
+							}
+							break;
+						}
+					}
+
+					// Owner: PLAYER
+					else {
+
+						// Kill the bullet
+						blt->life = -1;
+
+						// If I am within range, play a sound, break
+						if ((abs(blt->x - p->Player[me]->X) < 1000) && (abs(blt->y - p->Player[me]->Y) < 1000)) {
+							p->Explode->newExplosion((int)blt->x+24, (int)blt->y+24, 1);
+							p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->x, blt->y);
 						}
 						break;
 					}
 				}
-				else
-				{
-					blt->Life = -1;
-					if ((abs(blt->X - p->Player[me]->X) < 1000) && (abs(blt->Y - p->Player[me]->Y) < 1000))
-					{
-						p->Explode->newExplosion((int)blt->X+24, (int)blt->Y+24, 1);
-						p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->X, blt->Y);
-					}
-					break;
-				}
+
+				// Get the next item
+				itm = itm->next;
 			}
-			itm = itm->next;
 		}
 
-		CBuilding *bld = p->Build->buildings;
-		if (bld)
-			while(bld->prev)
-				bld = bld->prev;
+		/***************************************************************
+		 * Buildings
+		 **************************************************************/
+		// For each building,
+		bld = p->Build->buildingListHead;
+		while (bld) {
 
-		while (bld)
-		{
+			// Set up rectangle for collision measurement
 			rp.X = (bld->X-3)*48;
 			rp.Y = (bld->Y-3)*48;
 			rp.w = 144;
 			rp.h = 144;
-			if (bld->Type / 100 <= 2)
-			{
+
+			// If the building is a Factory or Hospital (anything with a bay?),
+			if (bld->Type / 100 <= 2) {
 				rp.Y = (bld->Y-2)*48;
 				rp.h = 96;
 			}
-			if (p->Collision->RectCollision(rp,rb))
-			{
-				blt->Life = -1;
-				if ((abs(blt->X - p->Player[me]->X) < 1000) && (abs(blt->Y - p->Player[me]->Y) < 1000))
-				{
-					p->Explode->newExplosion((int)blt->X+24, (int)blt->Y+24, 1);
-					p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->X, blt->Y);
+
+			// If the bullet hits a building,
+			if (p->Collision->RectCollision(rp,rb)) {
+
+				// Kill the bullet
+				blt->life = -1;
+
+				// If I am within range, play a sound, break
+				if ((abs(blt->x - p->Player[me]->X) < 1000) && (abs(blt->y - p->Player[me]->Y) < 1000)) {
+					p->Explode->newExplosion((int)blt->x+24, (int)blt->y+24, 1);
+					p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->x, blt->y);
 				}
+				break;
 			}
+
+			// Get the next building
 			bld = bld->next;
 		}
 
-		if (p->Map->map[(int)(blt->X+48)/48][(int)(blt->Y+48)/48] == 2) 
-		{
-			if ((abs(blt->X - p->Player[me]->X) < 1000) && (abs(blt->Y - p->Player[me]->Y) < 1000))
-			{
-				p->Explode->newExplosion((int)blt->X+24, (int)blt->Y+24, 1);
-				p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->X, blt->Y);
+
+
+		/***************************************************************
+		 * Rocks
+		 **************************************************************/
+		if (p->Map->map[(int)(blt->x+48)/48][(int)(blt->y+48)/48] == 2)  {
+
+			// Kill the bullet
+			blt->life = -1;
+
+			// If I am within range, play a sound, break
+			if ((abs(blt->x - p->Player[me]->X) < 1000) && (abs(blt->y - p->Player[me]->Y) < 1000)) {
+				p->Explode->newExplosion((int)blt->x+24, (int)blt->y+24, 1);
+				p->Sound->Play3dSound(p->Sound->s_eXplode, 100, blt->x, blt->y);
 			}
-			blt->Life = -1;
 		}
 		
-		if (blt->Life < 0)
-		{ 
+		// If the bullet is now dead, delete the bullet
+		if (blt->life < 0) { 
 			blt = delBullet(blt);
 		}
-		else
-		{
+		// Else (didn't delete the bullet), get the next bullet
+		else {
 			blt = blt->next;
 		}
 	}
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "BulletCycle"); p->Engine->logerror("BulletCycle"); if (blt) delBullet(blt);}
-#endif
 }
 
-CBullet *CBulletList::delBullet(CBullet *del)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	if (!bullets)
-		return 0;
-	if (del->prev)
-		bullets = del->prev;
-	else if (del->next)
-		bullets = del->next;
-	else
-		bullets = 0;
 
+/***************************************************************
+ * Function:	delBullet
+ *
+ **************************************************************/
+CBullet *CBulletList::delBullet(CBullet *del) {
+	CBullet *returnBullet = del->next;
+
+	// If bullet has a next, tell that next to skip this over node
+	if (del->next) {
+		del->next->prev = del->prev;
+	}
+
+	// If bullet has a prev, tell that prev to skip this over node
+	if (del->prev) {
+		del->prev->next = del->next;
+	}
+	// Else (bullet has no prev), bullet is head, point head to next node
+	else {
+		this->bulletListHead = del->next;
+	}
+	
+	// Delete the bullet
 	delete del;
 	
-	return bullets;
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "delBullet"); p->Engine->logerror("delBullet");}
-#endif
-};
+	// Return what was del->next
+	return returnBullet;
+}

@@ -1,253 +1,306 @@
 #include "CBuilding.h"
 
-CBuilding *CBuildingList::findBuilding(unsigned short id)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	CBuilding *bld = buildings;
-	if (!bld)
-		return 0;
+/***************************************************************
+ * Constructor:	CBuilding
+ *
+ * @param X
+ * @param Y
+ * @param Type
+ * @param City
+ * @param id
+ * @param Game
+ **************************************************************/
+CBuilding::CBuilding(unsigned short X, unsigned short Y, int Type, unsigned char City, unsigned short id, CGame *Game) {
+	this->p = Game;
+	this->City = City;
+	this->X = X;
+	this->Y = Y;
+	this->Type = Type;
+	this->pop = 0;
+	this->Animation = rand()%6;
+	this->timeAnimation = 0;
+	this->Smoke = 0;
+	this->timeSmoke = 0;
+	this->id = id;
+	this->ItemsLeft = 0;
 
-	while (bld->prev)
-		bld = bld->prev;
+	this->prev = 0;
+	this->next = 0;
+}
 
-	while (bld)
-	{
-		if (bld->id == id)
+/***************************************************************
+ * Destructor:	CBuilding
+ *
+ **************************************************************/
+CBuilding::~CBuilding() {
+}
+
+/***************************************************************
+ * Function:	isCC
+ *
+ * @return Returns true if this building is a CC
+ **************************************************************/
+bool CBuilding::isCC() {
+	return this->isCC(this->Type);
+}
+/***************************************************************
+ * Function:	isCC
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a CC
+ **************************************************************/
+bool CBuilding::isCC(int buildingType) {
+	return (buildingType / 100 == 0);
+}
+
+
+
+
+/***************************************************************
+ * Constructor:	CBuildingList
+ *
+ * @param game
+ **************************************************************/
+CBuildingList::CBuildingList(CGame *game) {
+	this->p = game;
+	this->buildingListHead = 0;
+}
+
+/***************************************************************
+ * Destructor:	CBuildingList
+ *
+ **************************************************************/
+CBuildingList::~CBuildingList() {
+	while (this->buildingListHead)
+		this->delBuilding(this->buildingListHead);
+}
+
+/***************************************************************
+ * Constructor:	findBuilding
+ *
+ * @param id
+ **************************************************************/
+CBuilding *CBuildingList::findBuilding(unsigned short id) {
+	CBuilding *bld = this->buildingListHead;
+
+	// For each building,
+	while (bld) {
+
+		// If the building matches the id, return it
+		if (bld->id == id) {
 			return bld;
+		}
+
+		// Else, get the next building
 		bld = bld->next;
 	}
-	return 0;
 
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "findBuilding"); p->Engine->logerror("findBuilding");}
-#endif
+	// Return 0
+	return 0;
 }
 
-CBuilding *CBuildingList::findBuildingbyLocation(int X, int Y)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	CBuilding *bld = buildings;
-	if (!bld)
-		return 0;
+/***************************************************************
+ * Constructor:	findBuildingbyLocation
+ *
+ * @param X
+ * @param Y
+ **************************************************************/
+CBuilding *CBuildingList::findBuildingbyLocation(int X, int Y) {
+	CBuilding *bld = this->buildingListHead;
 
-	while (bld->prev)
-		bld = bld->prev;
+	// For each building,
+	while (bld) {
 
-	while (bld)
-	{
-		if (bld->X == X && bld->Y == Y)
+		// If the building matches the X and Y, return it
+		if (bld->X == X && bld->Y == Y) {
 			return bld;
+		}
+
+		// Else, get the next building
 		bld = bld->next;
 	}
+
+	// Return 0
 	return 0;
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "findBuildingbyLocation"); p->Engine->logerror("findBuildingbyLocation");}
-#endif
 }
 
-CBuilding *CBuildingList::newBuilding(unsigned short X, unsigned short Y, unsigned char City, int Type, unsigned short id)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	CBuilding *bld = 0;
+/***************************************************************
+ * Constructor:	newBuilding
+ *
+ * @param X
+ * @param Y
+ * @param City
+ * @param Type
+ * @param id
+ **************************************************************/
+CBuilding *CBuildingList::newBuilding(unsigned short X, unsigned short Y, unsigned char City, int Type, unsigned short id) {
+	CBuilding *bld;
 
-	if (id > 0)
-	{
-		bld = findBuilding(id);
-		if (bld) return 0;
+	// If the id is over 0,
+	if (id > 0) {
+
+		// If the id is already in use, return 0
+		bld = this->findBuilding(id);
+		if (bld) {
+			return 0;
+		}
 	}
 
-	bld = buildings;
+	// Create the building
+	bld = new CBuilding(X, Y, Type, City, id, this->p);
 
-	if (!bld)
-	{
-		buildings = new CBuilding(X, Y, Type, City, id, p);
-		return buildings;
-	}
-	else
-	{
-		while(bld->next)
-			bld = bld->next;
-		bld->next = new CBuilding(X, Y, Type, City, id, p);
-		bld->next->prev = bld;
-		return bld->next;
+	// If there are other buildings,
+	if (this->buildingListHead) {
+
+		// Tell the current head the new building is before it
+		this->buildingListHead->prev = bld;
+		bld->next = this->buildingListHead;
 	}
 
-	return 0;
+	// Add the new building as the new head
+	this->buildingListHead = bld;
 
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "newBuilding"); p->Engine->logerror("newBuilding"); return 0;}
-#endif
+	// Return a pointer to the new building
+	return bld;
 }
 
-void CBuildingList::Cycle()
-{
-#ifndef _DEBUG
-	try {
-#endif
+/***************************************************************
+ * Constructor:	Cycle
+ *
+ **************************************************************/
+void CBuildingList::Cycle() {
 	int me = p->Winsock->MyIndex;
 	float curTick = p->Tick;
+	CBuilding *bld = this->buildingListHead;
 
-	CBuilding *bld = buildings;
-	if (!bld)
-		return;
+	// For each building,
+	while (bld) {
 
-	while (bld->prev)
-		bld = bld->prev;
+		// If the Animation Timer is up,
+		if (curTick > bld->timeAnimation) {
 
-	while (bld)
-	{
-		if (curTick > bld->timeAnimation)
-		{
-			bld->Animation++; if (bld->Animation > 5) bld->Animation = 0;
+			// Cycle the Animation
+			bld->Animation++;
+			if (bld->Animation > 5) {
+				bld->Animation = 0;
+			}
+
+			// Reset the Animation timer
 			bld->timeAnimation = curTick + 500;
 		}
-		if (bld->Smoke > 0)
-		{
-			if (curTick > bld->timeSmoke)
-			{
+
+		// If the building is smoking,
+		if (bld->Smoke > 0) {
+
+			// If the Smoke timer is up,
+			if (curTick > bld->timeSmoke) {
+
+				// Cycle the smoke
 				bld->Smoke++; 
-				if (bld->Smoke > 5) 
-				{
-					if (bld->ItemsLeft > 0) bld->Smoke = 1; else bld->Smoke = 0;
+				if (bld->Smoke > 5) {
+					if (bld->ItemsLeft > 0)  {
+						bld->Smoke = 1;
+					}
+					else  {
+						bld->Smoke = 0;
+					}
 				}
+
+				// Reset the Smoke timer
 				bld->timeSmoke = curTick + 500;
 			}
 		}
-		else if (bld->ItemsLeft > 0) bld->Smoke = 1;
+
+		// Else if building isn't smoking, but building now has items left,
+		else if (bld->ItemsLeft > 0)  {
+
+			// Set Smoking on
+			bld->Smoke = 1;
+		}
+
+		// Get the next building
 		bld = bld->next;
 	}
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "Building-Cycle"); p->Engine->logerror("Building-Cycle");}
-#endif
 }
 
-CBuilding *CBuildingList::delBuilding(CBuilding *del)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	if (!buildings)
-		return 0;
-	if (del->prev)
-		buildings = del->prev;
-	else if (del->next)
-		buildings = del->next;
-	else
-		buildings = 0;
+/***************************************************************
+ * Constructor:	delBuilding
+ *
+ * @param del
+ **************************************************************/
+CBuilding *CBuildingList::delBuilding(CBuilding *del) {
+	CBuilding *returnBuilding = del->next;
 
+	// If building has a next, tell that next to skip this over node
+	if (del->next) {
+		del->next->prev = del->prev;
+	}
+
+	// If building has a prev, tell that prev to skip this over node
+	if (del->prev) {
+		del->prev->next = del->next;
+	}
+	// Else (building has no prev), building is head, point head to next node
+	else {
+		this->buildingListHead = del->next;
+	}
+	
+	// Delete the building
 	delete del;
 	
-	return buildings;
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "delBuilding"); p->Engine->logerror("delBuilding");}
-#endif
-};
-
-void CBuildingList::DestroyCity(char theCity)
-{
-#ifndef _DEBUG
-	try {
-#endif
-	CBuilding *bld = this->buildings;
-	if (!bld)
-		return;
-
-	while (bld->prev)
-		bld = bld->prev;
-
-	while (bld)
-	{
-		if (bld->City == theCity && bld->Type != 6)
-		{
-			delBuilding(bld);
-			bld = this->buildings;
-			if (!bld)
-				return;
-			while (bld->prev)
-				bld = bld->prev;
-		}
-		bld = bld->next;
-	}
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "Building:DestroyCity"); p->Engine->logerror("Building-DestroyCity");}
-#endif
+	// Return what was del->next
+	return returnBuilding;
 }
-/*Old inRange
-int CBuildingList::inRange()
-{
-#ifndef _DEBUG
-	try {
-#endif
-	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) return 1;
 
-	CBuilding *bld = buildings;
-	if (!bld)
-		return 0;
+/***************************************************************
+ * Function:	deleteBuildingsByCity
+ *
+ * @param city
+ **************************************************************/
+void CBuildingList::deleteBuildingsByCity(int city) {
+	CBuilding *bld = this->buildingListHead;
 
-	while (bld->prev)
-		bld = bld->prev;
+	// For each building in the linked list,
+	while (bld) {
 
-	while (bld)
-	{
-		if (bld->City == p->Player[p->Winsock->MyIndex]->City)
-		{
-			if ((abs((bld->X*48) - p->Player[p->Winsock->MyIndex]->X) < 500) && (abs((bld->Y*48) - p->Player[p->Winsock->MyIndex]->Y) < 500))
-			{
-				return 1;
-			}
+		// If the building belongs to this city, and building isn't a CC,
+		if ((bld->City == city) && (bld->isCC() == false)) {
+
+			// Delete the building and move the pointer to the next item in the linked list
+			bld = this->delBuilding(bld);
 		}
-		bld = bld->next;
+		// Else (building belongs to other city),
+		else {
+
+			// Move the pointer to the next building in the linked list
+			bld = bld->next;
+		}
 	}
+}
 
-	return 0;
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "Building:inRange"); p->Engine->logerror("Building:inRange");}
-#endif
-}*/
-
+/***************************************************************
+ * Function:	inRange
+ *
+ **************************************************************/
 int CBuildingList::inRange() {
+	CBuilding *bld;
 
 	// If the player is an admin, return 1
-	if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+	if (p->Player[p->Winsock->MyIndex]->isAdmin()) {
 		return 1;
 	}
 
-	// Else, normal player...
+	// Else, normal player,
 
-	CBuilding *bld = buildings;
-
-	// If there are no buildings, return 0
-	if (!bld) {
-		return 0;
-	}
-
-	// Move the pointer to the first building in the linked list
-	while (bld->prev) {
-		bld = bld->prev;
-	}
-
-	// For each building in the list,
+	// For each building,
+	bld = this->buildingListHead;
 	while (bld) {
 
 		// If the building belongs to the builder's city,
 		if (bld->City == p->Player[p->Winsock->MyIndex]->City) {
 
 			// If the building is the CC,
-			if (bld->Type == 6) {
+			if (bld->isCC()) {
 
 				//If the building's location is close enough to the player's location, return 1
 				if ((abs((bld->X*48) - p->Player[p->Winsock->MyIndex]->X) < DISTANCE_MAX_FROM_CC) && (abs((bld->Y*48) - p->Player[p->Winsock->MyIndex]->Y) < DISTANCE_MAX_FROM_CC)) {
@@ -262,19 +315,6 @@ int CBuildingList::inRange() {
 
 	// If no building was found in range, return 0
 	p->InGame->NewbieTip = "You cannot build this far away from your City Center!";
-
-	// DUMMY CODE FOR PADDING-- REMOVE AFTER IMPLEMENTING
-	if (true) {
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-		cout << "x" << endl;
-	}
 
 	return 0;
 }

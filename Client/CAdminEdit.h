@@ -29,7 +29,7 @@ public:
 	int orbs;
 	int deaths;
 	int assists;
-	char admin;
+	int playerType;
 	char member;
 	char tank;
 	char tank2;

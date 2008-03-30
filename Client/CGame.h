@@ -1,7 +1,7 @@
 #ifndef _CGAME
 #define _CGAME
 
-#define VERSION "3.4.9"
+#define VERSION "3.5.0"
 
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
@@ -22,7 +22,7 @@ using namespace std;
 #include "resource.h"
 
 
-const unsigned char MaxPlayers = 63;
+const unsigned char MAX_PLAYERS = 63;
 const unsigned char SectorSize = 16;
 const unsigned char MaxSectors = (512 / SectorSize);
 const short int RadarSize = 2400;
@@ -46,10 +46,18 @@ const COLORREF COLOR_TEAM_CHAT = COLOR_GREEN;
 const COLORREF COLOR_TEAM_NAME = COLOR_GREEN;
 
 const int COST_BUILDING = 500000;
+const int DAMAGE_LASER = 5;
+const int DAMAGE_MINE = 19;
+const int DAMAGE_ROCKET = 8;
 const int DISTANCE_MAX_FROM_CC = 1400;
 const int MAP_SQUARE_LAVA = 1;
 const int MAP_SQUARE_ROCK = 2;
+const float MOVEMENT_SPEED_ADMIN = 1.0f;
+const float MOVEMENT_SPEED_BULLET = 0.80f;
+const float MOVEMENT_SPEED_PLAYER = 0.38f;
+const int MAX_PLAYERS_PER_CITY = 4;
 const int TIMER_CHANGE_TANK = 1000;
+const int TIMER_DFG = 5000;
 const int TIMER_DEMOLISH = 3000;
 const int TIMER_RELOAD_SURFACES = 3000;
 const int TIMER_RESPAWN = 10000;
@@ -198,7 +206,7 @@ public:
 	CEngine *Engine;
 	CDDraw *DDraw;
 	CSend *Send;
-	CPlayer *Player[MaxPlayers];
+	CPlayer *Player[MAX_PLAYERS];
 	CMap *Map;
 	CCollision *Collision;
 	CBuildingList *Build;

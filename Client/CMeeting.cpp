@@ -224,7 +224,7 @@ void CMeeting::AppendData(string TheData) {
  *
  **************************************************************/
 void CMeeting::ClearList() {
-	for (int j = 0; j < MaxPlayers; j++) {
+	for (int j = 0; j < MAX_PLAYERS; j++) {
 		this->lstPlayers[j] = -1;
 	}
 }
@@ -259,7 +259,7 @@ void CMeeting::AddPlayer(int Index) {
 void CMeeting::ClearPlayer(int Index) {
 	
 	// For each possible player,
-	for (int j = 0; j < MaxPlayers; j++) {
+	for (int j = 0; j < MAX_PLAYERS; j++) {
 		
 		// If the player matches the Index param,
 		if (this->lstPlayers[j] == Index)  {
@@ -282,7 +282,7 @@ void CMeeting::RedrawList() {
 	SendDlgItemMessage(p->Meeting->hWnd, IDLIST, LB_RESETCONTENT, 0, 0);
 
 	// For each possible player,
-	for (int j = 0; j < MaxPlayers; j++) {
+	for (int j = 0; j < MAX_PLAYERS; j++) {
 
 		// If the player is in the meeting room list,
 		if (p->Meeting->lstPlayers[j] != -1) {
@@ -300,7 +300,7 @@ void CMeeting::RedrawList() {
 int CMeeting::FreePlayer() {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the slot in the chat list is empty, return it
 		if (this->lstPlayers[i] == -1) {
@@ -408,7 +408,7 @@ int CMeeting::FreeCity() {
 bool CMeeting::inUse(int Index) {
 
 	// For each possible player,
-	for (int i = 0; i < MaxPlayers; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If the player matches the Index param, return true
 		if (this->lstPlayers[i] == Index) {

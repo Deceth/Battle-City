@@ -1,115 +1,63 @@
 #include "CPlayer.h"
 
-CPlayer::CPlayer(CGame *game, int initid)
-{
-	p = game;
-
-	isMoving = 0;
-	isDead = false;
-	timeMove = 0;
-	isTurning = 0;
-	timeTurn = 0;
-	Direction = 0;
-	X = 0;
-	Y = 0;
-	SectorX = 0;
-	SectorY = 0;
-
-	City = 0;
-	CityX = 0;
-	CityY = 0;
-
-	Points = 0;
-	MonthlyPoints = 0;
-	Orbs = 0;
-	Deaths = 0;
-	Assists = 0;
-	isMayor = 0;
-	isShooting = 0;
-	isFrozen = 0;
-	isAdmin = 1;
-	isLagging = 0;
-	isInGame = 0;
-	timeFrozen = 0;
-
-	Name.clear();
-	NameString.clear();
-	TownString.clear();
-	Town.clear();
-
-	lastUpdate = 0;
-	id = initid;
+CPlayer::CPlayer(CGame *game, int initid) {
+	this->p = game;
+	this->id = initid;
+	this->ClearPlayer();
 }
 
-void CPlayer::ClearPlayer()
-{
-	isMoving = 0;
-	isDead = false;
-	timeMove = 0;
-	isTurning = 0;
-	timeTurn = 0;
-	Direction = 0;
-	X = 0;
-	Y = 0;
-	SectorX = 0;
-	SectorY = 0;
+void CPlayer::ClearPlayer() {
+	this->playerType = 1;
 
-	City = 0;
-	CityX = 0;
-	CityY = 0;
+	this->Name.clear();
+	this->NameString.clear();
+	this->TownString.clear();
+	this->Town.clear();
 
-	Points = 0;
-	MonthlyPoints = 0;
-	Orbs = 0;
-	Deaths = 0;
-	Assists = 0;
-	isMayor = 0;
-	isShooting = 0;
-	isFrozen = 0;
-	isAdmin = 1;
-	isLagging = 0;
-	isInGame = 0;
-	timeFrozen = 0;
-
-	Name.clear();
-	NameString.clear();
-	TownString.clear();
-	Town.clear();
-
-	lastUpdate = 0;
+	this->InGameClear();
 }
 
-void CPlayer::InGameClear()
-{
-	isMoving = 0;
-	isDead = false;
-	timeMove = 0;
-	isTurning = 0;
-	timeTurn = 0;
-	Direction = 0;
-	X = 0;
-	Y = 0;
-	SectorX = 0;
-	SectorY = 0;
+void CPlayer::InGameClear() {
+	this->isMoving = 0;
+	this->isDead = false;
+	this->timeMove = 0;
+	this->isTurning = 0;
+	this->timeTurn = 0;
+	this->Direction = 0;
+	this->X = 0;
+	this->Y = 0;
+	this->SectorX = 0;
+	this->SectorY = 0;
 
-	City = 0;
-	CityX = 0;
-	CityY = 0;
+	this->City = 0;
+	this->CityX = 0;
+	this->CityY = 0;
 
-	isMayor = 0;
-	isShooting = 0;
-	isFrozen = 0;
-	isLagging = 0;
-	isInGame = 0;
-	timeFrozen = 0;
+	this->Points = 0;
+	this->MonthlyPoints = 0;
+	this->Orbs = 0;
+	this->Deaths = 0;
+	this->Assists = 0;
+	this->isMayor = 0;
+	this->isShooting = 0;
+	this->isFrozen = 0;
+	this->isLagging = 0;
+	this->isInGame = 0;
+	this->timeFrozen = 0;
 
-	lastUpdate = 0;
+	this->lastUpdate = 0;
 }
 
-void CPlayer::Cycle()
-{
-	float MoveFactor = 0.38f;
-	if (this->isAdmin == 2) MoveFactor = 1.0f;
+void CPlayer::Cycle() {
+	float MoveFactor;
+
+	if (this->isAdmin()) {
+		MoveFactor = MOVEMENT_SPEED_ADMIN;
+	}
+	else {
+		MoveFactor = MOVEMENT_SPEED_PLAYER;
+	}
+
 	if (this->isInGame)
 	{
 		if (id != p->Winsock->MyIndex && p->Tick > (this->lastUpdate + 15000))
@@ -416,31 +364,47 @@ void CPlayer::RelocatePlayer()
 	}
 }
 
-void CPlayer::SetHP(int HP)
-{
+void CPlayer::SetHP(int HP) {
 	this->HP = HP;
 	this->refHP1 = (HP^2-31)*2;
 	this->refHP2 = -(HP);
 }
 
-void CPlayer::HitMine()
-{
-	if (p->Player[p->Winsock->MyIndex]->isDead == true) return;
+void CPlayer::HitMine() {
+	CItem *item;
+	sCMItem itemPacket;
 	int me = p->Winsock->MyIndex;
-	if (me == this->id)
-	{
-		CItem *item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, 4);
-		if (item)
-		{
-			sCMItem ii;
-			ii.id = item->id;
-			ii.active = item->active;
-			ii.type = item->Type;
-			p->Winsock->SendData(cmHitObject,(char *)&ii,sizeof(ii));
 
-			// If player HP is under 20, then mine should destroy player tank
-			if (p->Player[me]->HP < 20)
-			{
+	// If the player is dead, return
+	if (p->Player[p->Winsock->MyIndex]->isDead == true) {
+		return;
+	}
+
+	// If the current player is the one who hit the mine,
+	if (me == this->id) {
+		
+		// Find the first mine under the player
+		item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, 4);
+
+		// If one was found,
+		if (item) {
+
+			// Tell everyone the item was hit
+			itemPacket.id = item->id;
+			itemPacket.active = item->active;
+			itemPacket.type = item->Type;
+			p->Winsock->SendData(cmHitObject,(char *)&itemPacket,sizeof(itemPacket));
+
+			// Subtract DAMAGE_MINE from total HP when hitting a mine
+			p->Player[me]->SetHP(p->Player[me]->HP - DAMAGE_MINE);
+
+			// Explode, disable mine, play sound
+			p->Explode->newExplosion(item->X * 48, item->Y * 48, 1);
+			item->active = 0;
+			p->Sound->PlayWav(sExplode, -1);
+
+			// If player HP is now under 0, then destroy player tank
+			if (p->Player[me]->HP <= 0) {
 				char packet[2];
 				packet[0] = item->City;
 				packet[1] = 0;
@@ -449,46 +413,49 @@ void CPlayer::HitMine()
 				p->Winsock->SendData(cmDeath, packet, 1);
 				p->Sound->PlayWav(sDie, -1);
 			}
-			else
-			{
-				// Subtract 19 from total HP when hitting a mine. Player can suurvive 2 mines with these settings
-				p->Player[me]->SetHP(p->Player[me]->HP - 19);
-				p->Explode->newExplosion(item->X * 48, item->Y * 48, 1);
-				item->active = 0;
-			}
-
-			p->Sound->PlayWav(sExplode, -1);
 		}
 	}
-	else
-	{
-		if ((abs(p->Player[this->id]->X - p->Player[me]->X) < 1000) && (abs(p->Player[this->id]->Y - p->Player[me]->Y) < 1000))
-		{
+
+	// Else (someone else hit the mine),
+	else {
+
+		// If I am in range, play a sound
+		if ((abs(p->Player[this->id]->X - p->Player[me]->X) < 1000) && (abs(p->Player[this->id]->Y - p->Player[me]->Y) < 1000)) {
 			p->Sound->Play3dSound(p->Sound->s_eXplode, 100, p->Player[this->id]->X, p->Player[this->id]->Y);
 		}
 	}
 }
 
-void CPlayer::HitDFG()
-{
-	if (id == p->Winsock->MyIndex)
-	{
-		CItem *item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, 7);
-		if (item)
-		{
+void CPlayer::HitDFG() {
+	CItem *item;
+
+	// If I am the player that hit the DFG,
+	if (id == p->Winsock->MyIndex) {
+
+		// Find the first DFG in my square,
+		item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, 7);
+
+		// If found,
+		if (item) {
+
+			// De-activate the DFG
 			item->active = 0;
+
+			// Freeze me until TIMER_DFG
 			this->isFrozen = 1;
-			this->timeFrozen = p->Tick + 5000;
+			this->timeFrozen = p->Tick + TIMER_DFG;
 		}
 	}
 }
 
 void CPlayer::GenerateNameString()
 {
-	if (isAdmin == 2)
+	if (this->isAdmin()) {
 		NameString = "Admin";
-	else
+	}
+	else {
 		NameString = p->InGame->ReturnRank(Points);
+	}
 
 	NameString += " ";
 	NameString += Name;
@@ -497,4 +464,8 @@ void CPlayer::GenerateNameString()
 	if (isMayor) TownString += "Mayor of ";
 	TownString += CityList[City];
 	TownString += ")";
+}
+
+bool CPlayer::isAdmin() {
+	return (this->playerType == 2);
 }

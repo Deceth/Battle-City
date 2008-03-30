@@ -163,36 +163,42 @@ void CManage::AddCommando(int Commando, int Successor)
 
 }
 
-int CManage::FreeCommando()
-{
-	for (int i = 0; i < 4; i++)
-	{
-		if (Commando[i].TheCommando == 0) return i;
+int CManage::FreeCommando() {
+
+	// For each possible teammate,
+	for (int i = 0; i < MAX_PLAYERS_PER_CITY; i++) {
+		if (Commando[i].TheCommando == 0) {
+			return i;
+		}
 	}
 
 	return 255;
 }
 
-void CManage::DisplayCommandos()
-{
-	for (int i = 0; i < 4; i++)
-	{
-		Commando[i].TheCommando = 0;
-		Commando[i].Index = 0;
-		Commando[i].IsSuccessor = 0;
+void CManage::DisplayCommandos() {
+	
+	// Clear the commando list
+	for (int i = 0; i < MAX_PLAYERS_PER_CITY; i++) {
+		this->Commando[i].TheCommando = 0;
+		this->Commando[i].Index = 0;
+		this->Commando[i].IsSuccessor = 0;
 	}
 	SendDlgItemMessage(p->Manage->hWnd, IDLIST, LB_RESETCONTENT, 0, 0);
-	for (int i = 0; i < MaxPlayers; i++)
-	{
-		if (i != p->Winsock->MyIndex)
-		{
-			if (p->InGame->Successor == i)
-			{
-				if (p->Player[i]->City == p->Player[p->Winsock->MyIndex]->City) p->Manage->AddCommando(i, 1);
+
+	// For each possible player,
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		
+		// If the player is in game, in my city, and not me,
+		if ((this->p->Player[i]->isInGame) && (this->p->Player[i]->City == this->p->Player[p->Winsock->MyIndex]->City) && (i != this->p->Winsock->MyIndex)) {
+
+			// If the player is the successor, add the player as successor
+			if (this->p->InGame->Successor == i) {
+				this->p->Manage->AddCommando(i, 1);
 			}
-			else
-			{
-				if (p->Player[i]->City == p->Player[p->Winsock->MyIndex]->City) p->Manage->AddCommando(i, 0);
+
+			// Else (player is not successor), add the player
+			else {
+				this->p->Manage->AddCommando(i, 0);
 			}
 		}
 	}

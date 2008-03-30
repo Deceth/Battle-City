@@ -259,7 +259,7 @@ void CInput::ProcessKeys(char buffer[256]) {
 			if ((p->Tick > this->LastShot) && (p->Player[me]->isFrozen == 0)) {
 
 				// Weapon: ADMIN
-				if (p->Player[me]->isAdmin == 2) {
+				if (p->Player[me]->isAdmin()) {
 					this->LastShot = p->Tick + TIMER_SHOOT_ADMIN;
 
 					float fDir = (float)-p->Player[me]->Direction+32;
@@ -460,7 +460,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			else {
 
 				// If the player doesn't have enough money to build (and isn't an admin), return
-				if (p->InGame->Cash < COST_BUILDING && p->Player[p->Winsock->MyIndex]->isAdmin != 2) {
+				if (p->InGame->Cash < COST_BUILDING && (p->Player[p->Winsock->MyIndex]->isAdmin() == false)) {
 					return;
 				}
 
@@ -470,7 +470,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 				}
 				
 				// If there is nothing under the building (or the user is an admin),
-				if (p->Collision->CheckBuildingCollision(Xloc, Yloc) == 0 || p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+				if (p->Collision->CheckBuildingCollision(Xloc, Yloc) == 0 || p->Player[p->Winsock->MyIndex]->isAdmin()) {
 					
 					// If the building is in the city's build range,
 					if (p->Build->inRange() == 1) {
@@ -527,7 +527,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 				for (int j = 0; j < 26; j++) {
 
 					// If the player can build that building (or the player is an admin),
-					if (p->InGame->CanBuild[j] || p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+					if (p->InGame->CanBuild[j] || p->Player[p->Winsock->MyIndex]->isAdmin()) {
 						Ym -= 16;
 
 						// If the building is the one the player just clicked in the build menu,
@@ -570,7 +570,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 		* Admin Button
 		************************************************/
 		// If player is an admin, and player clicked admin button, show admin dialog
-		if (p->Player[p->Winsock->MyIndex]->isAdmin == 2) {
+		if (p->Player[p->Winsock->MyIndex]->isAdmin()) {
 			if (X > (p->Draw->MaxMapX + 110) && X < (p->Draw->MaxMapX + 110 + 42) && Y > 460 && Y < 479) {
 				p->Admin->ShowAdminDlg();
 
@@ -770,7 +770,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			* Click Player
 			************************************************/
 			// Check whether there is a player under the cursor
-			for (int i = 0; i < MaxPlayers; i++) {
+			for (int i = 0; i < MAX_PLAYERS; i++) {
 				rct1.X = (int)(p->Player[me]->X - p->Player[i]->X + p->Draw->PlayerOffsetX);
 				rct1.Y = (int)(p->Player[me]->Y - p->Player[i]->Y + p->Draw->PlayerOffsetY);
 				rct1.w = 48;
