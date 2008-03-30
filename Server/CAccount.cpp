@@ -365,7 +365,7 @@ void CAccount::GenerateTop20() {
 		MonthFile.close();
 
 		// Reset the monthly points of every player in game
-		for (int i = 0; i < MaxPlayers; i++) {
+		for (int i = 0; i < MAX_PLAYERS; i++) {
 			p->Player[i]->MonthlyPoints = 0;
 		}
 
@@ -730,7 +730,7 @@ int CAccount::UpdateAccount(int Index, string password, string email, string ful
 			// Build the update statement
 			cout << "Saving account: " << p->Player[Index]->Name << endl;
 
-			QueryString = "UPDATE tAccounts SET";
+			QueryString = "UPDATE tAccounts SET ";
 			QueryString += "Password = '" + password + "', ";
 			QueryString += "Fullname = '" + fullname + "', ";
 			QueryString += "Email = '" + email + "', ";
@@ -803,7 +803,7 @@ void CAccount::GetLoginData(int Index) {
 		// Else (account was found),
 		else {
 			// Set the login data on the player, then return
-			p->Player[Index]->isAdmin = p->Database->Query.getIntField("IsAdmin");
+			p->Player[Index]->playerType = p->Database->Query.getIntField("IsAdmin");
 			p->Player[Index]->Town = p->Database->Query.getStringField("Town");
 			p->Player[Index]->Tank = p->Database->Query.getIntField("Tank");
 			p->Player[Index]->Tank2 = p->Database->Query.getIntField("Tank2");
