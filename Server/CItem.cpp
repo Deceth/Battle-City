@@ -116,6 +116,9 @@ void CItem::drop(int x, int y, int owner) {
 						// If the city is orbable,
 						if (p->City[i]->isOrbable()) {
 
+							// Make this item belong to the owner's city, in case of admin hijinx
+							this->City = p->Player[owner]->City;
+
 							// Trigger the orb
 							this->p->Log->logOrb(owner, i, buildingCount);
 							this->p->City[p->Player[owner]->City]->didOrb(i, owner);
@@ -304,9 +307,21 @@ void CItemList::cycle() {
 				bomb.y = (unsigned short)itm->y+1;
 				this->p->Send->SendSectorArea(bomb.x*48, bomb.y*48, smExplosion, (char *)&bomb, sizeof(bomb));
 
-				// Delete the item (note that delItem returns item->next)
-				itm = this->delItem(itm);
-				alreadyHasNextItem = true;
+				// For each itemToExplode,
+				itemsToExplode = this->itemListHead;
+				while (itemsToExplode) {
+
+					// If the itemToExplode is adjacent to the bomb 
+					if ( (abs((itemsToExplode->x + 1) - bomb.x) < 2) && (abs((itemsToExplode->y + 1) - bomb.y) < 2) && (itemsToExplode->holder == -1) ) {
+
+						// Delete the itemToExplode (note that delItem returns item->next)
+						itemsToExplode = this->delItem(itemsToExplode);
+					}
+					// Else, get the next item
+					else {
+						itemsToExplode = itemsToExplode->next;
+					}
+				}
 
 				// For each buildingToExplode,
 				buildingToExplode = this->p->Build->buildingListHead;
@@ -323,21 +338,9 @@ void CItemList::cycle() {
 					}
 				}
 
-				// For each itemToExplode,
-				itemsToExplode = this->itemListHead;
-				while (itemsToExplode) {
-
-					// If the itemToExplode is adjacent to the bomb 
-					if ( (abs((itemsToExplode->x + 1) - bomb.x) < 2) && (abs((itemsToExplode->y + 1) - bomb.y) < 2) && (itemsToExplode->holder == -1) ) {
-
-						// Delete the itemToExplode (note that delItem returns item->next)
-						itemsToExplode = this->delItem(itemsToExplode);
-					}
-					// Else, get the next item
-					else {
-						itemsToExplode = itemsToExplode->next;
-					}
-				}
+				// Delete the item (note that delItem returns item->next)
+				itm = this->delItem(itm);
+				alreadyHasNextItem = true;
 			}
 		}
 
