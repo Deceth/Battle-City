@@ -82,16 +82,22 @@ void CServer::Init() {
 
 	cout << sizeof(WORD);
 
-	cout << "Server::Start" << endl << endl;
+	cout << "Server::Start" << endl;
 
 	// Start the timer, start listening on the socket
+	cout << " - Initializing Timer" << endl;
 	this->Timer->Initialize();
+	cout << " - Initializing Winsock" << endl;
 	this->Winsock->InitWinsock();
 
 	// Load the database, files, and news
+	cout << " - Loading Map" << endl;
 	this->Map->LoadMap();
+	cout << " - Checking Files" << endl;
 	this->CheckFilesAndPaths();
+	cout << " - Loading Database" << endl;
 	this->Database->LoadDatabase();
+	cout << " - Loading News" << endl;
 	this->LoadNews();
 
 	#ifdef WIN32
