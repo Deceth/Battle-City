@@ -1099,8 +1099,13 @@ void CDrawing::DrawRadar() {
 					RadarX = (int)((MaxMapX+100)-(p->Player[i]->X - p->Player[me]->X+70)/ratio);
 					RadarY = (int)(80-(p->Player[i]->Y - p->Player[me]->Y+69)/ratio);
 					
-					// If the player is in my city, set color to 3
-					if (p->Player[i]->City == p->Player[me]->City) {
+					// If the player is cloaked, set color to 0
+					if (p->Player[i]->isCloaked) {
+						RadarSrcX = 0;
+					}
+
+					// Else if the player is in my city, set color to 3
+					else if (p->Player[i]->City == p->Player[me]->City) {
 						RadarSrcX = 3;
 					}
 
@@ -1555,8 +1560,8 @@ void CDrawing::drawPlayerName(CPlayer *player, CPlayer *me) {
 	string nameString = player->NameString;
 	string townString = player->TownString;
 
-	// If lagging, add Lagging
-	if (player->isLagging) {
+	// If alive and lagging, add Lagging
+	if ((player->isDead == 0) && player->isLagging) {
 		nameString += " (Lagging)";
 	}
 

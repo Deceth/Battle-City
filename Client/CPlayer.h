@@ -31,6 +31,7 @@ class CPlayer {
 		int Deaths;
 		int Assists;
 		int MonthlyPoints;
+		bool isCloaked;
 		char isMayor;
 		char isShooting;
 		char isFrozen;

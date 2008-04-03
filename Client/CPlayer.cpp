@@ -38,6 +38,7 @@ void CPlayer::InGameClear() {
 	this->Orbs = 0;
 	this->Deaths = 0;
 	this->Assists = 0;
+	this->isCloaked = false;
 	this->isMayor = 0;
 	this->isShooting = 0;
 	this->isFrozen = 0;
