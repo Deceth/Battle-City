@@ -1625,8 +1625,8 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit) {
 				DMLString += converter.str();
 								
 				DMLString += ", Tank9 = ";
-				std::ostringstream Tank9Convert;
-				Tank9Convert << (int)adminedit->Tank9;
+				converter.str("");
+				converter << (int)adminedit->Tank9;
 				DMLString += converter.str();
 
 				DMLString += ", Red = ";

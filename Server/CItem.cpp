@@ -69,8 +69,6 @@ void CItem::drop(int x, int y, int owner) {
 	int CityY;
 	int CalcX;
 	int CalcY;
-	int buildingCount;
-
 
 	// If this item is being held by the person dropping the item
 	if (this->holder == owner) {
@@ -120,7 +118,7 @@ void CItem::drop(int x, int y, int owner) {
 							this->City = p->Player[owner]->City;
 
 							// Trigger the orb
-							this->p->Log->logOrb(owner, i, buildingCount);
+							this->p->Log->logOrb(owner, i, this->p->City[p->Player[owner]->City]->maxBuildingCount);
 							this->p->City[p->Player[owner]->City]->didOrb(i, owner);
 							this->p->City[i]->wasOrbed();
 							this->p->Item->delItem(this);
@@ -212,8 +210,6 @@ CItem *CItemList::findItem(unsigned short id) {
 
 	// For each item,
 	while (itm) {
-
-		cout << itm->id << endl;
 
 		// If the item matches the id param, return it
 		if (itm->id == id) {
@@ -311,8 +307,8 @@ void CItemList::cycle() {
 				itemsToExplode = this->itemListHead;
 				while (itemsToExplode) {
 
-					// If the itemToExplode is adjacent to the bomb 
-					if ( (abs((itemsToExplode->x + 1) - bomb.x) < 2) && (abs((itemsToExplode->y + 1) - bomb.y) < 2) && (itemsToExplode->holder == -1) ) {
+					// If the itemToExplode isn't this item, and is adjacent to the bomb 
+					if ( (itemsToExplode->id != itm->id) && (abs((itemsToExplode->x + 1) - bomb.x) < 2) && (abs((itemsToExplode->y + 1) - bomb.y) < 2) && (itemsToExplode->holder == -1) ) {
 
 						// Delete the itemToExplode (note that delItem returns item->next)
 						itemsToExplode = this->delItem(itemsToExplode);
