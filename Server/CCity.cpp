@@ -5,9 +5,9 @@
  *
  **************************************************************/
 CCity::CCity(CServer *Server) {
-	p = Server;
+	this->p = Server;
 
-	destroy();
+	this->resetToDefault();
 }
 
 
@@ -19,10 +19,10 @@ CCity::~CCity() {
 }
 
 /***************************************************************
- * Function:	destroy
+ * Function:	resetToDefault
  *
  **************************************************************/
-void CCity::destroy() {
+void CCity::resetToDefault() {
 
 	// Reset active to 1
 	this->active = 1;
@@ -75,15 +75,27 @@ void CCity::destroy() {
 	this->p->Item->deleteItemsByCity(this->id);
 
 	// Reset all research to not-finished
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 20; i++) {
 		research[i] = 0;
+	}
 
 	// Reset all item counters to 0
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 12; i++) {
 		itemC[i] = 0;
+	}
+}
+
+/***************************************************************
+ * Function:	destroy
+ *
+ **************************************************************/
+void CCity::destroy() {
+
+	// Reset the city to default
+	this->resetToDefault();
 
 	// Tell all players the city was destroyed
-	p->Send->SendGameAllBut(-1,smDestroyCity,(char *)&id, sizeof(id));
+	this->p->Send->SendGameAllBut(-1,smDestroyCity,(char *)&this->id, sizeof(this->id));
 }
 
 /***************************************************************
@@ -303,7 +315,11 @@ void CCity::addBuilding(int type) {
 
 	// If the building is now orbable, but startTime isn't set, set it
 	if (this->isOrbable() && (this->startTime==0)) {
-		this->startTime = this->p->Tick;
+
+		// If p is initialized, set the startTime
+		if (p) {
+			this->startTime = this->p->Tick;
+		}
 	}
 }
 

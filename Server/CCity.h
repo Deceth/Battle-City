@@ -44,6 +44,7 @@ class CCity {
 
 		void cycle();
 		void setCanBuild(int i, int can);
+		void resetToDefault();
 		void destroy();
 
 		void didOrb(int City, int index);
