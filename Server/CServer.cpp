@@ -76,8 +76,8 @@ CServer::~CServer() {
 void CServer::Init() {
 
 	// Print startup messages
-	cout << "BattleCity Classic Server Version " << VERSION << endl;
-	cout << "(C) Copyright 2006 CodeMallet" << endl;
+	cout << "Battle City Server Version " << VERSION << endl;
+	cout << "(C) Copyright 2005-2008 Looble Network" << endl;
 	cout << endl;
 
 	cout << sizeof(WORD);
