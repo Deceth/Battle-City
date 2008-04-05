@@ -8,6 +8,11 @@ CPlayer::CPlayer(CGame *game, int initid) {
 
 void CPlayer::ClearPlayer() {
 	this->playerType = 1;
+	this->Points = 0;
+	this->MonthlyPoints = 0;
+	this->Orbs = 0;
+	this->Deaths = 0;
+	this->Assists = 0;
 
 	this->Name.clear();
 	this->NameString.clear();
@@ -33,11 +38,6 @@ void CPlayer::InGameClear() {
 	this->CityX = 0;
 	this->CityY = 0;
 
-	this->Points = 0;
-	this->MonthlyPoints = 0;
-	this->Orbs = 0;
-	this->Deaths = 0;
-	this->Assists = 0;
 	this->isCloaked = false;
 	this->isMayor = 0;
 	this->isShooting = 0;
