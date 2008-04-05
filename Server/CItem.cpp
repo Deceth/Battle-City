@@ -319,6 +319,10 @@ void CItemList::cycle() {
 					}
 				}
 
+				// Delete the item (note that delItem returns item->next)
+				itm = this->delItem(itm);
+				alreadyHasNextItem = true;
+
 				// For each buildingToExplode,
 				buildingToExplode = this->p->Build->buildingListHead;
 				while (buildingToExplode) {
@@ -334,9 +338,10 @@ void CItemList::cycle() {
 					}
 				}
 
-				// Delete the item (note that delItem returns item->next)
-				itm = this->delItem(itm);
-				alreadyHasNextItem = true;
+				// If the item pointer got deleted (such as by bombing your own bombs), start over
+				if (!itm->type || (itm->type < 0)) {
+					itm = this->itemListHead;
+				}
 			}
 		}
 
