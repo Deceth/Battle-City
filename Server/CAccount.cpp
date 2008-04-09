@@ -227,12 +227,8 @@ void CAccount::GenerateTop20() {
 	/************************************************
 	 * Top 20 - Month
 	 ************************************************/
-	// Get the top 20 accounts from the database
-	QueryString = "SELECT Account, Points, MonthlyTop20 FROM tAccounts ORDER BY MonthlyTop20 DESC LIMIT 20";
-	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
-
 	// Select the top 20 accounts for Monthly Top 20
-	QueryString = "SELECT Account, Points, MonthlyTop20 FROM tAccounts ORDER BY MonthlyTop20 DESC LIMIT 20";
+	QueryString = "SELECT Account, Points, MonthlyTop20 FROM tAccounts WHERE Points AND MonthlyTop20 ORDER BY MonthlyTop20 DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
 	// Start the Monthly Top 20
@@ -271,7 +267,7 @@ void CAccount::GenerateTop20() {
 	 * Top 20 - Overall
 	 ************************************************/
 	// Select the top 20 accounts for Top 20
-	QueryString = "SELECT Account, Points FROM tAccounts ORDER BY Points DESC LIMIT 20";
+	QueryString = "SELECT Account, Points FROM tAccounts WHERE Points ORDER BY Points DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
 	// Start the Top 20 
@@ -309,7 +305,7 @@ void CAccount::GenerateTop20() {
 	 * Top 20 - Points Per Death
 	 ************************************************/
 	// Select the top 20 accounts for PPD
-	QueryString = "SELECT Account, Points, Deaths FROM tAccounts WHERE Deaths > 100 ORDER BY ((Points*10000)/(Deaths)) DESC LIMIT 20";
+	QueryString = "SELECT Account, Points, Deaths FROM tAccounts WHERE Points AND Deaths > 100 ORDER BY ((Points*10000)/(Deaths)) DESC LIMIT 20";
 	p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 
 	// Start the Top 20 PPD
