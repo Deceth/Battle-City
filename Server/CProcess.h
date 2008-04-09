@@ -34,6 +34,7 @@ class CProcess {
 		void ProcessDeath(char *TheData, int Index);
 		void ProcessDemolish(sCMDemolish *data, int Index);
 		void ProcessMedKit(int *data, int Index);
+		void ProcessCloak(int *data, int Index);
 		void ProcessHitObject(sCMItem *data, int Index);
 		void ProcessCrash(char *TheData, int Index);
 		void ProcessAdmin(sCMAdmin *admin, int Index);

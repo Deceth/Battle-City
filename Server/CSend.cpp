@@ -194,6 +194,28 @@ void CSend::SendRadar(int x, int y, unsigned char PacketID, char *TheData, int l
 }
 
 /***************************************************************
+ * Function:	SendTeam
+ *
+ * @param city
+ * @param PacketID
+ * @param TheData
+ * @param len
+ **************************************************************/
+void CSend::SendTeam(int city, unsigned char PacketID, char *TheData, int len) {
+
+	// For each possible player,
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+
+		// If the player is in game, and is in the target city,
+		if (p->Player[i]->isInGame() && (p->Player[i]->City == city)) {
+
+			// Send the data
+			p->Winsock->SendData(i, PacketID, TheData, len);
+		}
+	}	
+}
+
+/***************************************************************
  * Function:	SendCityList
  *
  * @param Index

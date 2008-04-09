@@ -457,3 +457,19 @@ void CPlayer::LoggedIn(string User) {
 	State = State_Verified;
 	this->p->Log->logAccount("Login ::  " + User + " :: " + this->IPAddress + " :: " + this->UniqID);
 }
+
+/***************************************************************
+ * Function:	setCloak
+ *
+ * @param isCloaked
+ **************************************************************/
+void CPlayer::setCloak(bool isCloaked) {
+	if( isCloaked ) {
+		this->isCloaked = true;
+		this->timeUncloak = this->p->Tick + TIMER_CLOAK;
+	}
+	else {
+		this->isCloaked = false;
+		this->timeUncloak = 0;
+	}
+}

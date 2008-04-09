@@ -147,6 +147,11 @@ void CProcess::ProcessData(char *TheData, int Index) {
 			this->ProcessMedKit((int *)&TheData[1], Index);
 			break;
 
+		// Packet: cmCloak
+		case cmCloak:
+			this->ProcessCloak((int *)&TheData[1], Index);
+			break;
+
 		// Packet: cmCrash
 		case cmCrash:
 			this->ProcessCrash(&TheData[1], Index);
@@ -871,11 +876,11 @@ void CProcess::ProcessDeath(char *TheData, int Index) {
 		p->Player[Index]->isDead = true;
 		p->Player[Index]->timeDeath = p->Tick;
 
+		// Delete the player's items
+		p->Item->deleteItemsByPlayer(Index);
+
 		// If the player has more than 100 points,
 		if (p->Player[Index]->Points > 100) {
-
-			// Delete the player's items
-			p->Item->deleteItemsByPlayer(Index);
 
 			// Subtract two points
 			p->Account->Sub2Points(Index);
@@ -887,7 +892,7 @@ void CProcess::ProcessDeath(char *TheData, int Index) {
 				for (int j = 0; j < MAX_PLAYERS; j++) {
 
 					// If the player is in that city and in game,
-					if ((p->Player[j]->State == State_Game) && (p->Player[j]->City == TheData[0])) {
+					if ((p->Player[j]->isInGame()) && (p->Player[j]->City == TheData[0])) {
 
 						// Give that player two points
 						p->Account->AddPoints(j, 2);
@@ -909,11 +914,39 @@ void CProcess::ProcessMedKit(int *data, int Index) {
 
 	// If the item is found, the player holds it, and it's a medkit,
 	if (itm) {
-		if (itm->type == 2 && itm->holder == Index) {
+		if ( (itm->type == ITEM_TYPE_MEDKIT) && (itm->holder == Index)) {
 
 			// Use and delete the medkit
 			p->Item->delItem(itm);
 			p->Winsock->SendData(Index, smMedKit, " ");
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	ProcessCloak
+ *
+ * @param data
+ * @param Index
+ **************************************************************/
+void CProcess::ProcessCloak(int *data, int Index) {
+	CItem *itm = p->Item->findItem(*data);
+	char packet[3];
+
+	// If the item is found, the player holds it, and it's a Cloak,
+	if (itm) {
+		if ( (itm->type == ITEM_TYPE_CLOAK) && (itm->holder == Index)) {
+
+			// Use and delete the Cloak
+			this->p->Item->delItem(itm);
+			this->p->Player[Index]->setCloak(true);
+
+			// Tell everyone else about the cloak
+			packet[0] = (unsigned char)Index;
+			packet[1] = 0;
+			packet[2] = data[0];
+			this->p->Send->SendGameAllBut(-1, smCloak, packet, 3);
+
 		}
 	}
 }

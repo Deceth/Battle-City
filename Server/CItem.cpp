@@ -292,7 +292,7 @@ void CItemList::cycle() {
 		alreadyHasNextItem = false;
 
 		// Item: BOMB (active)
-		if ( (itm->type == 3) && (itm->active == 1)) {
+		if ( (itm->type == ITEM_TYPE_BOMB) && (itm->active == 1)) {
 
 			// If the Explode timer is up, and the item is not being held,
 			if ( (this->p->Tick > itm->explodetick) && (itm->holder == -1)) {

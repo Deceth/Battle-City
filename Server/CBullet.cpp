@@ -236,12 +236,10 @@ void CBulletList::cycle() {
 							switch (itm->type) {
 
 								// Item: 8
-								// ???
-								case 8:
+								case ITEM_TYPE_WALL:
 
 								// Item: 11
-								// ???
-								case 11:
+								case ITEM_TYPE_PLASMA:
 									if (itm->life < 21) {
 
 										// Burn
@@ -252,8 +250,7 @@ void CBulletList::cycle() {
 									break;
 
 								// Item: 10
-								// ???
-								case 10:
+								case ITEM_TYPE_SLEEPER:
 									if (itm->life < 17) {
 
 										// Burn
@@ -264,8 +261,7 @@ void CBulletList::cycle() {
 									break;
 
 								// Item: 9
-								// ???
-								case 9:
+								case ITEM_TYPE_TURRET:
 									if (itm->life < 9) {
 
 										// Burn

@@ -405,8 +405,12 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	// Tell everyone in the sector that the building was removed
 	sSMBuild bv;
 	bv.id = buildingToDelete->id;
+	bv.City = buildingToDelete->City;
 	bv.x = 1;
 	this->p->Send->SendSectorArea(buildingToDelete->x*48, buildingToDelete->y*48,smRemBuilding,(char *)&bv,sizeof(bv));
+
+	// Tell the team is it under attack
+	this->p->Send->SendTeam(buildingToDelete->City, smUnderAttack,(char *)&bv,sizeof(bv));
 
 	// Remove the building
 	return this->remBuilding(buildingToDelete);

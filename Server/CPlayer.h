@@ -46,6 +46,11 @@ class CPlayer {
 		float lastMove;
 		float lastShot;
 
+		bool isDead;
+		float timeDeath;
+		bool isCloaked;
+		float timeUncloak;
+
 		int Socket;
 		char Buffer[2048];
 		int BufferLength;
@@ -58,6 +63,7 @@ class CPlayer {
 		void LoggedIn(string User);
 		void Death(int killer);
 		void Clear();
+		void setCloak(bool isCloaked);
 		int FindApplyMayor();
 
 		bool isAdmin();
@@ -66,9 +72,6 @@ class CPlayer {
 		bool isConnected();
 		bool isInGame();
 		bool isInGameApplyOrChat();
-
-		bool isDead;
-		float timeDeath;
 
 		CPlayer(CServer *Server);
 		~CPlayer();

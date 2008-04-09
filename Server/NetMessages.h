@@ -63,8 +63,8 @@ enum ServerMessages {
 	smAdminEdit,
 	smClickPlayer,
 	smWhisper,
-
-	smCount
+	smCount,
+	smCloak
 };
 
 struct sSMUpdate
@@ -283,8 +283,8 @@ enum ClientMessages {
 	cmClickPlayer,
 	cmChangeTank,
 	cmWhisper,
-
-	cmCount
+	cmCount,
+	cmCloak
 };
 
 struct sCMBuild

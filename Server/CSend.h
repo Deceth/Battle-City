@@ -29,6 +29,7 @@ class CSend {
 		void SendRadarNotIndex(int Index, unsigned char PacketID, char *TheData, int len = -1);
 		void SendRadarAndTeam(int Index, unsigned char PacketID, char *TheData, int len = -1);
 		void SendRadar(int x, int y, unsigned char PacketID, char *TheData, int len = -1);
+		void SendTeam(int city, unsigned char PacketID, char *TheData, int len = -1);
 		void SendChatMessage(int WhoSent, char Message[255], char global);
 		void SendToChat(char PacketID, char *TheData, int len = -1);
 		void SendSectorArea(int x, int y, unsigned char PacketID, char *TheData, int len = -1);

@@ -1,31 +1,6 @@
 #ifndef _CSERVER
 #define _CSERVER
 
-#define VERSION "3.5.0"
-
-const unsigned char MAX_PLAYERS = 64;
-const unsigned char SectorSize = 16;
-const unsigned char MaxSectors = (512 / SectorSize);
-const short int RadarSize = 1800;
-
-const int MAX_CITIES = 64;
-const int MONEY_MAX_VALUE = 95000000;
-const int MONEY_STARTING_VALUE = 95000000;
-const float MOVEMENT_SPEED_BULLET = 0.80f;
-const int COST_BUILDING = 500000;
-const int COST_ITEM = 750000;
-const int COST_INCOME_POPULATION = 10000;
-const int COST_UPKEEP_RESEARCH = 2000000;
-const int COST_UPKEEP_HOSPITAL = 2000000;
-const int TIMER_CITY_DESTRUCT = 120000;
-const int TIMER_BOMB = 5000;
-const int TIMER_RESEARCH = 10000;
-const int TIMER_RESPAWN = 10000;
-const int ORBABLE_SIZE = 21;
-const int MAX_PLAYERS_PER_CITY = 4;
-const int POPULATION_MAX_HOUSE = 100;
-const int POPULATION_MAX_NON_HOUSE = 50;
-
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
@@ -39,7 +14,6 @@ const int POPULATION_MAX_NON_HOUSE = 50;
 using namespace std;
 
 #ifndef WIN32
-
 	#include <sys/stat.h>
 	#include <sys/types.h>
 	#include <sys/socket.h>
@@ -49,9 +23,7 @@ using namespace std;
 	#include <termios.h>
 	#include <string>
 	#include <arpa/inet.h>
-
 #else
-
 	#define WIN32_LEAN_AND_MEAN
 	#include <winsock2.h>
 	#include <windows.h>
@@ -61,13 +33,11 @@ using namespace std;
 	#include <tchar.h>
 	#include <conio.h>
 	#include "pthread.h"
-
 #endif
 
-enum {State_Disconnected, State_Connected, State_Verified, State_Editing, State_Chat, State_Game, State_Apply};
+#include "CConstants.h"
 
 #include "NetMessages.h"
-#include "Structs.h"
 #include "CSQLite3.h"
 
 #include "CSocket.h"
