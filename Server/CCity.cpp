@@ -303,8 +303,8 @@ void CCity::addBuilding(int type) {
 		this->maxBuildingCount = this->currentBuildingCount;
 	}
 
-	// If Bomb Factory (8), set hadBombFactory
-	if (type == 8) {
+	// If Bomb Factory (18), set hadBombFactory
+	if (type == 18) {
 		this->hadBombFactory = true;
 	}
 
