@@ -39,6 +39,7 @@ class CPlayer {
 		char isInGame;
 		bool isDead;
 		float timeFrozen;
+		float timeUncloak;
 
 		char playerType;
 		bool RainbowName;
@@ -67,6 +68,7 @@ class CPlayer {
 		void RelocatePlayer();
 		void GenerateNameString();
 		bool isAdmin();
+		void setCloak(bool isCloaked);
 
 		void SetHP(int HP);
 

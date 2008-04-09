@@ -46,6 +46,7 @@ public:
 	void ProcessMayorUpdate(sSMMayorUpdate *pts);
 	void ProcessItemLife(sSMItemLife *itm);
 	void ProcessMedKit();
+	void ProcessCloak(int Index);
 	void ProcessExplosion(sSMExplode *bomb);
 	void ProcessMayorInInterview();
 	void ProcessInterviewCancel();
@@ -64,6 +65,8 @@ public:
 	void ProcessFinance(sSMFinance *finance);
 	void ProcessWhisper(char *TheData);
 	void ProcessGlobal(char *TheData);
+	void ProcessUnderAttack();
+
 private:
 	CGame *p;
 protected:

@@ -117,6 +117,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	// If any image files are missing,
 	if (
 		(CheckFile("imgArrows.bmp") == 0) ||
+		(CheckFile("imgArrowsRed.bmp") == 0) ||
 		(CheckFile("imgBCLogo.bmp") == 0) ||
 		(CheckFile("imgBlackNumbers.bmp") == 0) ||
 		(CheckFile("imgBtnStaff.bmp") == 0) ||
@@ -151,7 +152,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 		(CheckFile("imgTanks.bmp") == 0) ||
 		(CheckFile("imgTurretBase.bmp") == 0) ||
 		(CheckFile("imgTurretHead.bmp") == 0) 
-	){
+	) {
 			
 		// Error and return
 		SendMessage(hWnd, WM_CLOSE, 0, 0);
@@ -166,7 +167,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 //		Winsock->Init("localhost");
 	#else
 		Winsock->Init("72.167.115.50");
-//		Winsock->Init("localhost");
+//		Winsock->Init("localhost");	
 	#endif
 
 	// If fullscreen is not on, open in Windowed mode
@@ -317,6 +318,7 @@ int CGame::SilentCheckFile(string file)
 void CGame::Restructure()
 {
 	if (SilentCheckFile("img//imgArrows.bmp") == 1) rename("img//imgArrows.bmp", "imgArrows.bmp");
+	if (SilentCheckFile("img//imgArrowsRed.bmp") == 1) rename("img//imgArrowsRed.bmp", "imgArrowsRed.bmp");
 	if (SilentCheckFile("img//imgBCLogo.bmp") == 1) rename("img//imgBCLogo.bmp", "imgBCLogo.bmp");
 	if (SilentCheckFile("img//imgBlackNumbers.bmp") == 1) rename("img//imgBlackNumbers.bmp", "imgBlackNumbers.bmp");
 	if (SilentCheckFile("img//imgBtnStaff.bmp") == 1) rename("img//imgBtnStaff.bmp", "imgBtnStaff.bmp");
@@ -501,15 +503,20 @@ void CGame::handleGameKey(WPARAM wParam) {
 
 	// KEY: h or NUMPAD8
 	else if ((wParam == 72) || (wParam == 104) ) {
-		// Get a health pack from the user's inventory
-		CItem *itm = this->Inventory->findItembyType(2);
-		// If found, send a command to use it
-		if (itm) {
-			this->Winsock->SendData(cmMedKit, (char *)&itm->id, sizeof(itm->id));
-		}
+
+		// Tell the inventory to trigger a medkit
+		this->Inventory->triggerItem(ITEM_TYPE_MEDKIT);
 	}
 
-	// KEY: b or NUMPAD4 
+	
+	// KEY: c
+	else if ((wParam == 67) || (wParam == 99) ) {
+
+		// Tell the inventory to trigger a medkit
+		this->Inventory->triggerItem(ITEM_TYPE_CLOAK);
+	}
+
+	// KEY: d or NUMPAD4 
 	else if ((wParam == 68) || (wParam == 100)) {
 		// Drop the selected item
 		this->Inventory->Drop();
@@ -529,7 +536,7 @@ void CGame::handleGameKey(WPARAM wParam) {
 			this->Input->lastRefresh = this->Tick + TIMER_RELOAD_SURFACES;
 			this->DDraw->LoadSurfaces();
 			this->DDraw->DirectDraw->RestoreAllSurfaces();
-			this->InGame->AppendChat("The game's surfaces were reloaded.", RGB(255, 165, 0));
+			this->InGame->AppendChat("The game's surfaces were reloaded.", COLOR_SYSTEM);
 		}
 	}
 

@@ -42,28 +42,32 @@ CInGame::CInGame(CGame *game)
 
 }
 
-CInGame::~CInGame()
-{
+CInGame::~CInGame() {
 
 }
 
-void CInGame::Cycle()
-{
+void CInGame::Cycle() {
 	float curTick = p->Tick;
-	for (int j = 0; j < MAX_PLAYERS; j++)
-	{
+
+	// For each possible player,
+	for (int j = 0; j < MAX_PLAYERS; j++) {
+
+		// Run the Player cycle
 		p->Player[j]->Cycle();
 	}
+
+	// Run the Bullet cycle
 	p->Bullet->Cycle();
 	p->Explode->Cycle();
 	p->Item->Cycle();
 	p->Build->Cycle();
 	p->Inventory->Cycle();
 
+	// Draw the game
 	p->Draw->DrawGame();
 
-	if (curTick > updateTick && p->Player[p->Winsock->MyIndex]->isDead == false)
-	{
+	// If the player update timer is up, and this player is still alive,
+	if ( (curTick > updateTick) && (p->Player[p->Winsock->MyIndex]->isDead == false)) {
 		sCMUpdate packet;
 		int me = p->Winsock->MyIndex;
 		p->Player[me]->SectorX = (char)((p->Player[me]->X/48) / SectorSize);
@@ -77,12 +81,23 @@ void CInGame::Cycle()
 		updateTick = curTick + 150;
 	}
 
-	if (curTick > PingTick)
-	{
+	// If the Ping timer is up,
+	if (curTick > PingTick) {
 		this->CheckRefVariables();
 		p->Winsock->SendData(cmTCPPing, " ");
 		this->PingTimer = p->Tick;
 		this->PingTick = curTick + 5000;
+	}
+
+	// If the player is under attack,
+	if (this->isUnderAttack) {
+
+		// If the Under Attack timer is up,
+		if (p->Tick > this->timeUnderAttack) {
+
+			// Turn off Under Attack
+			this->setIsUnderAttack(false);
+		}
 	}
 
 	this->lastTick = p->Tick;
@@ -189,7 +204,7 @@ void CInGame::PrintWhoData()
 		Converter << (PlayerCount == 1 ? " player" : " players");
 		Converter << " currently online:  ";
 		Converter << Players;
-		AppendChat(Converter.str(), RGB(255, 215, 0));
+		AppendChat(Converter.str(), COLOR_SYSTEM);
 }
 
 void CInGame::AppendChat(string ChatText, COLORREF color)
@@ -552,4 +567,25 @@ void CInGame::PrintFinanceReport() {
  **************************************************************/
 int CInGame::getGrossIncome() {
 	return this->Income - this->Hospital - this->Items - this->Research;
+}
+
+/***************************************************************
+ * Function:	setIsUnderAttack
+ *
+ * @param isUnderAttack
+ **************************************************************/
+void CInGame::setIsUnderAttack(bool isUnderAttack) {
+
+	// If isUnderAttack is true, set isUnderAttack true and timeUnderAttack
+	if (isUnderAttack) {
+		this->isUnderAttack = true;
+		this->timeUnderAttack = this->p->Tick + TIMER_UNDER_ATTACK;
+	}
+
+	// Else (isUnderAttack is false), set isUnderAttack false and timeUnderAttack 0
+	else {
+		this->isUnderAttack = false;
+		this->timeUnderAttack = 0;
+	}
+
 }

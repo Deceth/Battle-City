@@ -512,96 +512,108 @@ void CDrawing::DrawBuildPlacement() {
  * Function:	DrawArrow
  *
  **************************************************************/
-void CDrawing::DrawArrow()
-{
-	int me = p->Winsock->MyIndex;
-	if (p->Tick > arrowTick)
-	{
-		arrowTick = p->Tick + 100;
-		int difX = (int)p->Player[me]->CityX - (int)p->Player[me]->X;
-		int difY = (int)p->Player[me]->CityY - (int)p->Player[me]->Y;
-		if (difX == 0) difX = 1;
-		if (difY == 0) difY = 1;
-		if (p->Player[me]->X <= p->Player[me]->CityX) // west
-		{
-			if (p->Player[me]->CityY >= p->Player[me]->Y) // north west
-			{
-				if ((difX) / (difY) > 2)
-				{
+void CDrawing::DrawArrow() {
+	int me = this->p->Winsock->MyIndex;
+	int difX;
+	int difY;
+
+	// If the Arrow timer is up,
+	if (this->p->Tick > this->arrowTick) {
+
+		// Reset the Arrow timer
+		this->arrowTick = this->p->Tick + 100;
+
+		// If the player is under attack, and the Arrow Flash timer is up,
+		if ( (this->p->InGame->isUnderAttack) && (this->p->Tick > this->arrowFlashTick) ) {
+
+			// Toggle flashArrow
+			this->flashArrow = !this->flashArrow;
+
+			// Reset the Flash Arrow timer
+			this->arrowFlashTick = this->p->Tick + 500;
+		}
+
+		// Compare player's X coords to city's X coords
+		difX = (int)this->p->Player[me]->CityX - (int)p->Player[me]->X;
+		if (difX == 0) {
+			difX = 1;
+		}
+
+		// Compare player's Y coords to city's Y coords
+		difY = (int)this->p->Player[me]->CityY - (int)this->p->Player[me]->Y;
+		if (difY == 0) {
+			difY = 1;
+		}
+
+		// West
+		if (this->p->Player[me]->X <= this->p->Player[me]->CityX) {
+
+			// North West
+			if (this->p->Player[me]->CityY >= this->p->Player[me]->Y)  {
+
+				if ((difX) / (difY) > 2) {
 					lastArrow = 160;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 160);
-					return;
-				} else if ((difY) / (difX) > 2)
-				{
+				}
+				else if ((difY) / (difX) > 2) {
 					lastArrow = 80;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 80);
-					return;
-				} else {
+				}
+				else {
 					lastArrow = 120;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 120);
-					return;
 				}
 			}
-			if (p->Player[me]->CityY < p->Player[me]->Y) // south west
-			{
-				if ((difX) / (difY) > 2)
-				{
+
+			// South West
+			if (p->Player[me]->CityY < p->Player[me]->Y) {
+				if ((difX) / (difY) > 2) {
 					lastArrow = 160;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 160);
-					return;
-				} else if ((difY) / (difX) > 2)
-				{
+				}
+				else if ((difY) / (difX) > 2) {
 					lastArrow = 240;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 240);
-					return;
-				} else {
+				}
+				else {
 					lastArrow = 200;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 200);
-					return;
 				}
 			}
-		} else // east
-		{
-			if (p->Player[me]->CityY >= p->Player[me]->Y) // north east
-			{
-				if ((difX) / (difY) > 2)
-				{
+		}
+		
+		// East
+		else  {
+
+			// North East
+			if (p->Player[me]->CityY >= p->Player[me]->Y) {
+				if ((difX) / (difY) > 2) {
 					lastArrow = 0;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 0);
-					return;
-				} else if ((difY) / (difX) > 2)
-				{
+				}
+				else if ((difY) / (difX) > 2) {
 					lastArrow = 80;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 80);
-					return;
-				} else {
+				}
+				else {
 					lastArrow = 40;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 40);
-					return;
 				}
 			}
-			if (p->Player[me]->CityY < p->Player[me]->Y) // south east
-			{
-				if ((difX) / (difY) > 2)
-				{
+
+			// South East
+			if (p->Player[me]->CityY < p->Player[me]->Y) {
+				if ((difX) / (difY) > 2) {
 					lastArrow = 0;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 0);
-					return;
-				} else if ((difY) / (difX) > 2)
-				{
+				}
+				else if ((difY) / (difX) > 2) {
 					lastArrow = 240;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 240);
-					return;
-				} else {
+				}
+				else {
 					lastArrow = 280;
-					p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, 280);
-					return;
 				}
 			}
 		}
 	}
-	else
-	{
+	
+	// If the player is under attack, draw red arrows
+	if (p->InGame->isUnderAttack && this->flashArrow) {
+		p->DDraw->Draw(p->DDraw->imgArrowsRed, MaxMapX + 5, 160, 40, 40, lastArrow);
+	}
+
+	// Else (not under attack), draw normal arrows
+	else {
 		p->DDraw->Draw(p->DDraw->imgArrows, MaxMapX + 5, 160, 40, 40, lastArrow);
 	}
 }
@@ -650,7 +662,7 @@ void CDrawing::DrawItems() {
 				switch (itm->Type) {
 
 					// Type: BOMB
-					case 3:
+					case ITEM_TYPE_BOMB:
 						if (itm->active) 
 							p->DDraw->Draw(p->DDraw->imgItems, tileX, tileY, 48, 48, 144, 91, MaxMapX, MaxMapY);
 						else 
@@ -658,15 +670,15 @@ void CDrawing::DrawItems() {
 						break;
 
 					// Type: ORB
-					case 5:
+					case ITEM_TYPE_ORB:
 						p->DDraw->Draw(p->DDraw->imgItems, tileX, tileY, 48, 48, itm->Type*48, 42 + itm->Animation * 48, MaxMapX, MaxMapY);
 						break;
 
 					// Type: MINE
-					case 4:
+					case ITEM_TYPE_MINE:
 
 					// Type: DFG
-					case 7:
+					case ITEM_TYPE_DFG:
 						if (itm->active && (itm->City != p->Player[me]->City) && (p->Player[me]->isAdmin() == false)) {
 							//Don't draw
 						}
@@ -676,7 +688,7 @@ void CDrawing::DrawItems() {
 						break;
 
 					// Type: SLEEPER
-					case 10:
+					case ITEM_TYPE_SLEEPER:
 						if ((itm->target > -1) || (itm->City == p->Player[me]->City) || p->Player[p->Winsock->MyIndex]->isAdmin()) {
 							p->DDraw->Draw(p->DDraw->imgTurretBase, tileX, tileY-10, 48, 48, itm->Animation * 48, (itm->Type-9)*48, MaxMapX, MaxMapY);
 							orientation = (int)(itm->Angle/22.5);
@@ -684,21 +696,21 @@ void CDrawing::DrawItems() {
 						}
 						break;
 
-					case 0:
+					case ITEM_TYPE_CLOAK:
 
-					case 1:
+					case ITEM_TYPE_ROCKET:
 
-					case 2:
+					case ITEM_TYPE_MEDKIT:
 
-					case 6:
+					case ITEM_TYPE_WALKIE:
 
-					case 8:
+					case ITEM_TYPE_WALL:
 						p->DDraw->Draw(p->DDraw->imgItems, tileX, tileY, 48, 48, itm->Type*48, 42, MaxMapX, MaxMapY);
 						break;
 
-					case 9:
+					case ITEM_TYPE_TURRET:
 
-					case 11:
+					case ITEM_TYPE_PLASMA:
 						p->DDraw->Draw(p->DDraw->imgTurretBase, tileX, tileY-10, 48, 48, itm->Animation * 48, (itm->Type-9)*48, MaxMapX, MaxMapY);
 						orientation = (int)(itm->Angle/22.5);
 						p->DDraw->Draw(p->DDraw->imgTurretHead, tileX, tileY-10, 48, 48, orientation*48, (itm->Type-9)*48, MaxMapX, MaxMapY);
@@ -1080,58 +1092,57 @@ void CDrawing::DrawRadar() {
 		if (p->Player[i]->isInGame) {
 
 			// If the player isn't me,
-			if (me != i) {
+//			if (me != i) {
 
-				// If the player is in range,
-				if (
-					(p->Player[i]->X >= p->Player[me]->X - RadarSize)
-					&&
-					(p->Player[i]->X <= p->Player[me]->X + RadarSize)
-					&&
-					(p->Player[i]->Y >= p->Player[me]->Y - RadarSize)
-					&& 
-					(p->Player[i]->Y <= p->Player[me]->Y + RadarSize)
-					&&
-					(p->Player[i]->X != 0)
-					&&
-					(p->Player[i]->Y != 0)
-				) {
-					RadarX = (int)((MaxMapX+100)-(p->Player[i]->X - p->Player[me]->X+70)/ratio);
-					RadarY = (int)(80-(p->Player[i]->Y - p->Player[me]->Y+69)/ratio);
-					
-					// If the player is cloaked, set color to 0
-					if (p->Player[i]->isCloaked) {
-						RadarSrcX = 0;
+				// If the player is not cloaked,
+				if (p->Player[i]->isCloaked == false) {
+
+					// If the player is in range,
+					if (
+						(p->Player[i]->X >= p->Player[me]->X - RadarSize)
+						&&
+						(p->Player[i]->X <= p->Player[me]->X + RadarSize)
+						&&
+						(p->Player[i]->Y >= p->Player[me]->Y - RadarSize)
+						&& 
+						(p->Player[i]->Y <= p->Player[me]->Y + RadarSize)
+						&&
+						(p->Player[i]->X != 0)
+						&&
+						(p->Player[i]->Y != 0)
+					) {
+						RadarX = (int)((MaxMapX+100)-(p->Player[i]->X - p->Player[me]->X+70)/ratio);
+						RadarY = (int)(80-(p->Player[i]->Y - p->Player[me]->Y+69)/ratio);
+						
+						// If the player is in my city, set color to 3
+						if (p->Player[i]->City == p->Player[me]->City) {
+							RadarSrcX = 3;
+						}
+
+						// Else if player is an admin, set color to 1
+						else if (p->Player[i]->isAdmin()) {
+							RadarSrcX = 1;
+						}
+						// Else (player is enemy), set color to 2
+						else {
+							RadarSrcX = 2;
+						}
 					}
 
-					// Else if the player is in my city, set color to 3
-					else if (p->Player[i]->City == p->Player[me]->City) {
-						RadarSrcX = 3;
-					}
+					// ???
+					if (RadarX >= (MaxMapX+28) && RadarX <= (MaxMapX+166) && RadarY >= 8 && RadarY <= 146) {
 
-					// Else if player is an admin, set color to 1
-					else if (p->Player[i]->isAdmin()) {
-						RadarSrcX = 1;
-					}
-					// Else (player is enemy), set color to 2
-					else {
-						RadarSrcX = 2;
-					}
-				}
+						// If player is alive, draw the player
+						if (p->Player[i]->isDead == false) {
+							p->DDraw->Draw(p->DDraw->imgRadarColors, RadarX, RadarY, 2, 2, RadarSrcX * 2);
+						}
 
-				// ???
-				if (RadarX >= (MaxMapX+28) && RadarX <= (MaxMapX+166) && RadarY >= 8 && RadarY <= 146) {
-
-					// If player is alive, draw the player
-					if (p->Player[i]->isDead == false) {
-						p->DDraw->Draw(p->DDraw->imgRadarColors, RadarX, RadarY, 2, 2, RadarSrcX * 2);
+						// Else (player is dead), ???
+						else {
+							p->DDraw->Draw(p->DDraw->imgMiniMapColors, RadarX, RadarY, 2, 2, 15);
+						}
 					}
-
-					// Else (player is dead), ???
-					else {
-						p->DDraw->Draw(p->DDraw->imgMiniMapColors, RadarX, RadarY, 2, 2, 15);
-					}
-				}
+//				}
 			}
 		}
 	}

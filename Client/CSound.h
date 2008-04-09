@@ -13,7 +13,7 @@ public:
 	CSound(CGame *game);
 	~CSound();
 
-	FSOUND_SAMPLE *s_tanklaser, *s_fire, *s_engine, *s_build, *s_die, *s_eXplode, *s_turret, *s_buzz, *s_click, *s_bigturret, *s_demolish, *s_screech, *s_hit;	
+	FSOUND_SAMPLE *s_tanklaser, *s_fire, *s_engine, *s_build, *s_die, *s_eXplode, *s_turret, *s_buzz, *s_click, *s_bigturret, *s_demolish, *s_screech, *s_hit, *s_cloak;	
 	FMUSIC_MODULE *m_BC1;
 	FMUSIC_MODULE *m_BC2;
 	FMUSIC_MODULE *m_BC3;

@@ -50,6 +50,9 @@ public:
 	char ShowMap;
 	float timeDeath;
 	float timeLastAttack;
+	
+	bool isUnderAttack;
+	float timeUnderAttack;
 
 	string chatLine1;
 	string chatLine2;
@@ -82,6 +85,7 @@ public:
 	void PrintWhoData();
 	void PrintFinanceReport();
 	int getGrossIncome();
+	void setIsUnderAttack(bool isUnderAttack);
 
 private:
 	CGame *p;

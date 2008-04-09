@@ -52,7 +52,9 @@ class CDrawing {
 		int chatBarWidth;
 
 		float arrowTick;
+		float arrowFlashTick;
 		int lastArrow;
+		bool flashArrow;
 
 		int BuildMenuX;
 		int BuildMenuY;

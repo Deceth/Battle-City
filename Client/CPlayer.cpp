@@ -6,6 +6,10 @@ CPlayer::CPlayer(CGame *game, int initid) {
 	this->ClearPlayer();
 }
 
+CPlayer::~CPlayer() {
+
+}
+
 void CPlayer::ClearPlayer() {
 	this->playerType = 1;
 	this->Points = 0;
@@ -51,7 +55,15 @@ void CPlayer::InGameClear() {
 
 void CPlayer::Cycle() {
 	float MoveFactor;
+	int me = p->Winsock->MyIndex;
+	float velX = 0;
+	float velY = 0;
+	short HasSectorX;
+	short HasSectorY;
+	int movetimes = 0;
+	float fDir;
 
+	// Set the player's move rate
 	if (this->isAdmin()) {
 		MoveFactor = MOVEMENT_SPEED_ADMIN;
 	}
@@ -59,147 +71,219 @@ void CPlayer::Cycle() {
 		MoveFactor = MOVEMENT_SPEED_PLAYER;
 	}
 
-	if (this->isInGame)
-	{
-		if (id != p->Winsock->MyIndex && p->Tick > (this->lastUpdate + 15000))
-		{
+	// If the player is in game,
+	if (this->isInGame) {
+
+		// If the player isn't me, and we haven't heard from the player in 15000, send the player to purgatory
+		if ( (id != p->Winsock->MyIndex) && (p->Tick > (this->lastUpdate + 15000))) {
 			this->X = 0;
 			this->Y = 0;
 		}
-		else if (id != p->Winsock->MyIndex && p->Tick > (this->lastUpdate + 3000))
-		{
+
+		// If the player isn't me, and we haven't heard from the player in 3000, set isLagging 1
+		else if (id != p->Winsock->MyIndex && p->Tick > (this->lastUpdate + 3000)) {
 			this->isLagging = 1;
 			this->isMoving = 0;
 		}
-		else
-		{
+
+		// Else (not lagging), set isLagging 0
+		else {
 			this->isLagging = 0;
 		}
-		if (this->isFrozen)
-		{
+
+		// If the player is frozen,
+		if (this->isFrozen) {
 			isMoving = 0;
-			if (p->Tick > this->timeFrozen)
-			{
+
+			// If the Frozen timer is up, set isFrozen 0
+			if (p->Tick > this->timeFrozen) {
 				this->isFrozen = 0;
 			}
-			else
+
+			// Else (player is still frozen), return
+			else {
 				return;
+			}
 		}
 
-		int me = p->Winsock->MyIndex;
-		float velX = 0;
-		float velY = 0;
-
+		// If the player is turning,
 		if (this->isTurning)
-			if (p->Tick > this->timeTurn)
-			{
-				this->Direction += this->isTurning;
-				if (this->Direction < 0) //Prevent the Direction from going negative
-					this->Direction = 31;
-				if (this->Direction > 31) //Prevent the Direction from going above 31
-					this->Direction = 0;
 
-				this->timeTurn = p->Tick + 50; //Set the time for when player last turned
+			// If the Turn timer is up,
+			if (p->Tick > this->timeTurn) {
+
+				// Turn the player
+				this->Direction += this->isTurning;
+
+				// Prevent the Direction from going negative
+				if (this->Direction < 0) {
+					this->Direction = 31;
+				}
+
+				// Prevent the Direction from going above 31
+				else if (this->Direction > 31)  {
+					this->Direction = 0;
+				}
+
+				// Reset the Turn timer
+				this->timeTurn = p->Tick + 50;
 			}
 
-		short HasSectorX = short(X/48) / SectorSize;
-		short HasSectorY = short(Y/48) / SectorSize;
-		if (HasSectorX >= 0 && HasSectorX <= MaxSectors && HasSectorY >= 0 && HasSectorY <= MaxSectors)
-			if(isMoving && (p->InGame->HasSector[HasSectorX][HasSectorY] == 1 || id != p->Winsock->MyIndex))
-			{
-				int movetimes = 0;
+		// ???
+		HasSectorX = short(X/48) / SectorSize;
+		HasSectorY = short(Y/48) / SectorSize;
 
-				// must reverse order for math purposes
-				float fDir = (float)-Direction + 32; // trig goes counter-clockwise and bc isTurning goes clockwise.
+		// If the player is in a legitimate sector,
+		if (
+			(HasSectorX >= 0)
+			&&
+			(HasSectorX <= MaxSectors)
+			&& 
+			(HasSectorY >= 0)
+			&& 
+			(HasSectorY <= MaxSectors)
+		) {
+
+			// If the player is moving, this client has the sector loaded OR the player isn't me,
+			if (isMoving && (p->InGame->HasSector[HasSectorX][HasSectorY] == 1 || id != p->Winsock->MyIndex)) {
+
+				// Reverse order since trig goes counter-clockwise and bc isTurning goes clockwise
+				fDir = (float)-Direction + 32; 
 				
+				// Update the player's X position
 				velX = (float)((sin((float)(fDir)/16*3.14)*isMoving)) * (p->TimePassed * MoveFactor); //calculate their speed
-				if (velX > 20) velX = 20;
-				if (velX < -20) velX = -20;
-				X += velX; //update X position
+				if (velX > 20) {
+					velX = 20;
+				}
+				else if (velX < -20) {
+					velX = -20;
+				}
+				X += velX;
 
-				switch(p->Collision->CheckPlayerCollision(this->id))
-				{
-				case 0:
-					//No collision
-					break;
-				case 2:
-					//Blocking collision
-					do
-					{
-						if (movetimes > 1000) break;
-						X += (float)((sin((float)(fDir+16)/16*3.14)*isMoving));
-						movetimes += 1;
-					} 
-					while (p->Collision->CheckPlayerCollision(this->id) == 2);
-					break;
-				case 101: //Mine
-					this->HitMine();
-					break;
-				case 103: //DFG
-					this->HitDFG();
-					break;
-				case 200: //Left map edge
-					X = 0;
-					break;
-				case 201: //Right map edge
-					X = (512-1) * 48;
-					break;
+				// Switch on collision check return value
+				switch(p->Collision->CheckPlayerCollision(this->id)) {
+					
+					// Collision: NONE
+					case 0:
+						break;
+
+					// Collision: BLOCKING
+					case 2:
+
+						// Relocate the player up to 1000 times
+						do {
+							if (movetimes > 1000) {
+								break;
+							}
+							X += (float)((sin((float)(fDir+16)/16*3.14)*isMoving));
+							movetimes += 1;
+						}
+						while (p->Collision->CheckPlayerCollision(this->id) == 2);
+						break;
+
+					// Collision: MINE
+					case 101:
+						this->HitMine();
+						break;
+
+					// Collision: MINE
+					case 103:
+						this->HitDFG();
+						break;
+
+					// Collision: LEFT MAP EDGE
+					case 200: //Left map edge
+						X = 0;
+						break;
+
+					// Collision: RIGHT MAP EDGE
+					case 201:
+						X = (512-1) * 48;
+						break;
 				}
 				
+				// Update the player's X position
 				movetimes = 0;
 				velY = (float)((cos((float)(fDir)/16*3.14)*isMoving)) * (p->TimePassed * MoveFactor);
-				if (velY > 20) velY = 20;
-				if (velY < -20) velY = -20;
+				if (velY > 20) {
+					velY = 20;
+				}
+				if (velY < -20) {
+					velY = -20;
+				}
 				Y += velY;
 
-				switch(p->Collision->CheckPlayerCollision(this->id))
-				{
-				case 0:
-					//No collision
-					break;
-				case 101: //Mine
-					this->HitMine();
-					break;
-				case 103: //DFG
-					this->HitDFG();
-					break;
-				case 2:
-					//Blocking collision
-					do
-					{
-						if (movetimes > 1000) break;
-						Y += (float)((cos((float)(fDir+16)/16*3.14)*isMoving)); //isMoving them back slowlY from the opposite Direction theY came from until there is no collision
-						movetimes += 1;
-					} 
-					while (p->Collision->CheckPlayerCollision(this->id) == 2);
-					break;
-				case 202: //Top map edge
-					Y = 0;
-					break;
-				case 203: //Bottom map edge
-					Y = (512-1)*48;
-					break;
+				// Switch on collision check return value
+				switch(p->Collision->CheckPlayerCollision(this->id)) {
+
+					// Collision: NONE
+					case 0:
+						break;
+
+					// Collision: BLOCKING
+					case 2:
+
+						// Relocate the player up to 1000 times
+						do {
+							if (movetimes > 1000) {
+								break;
+							}
+							Y += (float)((cos((float)(fDir+16)/16*3.14)*isMoving));
+							movetimes += 1;
+						}
+						while (p->Collision->CheckPlayerCollision(this->id) == 2);
+						break;
+
+					// Collision: MINE
+					case 101:
+						this->HitMine();
+						break;
+
+					// Collision: MINE
+					case 103:
+						this->HitDFG();
+						break;
+
+					// Collision: TOP MAP EDGE
+					case 202:
+						Y = 0;
+						break;
+
+					// Collision: BOTTOM MAP EDGE
+					case 203:
+						Y = (512-1)*48;
+						break;
+
 				}
 			}
-			else
-			{
-				switch(p->Collision->CheckPlayerCollision(this->id))
-				{
-				case 2:
-					p->Player[id]->RelocatePlayer();
-					break;
+
+			// Else (player not moving, and, client doesn't have sector OR player is me),
+			else {
+
+				// Switch on collision check return value
+				switch(p->Collision->CheckPlayerCollision(this->id)) {
+
+					// Collision: BLOCKING
+					case 2:
+						// Relocate the player up to 1000 times
+						p->Player[id]->RelocatePlayer();
+						break;
 				}
 			}
+		}
+	}
+
+	// If the player is cloaked,
+	if (this->isCloaked) {
+
+		// If the Cloak timer is up, uncloak the player
+		if (this->p->Tick > this->timeUncloak) {
+			this->setCloak(false);
+		}
 	}
 }
 
-CPlayer::~CPlayer()
-{
-
-}
-
-void CPlayer::RelocatePlayer()
-{
+void CPlayer::RelocatePlayer() {
 	float fDir = 0;
 	int tempdir = 0;
 	int isMovingtimesforward = 0;
@@ -277,9 +361,10 @@ void CPlayer::RelocatePlayer()
 	//Up
 	fDir = 0;
 
-	do
-	{
-		if (isMovingtimesforward > 1000) break;
+	do {
+		if (isMovingtimesforward > 1000) {
+			break;
+		}
 		Y += (float)(cos((float)(fDir+16)/16*3.14)*-1);
 		isMovingtimesforward += 1;
 	} 
@@ -294,8 +379,7 @@ void CPlayer::RelocatePlayer()
 	X = (float)startX;
 	Y = (float)startY;
 
-	do
-	{
+	do {
 		if (isMovingtimesback > 1000) break;
 		Y += (float)(cos((float)(fDir+16)/16*3.14)*-1);
 		isMovingtimesback += 1;
@@ -313,8 +397,7 @@ void CPlayer::RelocatePlayer()
 	X = (float)startX;
 	Y = (float)startY;
 
-	do
-	{
+	do {
 		if (isMovingtimesleft > 1000) break;
 		X += (float)(sin((float)(fDir+16)/16*3.14)*-1);
 		isMovingtimesleft += 1;
@@ -332,8 +415,7 @@ void CPlayer::RelocatePlayer()
 	X = (float)startX;
 	Y = (float)startY;
 
-	do
-	{
+	do {
 		if (isMovingtimesright > 1000) break;
 		X += (float)(sin((float)(fDir+16)/16*3.14)*-1);
 		isMovingtimesright += 1;
@@ -343,23 +425,19 @@ void CPlayer::RelocatePlayer()
 	finalXright = (int)X;
 	finalYright = (int)Y;
 
-	if ((isMovingtimesforward <= isMovingtimesback) && (isMovingtimesforward <= isMovingtimesleft) && (isMovingtimesforward <= isMovingtimesright))
-	{
+	if ((isMovingtimesforward <= isMovingtimesback) && (isMovingtimesforward <= isMovingtimesleft) && (isMovingtimesforward <= isMovingtimesright)) {
 		X = (float)finalXforward;
 		Y = (float)finalYforward;
 	}
-	else if ((isMovingtimesback <= isMovingtimesforward) && (isMovingtimesback <= isMovingtimesleft) && (isMovingtimesback <= isMovingtimesright))
-	{
+	else if ((isMovingtimesback <= isMovingtimesforward) && (isMovingtimesback <= isMovingtimesleft) && (isMovingtimesback <= isMovingtimesright)) {
 		X = (float)finalXback;
 		Y = (float)finalYback;
 	}
-	else if ((isMovingtimesleft <= isMovingtimesforward) && (isMovingtimesleft <= isMovingtimesback) && (isMovingtimesleft <= isMovingtimesright))
-	{
+	else if ((isMovingtimesleft <= isMovingtimesforward) && (isMovingtimesleft <= isMovingtimesback) && (isMovingtimesleft <= isMovingtimesright)) {
 		X = (float)finalXleft;
 		Y = (float)finalYleft;
 	}
-	else if ((isMovingtimesright <= isMovingtimesforward) && (isMovingtimesright <= isMovingtimesback) && (isMovingtimesright <= isMovingtimesleft))
-	{
+	else if ((isMovingtimesright <= isMovingtimesforward) && (isMovingtimesright <= isMovingtimesback) && (isMovingtimesright <= isMovingtimesleft)) {
 		X = (float)finalXright;
 		Y = (float)finalYright;
 	}
@@ -469,4 +547,20 @@ void CPlayer::GenerateNameString()
 
 bool CPlayer::isAdmin() {
 	return (this->playerType == 2);
+}
+
+/***************************************************************
+ * Function:	setCloak
+ *
+ * @param isCloaked
+ **************************************************************/
+void CPlayer::setCloak(bool isCloaked) {
+	if( isCloaked ) {
+		this->isCloaked = true;
+		this->timeUncloak = this->p->Tick + TIMER_CLOAK;
+	}
+	else {
+		this->isCloaked = false;
+		this->timeUncloak = 0;
+	}
 }

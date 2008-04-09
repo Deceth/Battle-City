@@ -21,6 +21,7 @@ public:
 	IDirectDrawSurface7 *Back;
 
 	IDirectDrawSurface7 *imgArrows;
+	IDirectDrawSurface7 *imgArrowsRed;
 	IDirectDrawSurface7 *imgBCLogo;
 	IDirectDrawSurface7 *imgBlackNumbers;
 	IDirectDrawSurface7 *imgBtnStaff;

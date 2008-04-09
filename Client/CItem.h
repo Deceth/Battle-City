@@ -69,6 +69,7 @@ class CInventory {
 
 		void ItemCheck();
 		void Drop();
+		void triggerItem(int type);
 
 		CInventory(CGame *game);
 		~CInventory();

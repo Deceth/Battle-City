@@ -125,7 +125,7 @@ void CSend::SendWhisper() {
 			for (int i = 0; i < MAX_PLAYERS; i++) {
 				
 				// If the player isn't the person sending the whisper,
-//				if (i != p->Winsock->MyIndex ) {
+				if (i != p->Winsock->MyIndex ) {
 
 					// If the name isn't empty, lowercase it for comparison
 					playerNameStr = p->Player[i]->Name;
@@ -140,7 +140,7 @@ void CSend::SendWhisper() {
 							break;
 						}
 					}
-//				}
+				}
 			}
 		}
 	}
@@ -150,23 +150,23 @@ void CSend::SendWhisper() {
 		// Send the message, append the message to the sender's chat
 		whisper.Sender = p->Winsock->MyIndex;
 		tmpString = p->Player[p->Winsock->MyIndex]->Name + " (to " + p->Player[whisper.Recipient]->Name + "): " + whisper.Message;
-		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
+		p->InGame->AppendChat(tmpString, COLOR_WHISPER);
 		p->Winsock->SendData(cmWhisper,(char *)&whisper,sizeof(whisper));
 	}
 	// Else if the recipient name was too long,
 	else if (recipientTooLong) {
 		tmpString = "Player not found: try adding more letters to the name!";
-		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
+		p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 	}
 	// Else if the message was too long, (note that this is impossible because the client cuts messages shorter than this)
 	else if (messageTooLong) {
 		tmpString = "tl;dr";
-		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
+		p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 	}
 	// Else, recipient wasn't found,
 	else {
 		tmpString = "Player not found: " + recipientName;
-		p->InGame->AppendChat(tmpString, RGB(255, 255, 255));
+		p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 	}
 }
 
@@ -185,7 +185,7 @@ void CSend::SendGlobal() {
 
 	// Append the message to the sender's chat
 	tmpString = p->Player[p->Winsock->MyIndex]->Name + " (Global): " + SendString;
-	p->InGame->AppendChat(tmpString, RGB(255, 165, 0));
+	p->InGame->AppendChat(tmpString, COLOR_GLOBAL_CHAT);
 }
 
 void CSend::SendMessage() {	
@@ -202,14 +202,14 @@ void CSend::SendMessage() {
 	// Append the message to the sender's chat
 	// If sent by ADMIN player, show Admin color
 	if (p->Player[p->Winsock->MyIndex]->isAdmin()) {
-		p->InGame->AppendChat(tmpString, RGB(255, 165, 0));
+		p->InGame->AppendChat(tmpString, COLOR_ADMIN_CHAT);
 	}
 	// Else, if sent by DEAD player, show Dead color
 	else if (p->Player[p->Winsock->MyIndex]->isDead == true) {
-		p->InGame->AppendChat(tmpString, RGB(135, 135, 135));
+		p->InGame->AppendChat(tmpString, COLOR_DEAD_CHAT);
 	}
 	// Else, sent by NORMAL player, show Team color (since this only specifies what the sender sees)
 	else {
-		p->InGame->AppendChat(tmpString, RGB(0, 255, 0));
+		p->InGame->AppendChat(tmpString, COLOR_TEAM_CHAT);
 	}
 }

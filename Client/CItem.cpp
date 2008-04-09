@@ -279,7 +279,12 @@ void CItemList::Cycle() {
 
 						tmpAngle = tmpAngle / 10;
 						int tmpdmg = 0;
-						if (itm->Type == 11) tmpdmg = 5; else tmpdmg = 4;
+						if (itm->Type == ITEM_TYPE_PLASMA) {
+							tmpdmg = 5; 
+						}
+						else {
+							tmpdmg = 4;
+						}
 						float fDir = (float)-tmpAngle+32;
 						int FlashY = itm->Y * 48-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
 						int FlashX = itm->X * 48-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
@@ -315,7 +320,7 @@ void CItemList::Cycle() {
 				}
 			}
 			else {
-				if (itm->Type == 10) {
+				if (itm->Type == ITEM_TYPE_SLEEPER) {
 					itm->Animation = 0;
 				}
 			}
@@ -323,7 +328,7 @@ void CItemList::Cycle() {
 		else {
 
 			// Item: ORB
-			if (itm->Type == 5) {
+			if (itm->Type == ITEM_TYPE_ORB) {
 				if (p->Tick > itm->Animationtick) {
 					itm->Animationtick = p->Tick + 1000;
 					itm->Animation++;
@@ -531,7 +536,7 @@ void CInventory::Cycle() {
 	while (itm) {
 
 		// Item: ORB
-		if (itm->Type == 5) {
+		if (itm->Type == ITEM_TYPE_ORB) {
 
 			// If the Animation timer is up, reset the timer
 			if (p->Tick > itm->Animationtick) {
@@ -554,7 +559,6 @@ void CInventory::Cycle() {
  **************************************************************/
 void CInventory::ItemCheck() {
 	CItem *itm = this->itemListHead;
-	bool hasLaser = false;
 	bool hasRocket = false;
 	bool hasUpLink = false;
 
@@ -563,18 +567,13 @@ void CInventory::ItemCheck() {
 
 		switch (itm->Type) {
 
-			// Item: LASER
-			case 0:
-				hasLaser = true;
-				break;
-
 			// Item: ROCKET
-			case 1:
+			case ITEM_TYPE_ROCKET:
 				hasRocket = true;
 				break;
 
 			// Item: UPLINK
-			case 6:
+			case ITEM_TYPE_WALKIE:
 				hasUpLink = true;
 				break;
 		}
@@ -583,7 +582,6 @@ void CInventory::ItemCheck() {
 		itm = itm->next;
 	}
 
-	p->InGame->HasLaser = ( hasLaser ? 1 : 0 );
 	p->InGame->HasRocket = ( hasRocket ? 1 : 0 );
 	p->InGame->HasUpLink = ( hasUpLink ? 1 : 0 );
 }
@@ -631,7 +629,7 @@ void CInventory::Drop() {
 			ii.id = itm->id;
 
 			// Item: in range required
-			if (itm->Type >= 8 || itm->Type == 4) {
+			if (itm->Type >= 8 || itm->Type == ITEM_TYPE_MINE) {
 
 				// If the player is in range,
 				if (p->Build->inRange() == 1) {
@@ -648,12 +646,12 @@ void CInventory::Drop() {
 			else {
 
 				// Item: DFG?
-				if (itm->Type == 7) {
+				if (itm->Type == ITEM_TYPE_DFG) {
 					itm->active = 1;
 				}
 
 				// Item: BOMB
-				else if (itm->Type == 3) {
+				else if (itm->Type == ITEM_TYPE_BOMB) {
 					itm->active = p->InGame->BombsAreActivated;
 				}
 
@@ -665,3 +663,33 @@ void CInventory::Drop() {
 		}
 	}
 }
+
+/***************************************************************
+ * Function:	triggerItem
+ *
+ * @param type
+ **************************************************************/
+void CInventory::triggerItem(int type) {
+	CItem *itm = p->Inventory->findItembyType(type);
+
+	// If the item was found,
+	if (itm) {
+
+		// Item: MEDKIT
+		if (type == ITEM_TYPE_MEDKIT) {
+			this->p->Winsock->SendData(cmMedKit, (char *)&itm->id, sizeof(itm->id));
+		}
+
+		// Item: CLOAK
+		else if (type == ITEM_TYPE_CLOAK) {
+			this->p->Winsock->SendData(cmCloak, (char *)&itm->id, sizeof(itm->id));
+		}
+
+		// Item: BOMB
+		else if (type == ITEM_TYPE_BOMB) {
+			// Activate the bomb stack
+			p->InGame->BombsAreActivated = 1 - p->InGame->BombsAreActivated;
+		}
+	}
+}
+

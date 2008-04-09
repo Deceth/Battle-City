@@ -190,6 +190,8 @@ void CDDraw::LoadSurfaces()
 	TextWidth = tm.tmAveCharWidth;
 	Back->ReleaseDC(surfDC);
 
+	imgArrowsRed = DDLoadBitmap(DirectDraw, "imgArrowsRed.bmp", 0, 0);
+	DDSetColorKey(imgArrowsRed, COLOR_TRANSPARENCY);
 	imgArrows = DDLoadBitmap(DirectDraw, "imgArrows.bmp", 0, 0);
 	DDSetColorKey(imgArrows, COLOR_TRANSPARENCY);
 	imgBCLogo = DDLoadBitmap(DirectDraw, "imgBCLogo.bmp", 0, 0);
@@ -282,6 +284,11 @@ void CDDraw::DestroySurfaces()
 		{
 		  imgArrows->Release();
 		  imgArrows = NULL;
+		}
+		if(imgArrowsRed != NULL)
+		{
+		  imgArrowsRed->Release();
+		  imgArrowsRed = NULL;
 		}
 		if(imgBCLogo != NULL)
 		{

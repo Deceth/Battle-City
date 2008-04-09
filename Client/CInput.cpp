@@ -40,7 +40,7 @@ CInput::~CInput() {
 }
 
 /***************************************************************
- * ProcessKeys
+ * Function: ProcessKeys
  *
  * @param buffer
  **************************************************************/
@@ -342,7 +342,7 @@ void CInput::ProcessKeys(char buffer[256]) {
 }
 
 /***************************************************************
- * MouseMove
+ * Function: MouseMove
  *
  * @param mouse_state
  * @param X
@@ -360,7 +360,7 @@ void CInput::MouseMove(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 }
 
 /***************************************************************
- * MouseUp
+ * Function: MouseUp
  *
  * @param mouse_state
  * @param X
@@ -373,7 +373,7 @@ void CInput::MouseUp(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]) {
 }
 
 /***************************************************************
- * MouseDown
+ * Function: MouseDown
  *
  * @param mouse_state
  * @param X
@@ -718,30 +718,12 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			p->Inventory->SelectedItemType = ((X - p->Draw->MaxMapX - 7) / 35);
 			p->Inventory->SelectedItemType = (p->Inventory->SelectedItemType + (((Y - 267) / 35) * 3));
 
-			// Item: MEDKIT
-			if (p->Inventory->SelectedItemType == 2)  {
+			// Tell the inventory to trigger the item
+			p->Inventory->triggerItem(p->Inventory->SelectedItemType);
 
-				// Find the medkit and tell the server to use it
-				CItem *itm = p->Inventory->findItembyType(2);
-				if (itm) {
-					p->Winsock->SendData(cmMedKit, (char *)&itm->id, sizeof(itm->id));
-
-					// Save the mouse state and return
-					this->endMouseDown(mouse_state);
-					return;
-				}
-			}
-
-			// Item: BOMB
-			if (p->Inventory->SelectedItemType == 3) {
-
-				// Activate the bomb stack
-				p->InGame->BombsAreActivated = 1 - p->InGame->BombsAreActivated;
-
-				// Save the mouse state and return
-				this->endMouseDown(mouse_state);
-				return;
-			}
+			// Save the mouse state and return
+			this->endMouseDown(mouse_state);
+			return;
 		}
 
 		/************************************************
@@ -857,7 +839,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 }
 
 /***************************************************************
- * endMouseDown
+ * Function: endMouseDown
  *
  * Helper function for MouseDown:
  *  - Saves the mouse state
@@ -870,7 +852,7 @@ void CInput::endMouseDown(DIMOUSESTATE mouse_state) {
 }
 
 /***************************************************************
- * endMouseDown
+ * Function: endMouseDown
  *
  * Helper function for MouseDown:
  *  - Saves the mouse state
@@ -888,7 +870,7 @@ void CInput::endMouseDown(DIMOUSESTATE mouse_state, bool setNeedRelease) {
 }
 
 /***************************************************************
- * StartDInput
+ * Function: StartDInput
  *
  * Uses DirectInput to acquire input devices
  **************************************************************/
@@ -907,7 +889,7 @@ void CInput::StartDInput() {
 }
 
 /***************************************************************
- * Cycle
+ * Function: Cycle
  *
  * Uses DirectInput to acquire input devices
  **************************************************************/
@@ -962,7 +944,7 @@ void CInput::Cycle() {
 }
 
 /***************************************************************
- * InfoButton
+ * Function: InfoButton
  *
  **************************************************************/
 void CInput::InfoButton() {
@@ -972,7 +954,7 @@ void CInput::InfoButton() {
 }
 
 /***************************************************************
- * PointsButton
+ * Function: PointsButton
  *
  **************************************************************/
 void CInput::PointsButton() {
@@ -997,11 +979,11 @@ void CInput::PointsButton() {
 	PointString += "   Points this month: ";
 	thing << p->Player[p->Winsock->MyIndex]->MonthlyPoints;
 	PointString += thing.str();
-	p->InGame->AppendChat(PointString.c_str(), RGB(255, 215, 0));
+	p->InGame->AppendChat(PointString.c_str(), COLOR_SYSTEM);
 }
 
 /***************************************************************
- * ChangeTank
+ * Function: ChangeTank
  * 
  * Helper method to handle tank changing
  **************************************************************/
