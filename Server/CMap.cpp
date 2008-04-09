@@ -7,6 +7,17 @@
  **************************************************************/
 CMap::CMap(CServer *Server) {
 	this->p = Server;
+
+	// For each row,
+	for (int i = 0; i < 512; i++) {
+
+		// For each column,
+		for (int j = 0; j < 512; j++) {
+
+			// Set the square to 0
+			this->map[i][j] = 0;
+		}
+	}
 }
 
 /***************************************************************
@@ -23,18 +34,8 @@ CMap::~CMap() {
 void CMap::LoadMap() {
 	FILE *file;
 
-	// For each row,
-	for (int i = 0; i < 512; i++) {
-
-		// For each column,
-		for (int j = 0; j < 512; j++) {
-
-			// Set the square to 0
-			this->map[i][j] = 0;
-		}
-	}
-
 	// If the map file is missing,
+	cout << " - Looking for map file" << endl;
 	if (this->p->Exists("map.dat") == 0) {
 
 		// Error and return
@@ -44,9 +45,14 @@ void CMap::LoadMap() {
 	}
 
 	// Open and read the map file
+	cout << " - Opening map file" << endl;
 	file = fopen("map.dat","r");
+	
 	if (file) {
+		cout << " - Reading map file" << endl;
 		fread(this->map,512,512,file);
+
+		cout << " - Calculating tiles" << endl;
 		this->CalculateTiles();
 	}
 
