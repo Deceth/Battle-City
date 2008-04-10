@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.0"
+#define VERSION "3.5.1"
 
 // Note: to change build tree order, you must change the following:
 // Server: itemTypes
