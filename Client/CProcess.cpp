@@ -1118,8 +1118,19 @@ void CProcess::ProcessMedKit() {
  *
  **************************************************************/
 void CProcess::ProcessCloak(int index) {
+	
+	// Cloak the player
 	this->p->Player[index]->setCloak(true);
-	this->p->Sound->PlayWav(sCloak, -1);
+
+	// If the player is me, play the cloak sound
+	if (this->p->Winsock->MyIndex == index) {
+		this->p->Sound->PlayWav(sCloak, -1);
+	}
+
+	// Else, play the cloak sound directional
+	else {
+		this->p->Sound->Play3dSound(p->Sound->s_cloak, 100, this->p->Player[index]->X, this->p->Player[index]->Y);
+	}
 }
 
 /***************************************************************
