@@ -1088,61 +1088,54 @@ void CDrawing::DrawRadar() {
 	// For each player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
 
-		// If the player is in game,
-		if (p->Player[i]->isInGame) {
+		// If the player is in game, and is not cloaked,
+		if ( (p->Player[i]->isInGame) && (p->Player[i]->isCloaked == false) ) {
 
-			// If the player isn't me,
-//			if (me != i) {
+			// If the player is in range,
+			if (
+				(p->Player[i]->X >= p->Player[me]->X - RadarSize)
+				&&
+				(p->Player[i]->X <= p->Player[me]->X + RadarSize)
+				&&
+				(p->Player[i]->Y >= p->Player[me]->Y - RadarSize)
+				&& 
+				(p->Player[i]->Y <= p->Player[me]->Y + RadarSize)
+				&&
+				(p->Player[i]->X != 0)
+				&&
+				(p->Player[i]->Y != 0)
+			) {
 
-				// If the player is not cloaked,
-				if (p->Player[i]->isCloaked == false) {
+				RadarX = (int)((MaxMapX+100)-(p->Player[i]->X - p->Player[me]->X+70)/ratio);
+				RadarY = (int)(80-(p->Player[i]->Y - p->Player[me]->Y+69)/ratio);
+				
+				// If the player is in my city, set color to 3
+				if (p->Player[i]->City == p->Player[me]->City) {
+					RadarSrcX = 3;
+				}
 
-					// If the player is in range,
-					if (
-						(p->Player[i]->X >= p->Player[me]->X - RadarSize)
-						&&
-						(p->Player[i]->X <= p->Player[me]->X + RadarSize)
-						&&
-						(p->Player[i]->Y >= p->Player[me]->Y - RadarSize)
-						&& 
-						(p->Player[i]->Y <= p->Player[me]->Y + RadarSize)
-						&&
-						(p->Player[i]->X != 0)
-						&&
-						(p->Player[i]->Y != 0)
-					) {
-						RadarX = (int)((MaxMapX+100)-(p->Player[i]->X - p->Player[me]->X+70)/ratio);
-						RadarY = (int)(80-(p->Player[i]->Y - p->Player[me]->Y+69)/ratio);
-						
-						// If the player is in my city, set color to 3
-						if (p->Player[i]->City == p->Player[me]->City) {
-							RadarSrcX = 3;
-						}
+				// Else if player is an admin, set color to 1
+				else if (p->Player[i]->isAdmin()) {
+					RadarSrcX = 1;
+				}
+				// Else (player is enemy), set color to 2
+				else {
+					RadarSrcX = 2;
+				}
 
-						// Else if player is an admin, set color to 1
-						else if (p->Player[i]->isAdmin()) {
-							RadarSrcX = 1;
-						}
-						// Else (player is enemy), set color to 2
-						else {
-							RadarSrcX = 2;
-						}
+				// ???
+				if (RadarX >= (MaxMapX+28) && RadarX <= (MaxMapX+166) && RadarY >= 8 && RadarY <= 146) {
+
+					// If player is alive, draw the player
+					if (p->Player[i]->isDead == false) {
+						p->DDraw->Draw(p->DDraw->imgRadarColors, RadarX, RadarY, 2, 2, RadarSrcX * 2);
 					}
 
-					// ???
-					if (RadarX >= (MaxMapX+28) && RadarX <= (MaxMapX+166) && RadarY >= 8 && RadarY <= 146) {
-
-						// If player is alive, draw the player
-						if (p->Player[i]->isDead == false) {
-							p->DDraw->Draw(p->DDraw->imgRadarColors, RadarX, RadarY, 2, 2, RadarSrcX * 2);
-						}
-
-						// Else (player is dead), ???
-						else {
-							p->DDraw->Draw(p->DDraw->imgMiniMapColors, RadarX, RadarY, 2, 2, 15);
-						}
+					// Else (player is dead), ???
+					else {
+						p->DDraw->Draw(p->DDraw->imgMiniMapColors, RadarX, RadarY, 2, 2, 15);
 					}
-//				}
+				}
 			}
 		}
 	}
