@@ -316,7 +316,7 @@ void CBulletList::cycle() {
 				rp.h = 144;
 
 				// If the building is a Factory or Hospital (anything with a bay?),
-				if (bld->isFactory() || bld->isHospital()) {
+				if (bld->isFactory() || bld->isHospital() || bld->isCC()) {
 					rp.y = (bld->y-2)*48;
 					rp.h = 96;
 				}
