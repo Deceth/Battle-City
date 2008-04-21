@@ -90,7 +90,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		hwnd = CreateWindowEx(
 			0,
 			g_szClassName,
-			"BattleCity Classic",
+			"Battle City",
 			WS_POPUP,
 			X, Y, Game.ResolutionX, Game.ResolutionY,
 			NULL, NULL, hInstance, NULL);
@@ -102,7 +102,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		hwnd = CreateWindowEx(
 			0,
 			g_szClassName,
-			"BattleCity Classic",
+			"Battle City",
 			WS_DLGFRAME,
 			X, Y, Game.ResolutionX + 7, Game.ResolutionY + 33,
 			NULL, NULL, hInstance, NULL);

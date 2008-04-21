@@ -66,7 +66,7 @@ CLogin::CLogin(CGame *game)
 	p = game;
 	CLogPointer = game;
 
-	VersionString = "BattleCity Classic ";
+	VersionString = "Battle City ";
 	VersionString += VERSION;
 }
 
