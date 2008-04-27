@@ -291,21 +291,21 @@ CBuilding *CBuildingList::delBuilding(CBuilding *buildingToDelete) {
 	else if (buildingToDelete->isResearch()) {
 	/*
 		// Tell the city it can NOT build this Research's Factory (setCanBuild does its own index++)
-		p->City[buildingToDelete->City]->setCanBuild((unsigned char)buildingToDelete->type, 0);
+		p->City[buildingToDelete->City]->setCanBuild((unsigned char)buildingToDelete->type, 0, true);
 
 		// Tell the city is needs to re-research this Research
 		p->City[buildingToDelete->City]->research[(buildingToDelete->type - 3) / 2] = 0;
 
 		// If this building is a Med Research (type 9), set canBuild on Hospital (type 1... setCanBuild does type++)
 		if (buildingToDelete->type == 9) {
-			p->City[buildingToDelete->City]->setCanBuild(0, 0);
+			p->City[buildingToDelete->City]->setCanBuild(0, 0, true);
 		}
 	*/
 	}
 
 	// Building: ALL
 	// Tell the city it can now build this building type MINUS ONE (setCanBuild does its own index++)
-	this->p->City[buildingToDelete->City]->setCanBuild(buildingToDelete->type-1, 1);
+	this->p->City[buildingToDelete->City]->setCanBuild(buildingToDelete->type-1, 1, true);
 
 
 	/************************************************
@@ -626,11 +626,11 @@ void CBuildingList::cycle() {
 						this->p->City[bld->City]->research[(bld->type - 3) / 2] = -1;
 
 						// Set canBuild to true for this Research's Factory (setCanBuild does it's own type++)
-						this->p->City[bld->City]->setCanBuild(bld->type, 1);
+						this->p->City[bld->City]->setCanBuild(bld->type, 1, false);
 						
 						// If this building is a Med Research (type 9), set canBuild on Hospital (type is really 1... setCanBuild does type++)
 						if (bld->type == 9) {
-							this->p->City[bld->City]->setCanBuild(0, 1);
+							this->p->City[bld->City]->setCanBuild(0, 1, false);
 						}
 
 						// For each building in the build tree,
@@ -640,7 +640,7 @@ void CBuildingList::cycle() {
 							if (buildTree[l] == (bld->type - 3) / 2) {
 
 								// Set canBuild true on that building
-								this->p->City[bld->City]->setCanBuild((unsigned char)l * 2 + 2, 1);
+								this->p->City[bld->City]->setCanBuild((unsigned char)l * 2 + 2, 1, false);
 							}
 						}
 					}
@@ -735,4 +735,3 @@ void CBuildingList::cycle() {
 		bld = bld->next;
 	}
 }
-

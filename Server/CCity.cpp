@@ -104,9 +104,25 @@ void CCity::destroy() {
  * @param i
  * @param can
  **************************************************************/
-void CCity::setCanBuild(int i, int can) {
+void CCity::setCanBuild(int i, int can, bool allowReset) {
 	char packet[4];
 	int iCan = 0;
+	int canBuildSize = sizeof(this->canBuild) / sizeof(int);
+
+	// If i is an invalid canBuild index, abort
+	if (i >= canBuildSize) {
+		return;
+	}
+
+	// canBuild[x] = 0: cannot be built
+	// canBuild[x] = 1: can be built
+	// canBuild[x] = 2: already has
+
+	// If we're trying to reset canBuild from 2 ("already has") to 1 ("can build"),
+	// But allowReset parameter is false, override canBuild back to 2 .
+	if ((can==1) && (this->canBuild[i] == 2) && (allowReset==false)) {
+		can = 2;
+	}
 
 	// Store whether the city can build the building in canBuild
 	this->canBuild[i] = can;
@@ -405,3 +421,4 @@ int CCity::getUptimeInSeconds() {
 int CCity::getUptimeInMinutes() {
 	return this->getUptimeInSeconds() / 60;
 }
+

@@ -55,7 +55,6 @@ class CPlayer {
 		char Buffer[2048];
 		int BufferLength;
 
-		void setMayor(int set);
 		void JoinGame();
 		void StartJoin();
 		void LeaveGame(bool showMessage);
@@ -64,6 +63,7 @@ class CPlayer {
 		void Death(int killer);
 		void Clear();
 		void setCloak(bool isCloaked);
+		void setMayor(bool isMayor);
 		int FindApplyMayor();
 
 		bool isAdmin();
@@ -72,6 +72,8 @@ class CPlayer {
 		bool isConnected();
 		bool isInGame();
 		bool isInGameApplyOrChat();
+		int getTileX();
+		int getTileY();
 
 		CPlayer(CServer *Server);
 		~CPlayer();

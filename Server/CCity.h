@@ -43,7 +43,7 @@ class CCity {
 		int y;
 
 		void cycle();
-		void setCanBuild(int i, int can);
+		void setCanBuild(int i, int can, bool allowReset);
 		void resetToDefault();
 		void destroy();
 

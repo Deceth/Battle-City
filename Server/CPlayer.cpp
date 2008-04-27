@@ -24,19 +24,19 @@ CPlayer::~CPlayer() {
  *
  * @param set
  **************************************************************/
-void CPlayer::setMayor(int set) {
+void CPlayer::setMayor(bool isMayor) {
 	sSMFinance finance;
 	sSMMayorUpdate Mayorupdate;
 
 	// Store whether the player is in-game or not
-	this->Mayor = set;
+	this->Mayor = isMayor;
 
 	// Set the player to in-game
 	// ???
 	this->State = State_Game;
 
 	// If the player is now mayor,
-	if (set) {
+	if (isMayor) {
 
 		// ???
 		this->p->City[this->City]->id = this->City;
@@ -58,7 +58,7 @@ void CPlayer::setMayor(int set) {
 		for (int j = 0; j <= 26; j++) {
 
 			// Set the build tree for this city
-			this->p->City[this->City]->setCanBuild(j,this->p->City[City]->canBuild[j]);
+			this->p->City[this->City]->setCanBuild(j,this->p->City[City]->canBuild[j], false);
 		}
 
 		// Request the city's finance report
@@ -323,7 +323,7 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 					) {
 
 					// Set the successor to mayor
-					this->p->Player[this->p->City[this->City]->Successor]->setMayor(1);
+					this->p->Player[this->p->City[this->City]->Successor]->setMayor(true);
 				}
 
 				// Else (successor not in game), set failed = 1
@@ -347,7 +347,7 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 					if ( (this->p->Player[j]->isInGame()) && (this->p->Player[j]->City == this->City) && (this->id != j) ) {
 
 						// Make the player the new mayor
-						this->p->Player[j]->setMayor(1);
+						this->p->Player[j]->setMayor(true);
 						break;
 					}
 				}
@@ -472,4 +472,20 @@ void CPlayer::setCloak(bool isCloaked) {
 		this->isCloaked = false;
 		this->timeUncloak = 0;
 	}
+}
+
+/***************************************************************
+ * Function:	getTileX
+ *
+ **************************************************************/
+int CPlayer::getTileX() {
+	return (int) ((this->X+24) / 48);
+}
+
+/***************************************************************
+ * Function:	getTileY
+ *
+ **************************************************************/
+int CPlayer::getTileY() {
+	return (int) ((this->Y+24) / 48);
 }
