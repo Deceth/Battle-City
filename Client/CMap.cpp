@@ -46,7 +46,7 @@ void CMap::CalculateTiles()
 		{
 			if (this->map[i][j] == 3)
 			{
-				p->Build->newBuilding(i, j, citIndex, 6, 0); //place City centers
+				p->Build->newBuilding(i, j, citIndex, -1, 0); //place City centers
 				citIndex--;
 			}
 				
