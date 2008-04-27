@@ -735,7 +735,7 @@ void CDrawing::DrawChat() {
 
 	// If mouse is over chat, fill the chat box with black
 	if (p->Input->MouseOverChat == 1) {
-		p->DDraw->DFillRect(0, MaxMapY-84, MaxMapX, 84);
+		p->DDraw->DFillRect(0, MaxMapY-126, MaxMapX, 126);
 	}
 	
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine1, p->InGame->chatColor1);
