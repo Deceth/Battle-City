@@ -527,24 +527,33 @@ void CPlayer::HitDFG() {
 	}
 }
 
-void CPlayer::GenerateNameString()
-{
+/***************************************************************
+ * Function:	GenerateNameString
+ *
+ **************************************************************/
+void CPlayer::GenerateNameString() {
 	if (this->isAdmin()) {
-		NameString = "Admin";
+		this->NameString = "Admin";
 	}
 	else {
-		NameString = p->InGame->ReturnRank(Points);
+		this->NameString = this->p->InGame->ReturnRank(Points);
 	}
 
-	NameString += " ";
-	NameString += Name;
+	this->NameString += " ";
+	this->NameString += this->Name;
 
-	TownString = "(";
-	if (isMayor) TownString += "Mayor of ";
-	TownString += CityList[City];
-	TownString += ")";
+	this->TownString = "(";
+	if (isMayor) {
+		this->TownString += "Mayor of ";
+	}
+	this->TownString += CityList[City];
+	this->TownString += ")";
 }
 
+/***************************************************************
+ * Function:	isAdmin
+ *
+ **************************************************************/
 bool CPlayer::isAdmin() {
 	return (this->playerType == 2);
 }
@@ -563,4 +572,34 @@ void CPlayer::setCloak(bool isCloaked) {
 		this->isCloaked = false;
 		this->timeUncloak = 0;
 	}
+}
+
+/***************************************************************
+ * Function:	getTileX
+ *
+ **************************************************************/
+int CPlayer::getTileX() {
+	return (int) ((this->X+24) / 48);
+}
+
+/***************************************************************
+ * Function:	getTileY
+ *
+ **************************************************************/
+int CPlayer::getTileY() {
+	return (int) ((this->Y+24) / 48);
+}
+
+/***************************************************************
+ * Function:	setMayor
+ *
+ * @param set
+ **************************************************************/
+void CPlayer::setMayor(bool isMayor) {
+
+	// Store whether the player is in-game or not
+	this->isMayor = isMayor;
+
+	// Re-generate the name string (to add/remove "Mayor of...")
+	this->GenerateNameString();
 }

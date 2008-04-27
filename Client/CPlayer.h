@@ -69,11 +69,14 @@ class CPlayer {
 		void GenerateNameString();
 		bool isAdmin();
 		void setCloak(bool isCloaked);
+		void setMayor(bool isMayor);
 
 		void SetHP(int HP);
 
 		void HitMine();
 		void HitDFG();
+		int getTileX();
+		int getTileY();
 
 		CPlayer(CGame *game, int initid);
 		virtual ~CPlayer();
