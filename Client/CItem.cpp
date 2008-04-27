@@ -245,16 +245,21 @@ CItem *CItemList::findItembyLocation(int X, int Y) {
  * @param X
  * @param Y
  * @param Type
+ * @param activeOnly
  **************************************************************/
-CItem *CItemList::findItembyLocationAndType(int X, int Y, int Type) {
+CItem *CItemList::findItembyLocationAndType(int X, int Y, int Type, bool activeOnly) {
 	CItem *itm = this->itemListHead;
 
 	// For each item,
 	while (itm) {
 
 		// If the item matches the X and Y and Type, return it
-		if (itm->X == X && itm->Y == Y && itm->Type == Type) {
-			return itm;
+		if ((itm->X == X) && (itm->Y == Y) && (itm->Type == Type)) {
+
+			// If activeOnly is false, or the item is active, 
+			if ( (!activeOnly) || (itm->active) ) {
+				return itm;
+			}
 		}
 
 		// Else, get the next item

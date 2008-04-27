@@ -62,6 +62,8 @@ void CPlayer::Cycle() {
 	short HasSectorY;
 	int movetimes = 0;
 	float fDir;
+	bool isOnDFG = false;
+	bool isOnMine = false;
 
 	// Set the player's move rate
 	if (this->isAdmin()) {
@@ -107,7 +109,7 @@ void CPlayer::Cycle() {
 		}
 
 		// If the player is turning,
-		if (this->isTurning)
+		if (this->isTurning) {
 
 			// If the Turn timer is up,
 			if (p->Tick > this->timeTurn) {
@@ -128,6 +130,7 @@ void CPlayer::Cycle() {
 				// Reset the Turn timer
 				this->timeTurn = p->Tick + 50;
 			}
+		}
 
 		// ???
 		HasSectorX = short(X/48) / SectorSize;
@@ -183,12 +186,12 @@ void CPlayer::Cycle() {
 
 					// Collision: MINE
 					case 101:
-						this->HitMine();
+						isOnMine = true;
 						break;
 
-					// Collision: MINE
+					// Collision: DFG
 					case 103:
-						this->HitDFG();
+						isOnDFG = true;
 						break;
 
 					// Collision: LEFT MAP EDGE
@@ -199,6 +202,9 @@ void CPlayer::Cycle() {
 					// Collision: RIGHT MAP EDGE
 					case 201:
 						X = (512-1) * 48;
+						break;
+
+					default:
 						break;
 				}
 				
@@ -236,12 +242,12 @@ void CPlayer::Cycle() {
 
 					// Collision: MINE
 					case 101:
-						this->HitMine();
+						isOnMine = true;
 						break;
 
-					// Collision: MINE
+					// Collision: DFG
 					case 103:
-						this->HitDFG();
+						isOnDFG = true;
 						break;
 
 					// Collision: TOP MAP EDGE
@@ -254,7 +260,20 @@ void CPlayer::Cycle() {
 						Y = (512-1)*48;
 						break;
 
+					default:
+						break;
 				}
+
+				// If the player hit a mine, hit it
+				if (isOnMine) {
+					this->HitMine();
+				}
+
+				// If the player hit a DFG, hit it
+				if (isOnDFG) {
+					this->HitDFG();
+				}
+
 			}
 
 			// Else (player not moving, and, client doesn't have sector OR player is me),
@@ -463,7 +482,7 @@ void CPlayer::HitMine() {
 	if (me == this->id) {
 		
 		// Find the first mine under the player
-		item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, 4);
+		item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, ITEM_TYPE_MINE, true);
 
 		// If one was found,
 		if (item) {
@@ -512,7 +531,7 @@ void CPlayer::HitDFG() {
 	if (id == p->Winsock->MyIndex) {
 
 		// Find the first DFG in my square,
-		item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, 7);
+		item = p->Item->findItembyLocationAndType((int)(p->Player[p->Winsock->MyIndex]->X + 24) / 48, (int)(p->Player[p->Winsock->MyIndex]->Y + 24) / 48, ITEM_TYPE_DFG, true);
 
 		// If found,
 		if (item) {

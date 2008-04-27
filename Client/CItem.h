@@ -50,7 +50,7 @@ class CItemList {
 		CItem *newItem(int X, int Y, int Type, int City, unsigned short id, int active);
 		CItem *delItem(CItem *del);
 		CItem *findItembyLocation(int X, int Y);
-		CItem *findItembyLocationAndType(int X, int Y, int Type);
+		CItem *findItembyLocationAndType(int X, int Y, int Type, bool activeOnly);
 		void deleteItemsByCity(char theCity);
 
 		CItemList(CGame *game);
