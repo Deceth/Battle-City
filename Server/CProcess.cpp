@@ -230,16 +230,16 @@ void CProcess::ProcessData(char *TheData, int Index) {
 		case cmSetMayor:
 
 			// If the player is in game, in the city, and mayor,
-			if ( (this->p->Player[TheData[1]]->State == State_Game)
+			if ( (this->p->Player[TheData[1]]->isInGame())
 				&&
 				(this->p->Player[TheData[1]]->City == this->p->Player[Index]->City)
 				&&
-				(this->p->Player[Index]->Mayor == 1)
+				(this->p->Player[Index]->Mayor)
 				) {
 
 				// Un-mayor this player and mayor the other guy
-				this->p->Player[TheData[1]]->setMayor(1);
-				this->p->Player[Index]->setMayor(0);
+				this->p->Player[TheData[1]]->setMayor(true);
+				this->p->Player[Index]->setMayor(false);
 			}
 			break;
 
@@ -277,6 +277,11 @@ void CProcess::ProcessData(char *TheData, int Index) {
 		case cmWhisper:
 			this->p->Send->SendWhisper(Index, (sCMWhisper *)&TheData[1]);
 			break;
+
+		// Packet: cmAutoBuild
+		case cmAutoBuild:
+			this->ProcessAutoBuild(Index, (sCMAutoBuild *)&TheData[1]);
+			break;
 	}
 } 
 
@@ -286,54 +291,79 @@ void CProcess::ProcessData(char *TheData, int Index) {
  * @param TheData
  * @param Index
  **************************************************************/
-void CProcess::ProcessBuild(char *TheData,int Index) {
-	sCMBuild *data;
+void CProcess::ProcessBuild(char *TheData, int Index) {
+	sCMBuild *data = (sCMBuild *)TheData;
 	sSMBuild bd;
+	bool allowBuild;
+	CPlayer* player = this->p->Player[Index];
+	CCity* city = this->p->City[player->City];
 
-	// If the player is Mayor, In Game, and not Dead
-	if ( (p->Player[Index]->Mayor) && (p->Player[Index]->State == State_Game) && (p->Player[Index]->isDead == false) ) {
-		data = (sCMBuild *)TheData;
+	// If the player is not an admin, verify that the build request is valid
+	if (player->isAdmin() == false ) { 
 
-		// If the player can build the requested building (or is an admin)
-		if ( (p->City[p->Player[Index]->City]->canBuild[data->type - 1] == 1) || (p->Player[Index]->isAdmin()) ) {
+		// If the player is not in game, return
+		if (player->State != State_Game) {
+			return;
+		}
 
-			// Subtract the cost of the building,
-			p->City[p->Player[Index]->City]->cash -= COST_BUILDING;
+		// If the player is not Mayor, return
+		if (! player->Mayor) {
+			return;
+		}
 
-			// Create the building with the next ID, add it to the server linked list
-			bd.City = p->Player[Index]->City;
-			bd.count = 0;
-			bd.type = data->type;
-			bd.x = data->x;
-			bd.y = data->y;
-			p->Build->bldID++;
-			bd.id = p->Build->bldID++;
-			bd.pop = 0;
-			p->Build->newBuilding(data->x,data->y,data->type,p->Player[Index]->City, bd.id);
+		// If the player is dead, return
+		if (player->isDead) {
+			return;
+		}
 
-			// HACK: If the ID is over 30000, cycle around to 1
-			if (p->Build->bldID > 30000) {
-				p->Build->bldID = 1;
-			}
+		// If isAutoBuild, but city already has building, return
+		if (data->isAutoBuild && (city->canBuild[data->type - 1] == 2)) {
+			return;
+		}
 
-			// Tell everyone in the sector about the new building
-			p->Send->SendSectorArea(data->x*48, data->y*48,(unsigned char)smNewBuilding,(char *)&bd,sizeof(bd));
+		// If isAutoBuild is false, and city can't make that building, return
+		if ((data->isAutoBuild==false) && (city->canBuild[data->type - 1] == 0)) {
+			return;
+		}
+	}
 
-			// If the building is not a House,
-			if (! CBuilding::isHouse(data->type)) {
+	// Build is valid
 
-				// Set canBuild for the building type to "already has"
-				p->City[p->Player[Index]->City]->setCanBuild((unsigned char)data->type - 1,2);
+	// Subtract the cost of the building,
+	city->cash -= COST_BUILDING;
 
-				// If the building is a Research,
-				if (CBuilding::isResearch(data->type)) {
+	// Create the building with the next ID, add it to the server linked list
+	bd.City = player->City;
+	bd.count = 0;
+	bd.type = data->type;
+	bd.x = data->x;
+	bd.y = data->y;
+	p->Build->bldID++;
+	bd.id = p->Build->bldID++;
+	bd.pop = 0;
+	p->Build->newBuilding(data->x,data->y,data->type,player->City, bd.id);
 
-					// If research is not finished, set the research timer to 0
-					// The CBuilding.cycle() Research timer will start the research when the building is populated
-					if (p->City[p->Player[Index]->City]->research[(data->type - 3) / 2] != -1) {
-						p->City[p->Player[Index]->City]->research[(data->type - 3) / 2] = 0;
-					}
-				}
+	// HACK: If the ID is over 30000, cycle around to 1
+	if (p->Build->bldID > 30000) {
+		p->Build->bldID = 1;
+	}
+
+	// Tell everyone in the sector about the new building
+	p->Send->SendSectorArea(data->x*48, data->y*48,(unsigned char)smNewBuilding,(char *)&bd,sizeof(bd));
+
+	// If the building is not a House,
+	if (! CBuilding::isHouse(data->type)) {
+
+		// Set canBuild for the building type to "already has"
+		city->setCanBuild((unsigned char)data->type - 1, 2, false);
+
+		// If the building is a Research,
+		if (CBuilding::isResearch(data->type)) {
+
+			// If research is not finished, set the research timer to 0
+			// The CBuilding.cycle() Research timer will start the research when the building is populated
+			if (city->research[(data->type - 3) / 2] != -1) {
+				city->research[(data->type - 3) / 2] = 0;
 			}
 		}
 	}
@@ -347,17 +377,21 @@ void CProcess::ProcessBuild(char *TheData,int Index) {
  **************************************************************/
 void CProcess::ProcessJobApp(char *TheData, int Index) {
 	char packet[20];
+	CPlayer* player = this->p->Player[Index];
+	unsigned char cityIndex = (unsigned char) TheData[0];
+	CCity* city;
 
 	// If the city index is less than MAX_CITIES,
-	if ((unsigned char)TheData[0] < MAX_CITIES) {
+	if (cityIndex < MAX_CITIES) {
+		city = this->p->City[cityIndex];
 
 		// If the city has no mayor,
-		if (p->City[(unsigned char)TheData[0]]->Mayor == -1) {
+		if (city->Mayor == -1) {
 
 			// Add the player to the city as mayor
-			p->Player[Index]->City = (unsigned char)TheData[0];
-			p->Player[Index]->setMayor(1);
-			p->Player[Index]->StartJoin(); 
+			player->City = (unsigned char)TheData[0];
+			player->setMayor(true);
+			player->StartJoin(); 
 			packet[0] = Index;
 			packet[1] = 68;
 			p->Send->SendToChat(smChatCommand, packet, 2); 
@@ -367,16 +401,16 @@ void CProcess::ProcessJobApp(char *TheData, int Index) {
 		else {
 
 			// If the player count is less than MAX_PLAYERS_PER_CITY
-			if (p->City[(unsigned char)TheData[0]]->PlayerCount() < MAX_PLAYERS_PER_CITY) {
+			if (city->PlayerCount() < MAX_PLAYERS_PER_CITY) {
 				
 				// If the mayor is not in an interview,
-				if (p->City[(unsigned char)TheData[0]]->hiring == -1) {
+				if (city->hiring == -1) {
 
 					// Set the player as the mayor's interviewee
-					p->City[(unsigned char)TheData[0]]->hiring = Index;
-					p->Player[Index]->State = State_Apply;
+					city->hiring = Index;
+					player->State = State_Apply;
 					packet[0] = Index;
-					p->Winsock->SendData(p->City[(unsigned char)TheData[0]]->Mayor,smMayorHire,packet,1);
+					p->Winsock->SendData(city->Mayor,smMayorHire,packet,1);
 					p->Winsock->SendData(Index, smInterview, " ", 1);
 					packet[0] = Index;
 					packet[1] = 68;
@@ -426,23 +460,29 @@ void CProcess::ProcessCancelJob(char *TheData, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessAccept(char *TheData, int Index) {
+	CPlayer* player = this->p->Player[Index];
+	CCity* city = this->p->City[player->City];
+	CPlayer* applicant;
 
 	// If the player is mayor,
-	if (p->Player[Index]->Mayor) {
+	if (player->Mayor) {
 
 		// If the player is hiring someone,
-		if (p->City[p->Player[Index]->City]->hiring > -1) {
+		if (city->hiring > -1) {
+			applicant = this->p->Player[city->hiring];
 
 			// If the interviewee is connected,
-			if (p->Player[p->City[p->Player[Index]->City]->hiring]->Socket) {
+			if (applicant->Socket) {
 
 				// Add the interviewee
-				p->Player[p->City[p->Player[Index]->City]->hiring]->City = p->Player[Index]->City;
-				p->Player[p->City[p->Player[Index]->City]->hiring]->setMayor(0);
-				p->Player[p->City[p->Player[Index]->City]->hiring]->StartJoin();
-				p->Player[Index]->State = State_Game;
+				applicant->City = player->City;
+				applicant->setMayor(false);
+				applicant->StartJoin();
+
+				// Return the mayor to the game
+				player->State = State_Game;
 			}
-			p->City[p->Player[Index]->City]->hiring = -1;
+			city->hiring = -1;
 		}
 	}
 }
@@ -453,20 +493,22 @@ void CProcess::ProcessAccept(char *TheData, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessDeny(int Index) {
+	CPlayer* player = this->p->Player[Index];
+	CCity* city = this->p->City[player->City];
 
 	// If the player is mayor,
-	if (p->Player[Index]->Mayor) {
+	if (player->Mayor) {
 
 		// If the player is hiring someone,
-		if (p->City[p->Player[Index]->City]->hiring > -1) {
+		if (city->hiring > -1) {
 
 			// If the interviewee is connected,
-			if (p->Player[p->City[p->Player[Index]->City]->hiring]->Socket) {
+			if (p->Player[city->hiring]->Socket) {
 
 				// Tell the interviewee to buzz off
-				p->Winsock->SendData(p->City[p->Player[Index]->City]->hiring,smMayorDeclined," ",1);
+				p->Winsock->SendData(city->hiring,smMayorDeclined," ",1);
 			}
-			p->City[p->Player[Index]->City]->hiring = -1;
+			city->hiring = -1;
 		}
 	}
 }
@@ -480,23 +522,24 @@ void CProcess::ProcessDeny(int Index) {
 void CProcess::ProcessUpdate(sCMUpdate *data, int Index) {
 	sSMUpdate update;
 	sSMStateGame game;
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is dead, return
-	if (p->Player[Index]->isDead == true) {
+	if (player->isDead == true) {
 		return;
 	}
 
 	// If the player is within 300 x and 300 y of the update position, and the Movement timer is up,
 	if (
-		(abs(int(data->x - p->Player[Index]->X)) < 300)
+		(abs(int(data->x - player->X)) < 300)
 		&&
-		(abs(int(data->y - p->Player[Index]->Y)) < 300)
+		(abs(int(data->y - player->Y)) < 300)
 		&&
-		((p->Player[Index]->lastMove + 3000) > p->Tick)
+		((player->lastMove + 3000) > p->Tick)
 		) {
 
 		// Reset the Movement timer
-		p->Player[Index]->lastMove = p->Tick;
+		player->lastMove = p->Tick;
 
 		// HACK: Cap data->x and data->y at 24500
 		if (data->x > 24576) {
@@ -507,8 +550,8 @@ void CProcess::ProcessUpdate(sCMUpdate *data, int Index) {
 		}
 
 		// Set the player's position to the location
-		p->Player[Index]->X = update.x = data->x;
-		p->Player[Index]->Y = update.y = data->y;
+		player->X = update.x = data->x;
+		player->Y = update.y = data->y;
 
 		// Send the update to the radar, minus the player
 		update.turn = data->turn;
@@ -523,10 +566,10 @@ void CProcess::ProcessUpdate(sCMUpdate *data, int Index) {
 
 		// Warp the player
 		// ???
-		p->Player[Index]->lastMove = p->Tick;
-		game.City = p->Player[Index]->City;
-		game.x = (unsigned short)p->Player[Index]->X;
-		game.y = (unsigned short)p->Player[Index]->Y;
+		player->lastMove = p->Tick;
+		game.City = player->City;
+		game.x = (unsigned short)player->X;
+		game.y = (unsigned short)player->Y;
 		p->Winsock->SendData(Index, smWarp,(char *)&game,sizeof(game));
 	}
 }
@@ -540,32 +583,45 @@ void CProcess::ProcessItemUp(sCMItem *data, int Index) {
 	CItem *item;
 	sSMItem msg;
 	sCMItem itemPacket;
-	
+	CPlayer* player = this->p->Player[Index];
+
 	// If the player is dead, return
-	if (p->Player[Index]->isDead == true) {
+	if (player->isDead == true) {
 		return;
 	}
 
+	// If the item is not found, return
 	item = p->Item->findItem(data->id);
-	if (item) {
+	if (! item) {
+		return;
+	}
 
-		// If the item is on the ground, and belongs to the player's city (or the player is an admin),
-		if ((item->City == p->Player[Index]->City || p->Player[Index]->isAdmin()) && item->holder == -1) {
-			
-			// Pick up the item
-			item->holder = Index;
-			msg.id = (unsigned short)data->id;
+	// If someone already is holding the item, return
+	if (item->holder != -1) {
+		return;
+	}
 
-			// Tell the player he picked it up
-			itemPacket.id = item->id;
-			itemPacket.active = data->active;
-			itemPacket.type = item->type;
-			p->Winsock->SendData(Index,smPickedUp, (char *)&itemPacket, sizeof(itemPacket));
+	// If the player isn't an admin 
+	if (! player->isAdmin()) {
 
-			// Tell the sector the item is gone
-			p->Send->SendSectorArea(item->x*48, item->y*48 ,smRemItem, (char *)&msg, sizeof(msg));
+		// If the item doesn't belong to the player's city, return
+		if (item->City != player->City) {
+			return;
 		}
 	}
+
+	// Pick up the item
+	item->holder = Index;
+	msg.id = (unsigned short)data->id;
+
+	// Tell the player he picked it up
+	itemPacket.id = item->id;
+	itemPacket.active = data->active;
+	itemPacket.type = item->type;
+	p->Winsock->SendData(Index,smPickedUp, (char *)&itemPacket, sizeof(itemPacket));
+
+	// Tell the sector the item is gone
+	p->Send->SendSectorArea(item->x*48, item->y*48 ,smRemItem, (char *)&msg, sizeof(msg));
 }
 
 /***************************************************************
@@ -575,35 +631,35 @@ void CProcess::ProcessItemUp(sCMItem *data, int Index) {
  **************************************************************/
 void CProcess::ProcessItemDrop(sCMItem *data, int Index) {
 	CItem *item;
-	sCMItem *itm;
+	sCMItem *itm = (sCMItem *)data;
 	sCMItem itemPacket;
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is dead, return
-	if (p->Player[Index]->isDead == true) {
+	if (player->isDead) {
 		return;
 	}
 
-	
-	itm = (sCMItem *)data;
-
-	// If the item to drop is found,
+	// If the item is not found, return
 	item = p->Item->findItem(itm->id);
-	if (item) {
-
-		// If it is held by this player,
-		if (item->holder == Index) {
-
-			// Tell the player to drop the item
-			itemPacket.id = item->id;
-			itemPacket.active = data->active;
-			itemPacket.type = item->type;
-			p->Winsock->SendData(Index,smDropped, (char *)&itemPacket, sizeof(itemPacket));
-
-			// Activate and drop the item
-			item->active = data->active;
-			item->drop((int)((p->Player[Index]->X+24) / 48),(int)((p->Player[Index]->Y+24) / 48),Index);
-		}
+	if (! item) {
+		return;
 	}
+
+	// If someone else is holding this item, return
+	if (item->holder != Index) {
+		return;
+	}
+
+	// Tell the player to drop the item
+	itemPacket.id = item->id;
+	itemPacket.active = data->active;
+	itemPacket.type = item->type;
+	p->Winsock->SendData(Index, smDropped, (char *)&itemPacket, sizeof(itemPacket));
+
+	// Activate and drop the item
+	item->active = data->active;
+	item->drop(player->getTileX(), player->getTileY(), Index);
 }
 
 /***************************************************************
@@ -613,28 +669,29 @@ void CProcess::ProcessItemDrop(sCMItem *data, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessVersion(sCMVersion *vers, int Index) {
+	CPlayer* player = this->p->Player[Index];
 
 	// If the versions don't match, send version check failure
 	if (strcmp(vers->Version, VERSION) != 0) {
 
 		// Send version check failure
 		p->Winsock->SendData(Index, smError, "F");
-		cout << "Invalid Version " << vers->Version << " from " << p->Player[Index]->IPAddress << "\n";
+		cout << "Invalid Version " << vers->Version << " from " << player->IPAddress << "\n";
 	}
 
 	// Else (versions match),
 	else {
 
 		// If the IP is banned, send IP ban failure
-		if (p->Account->CheckBan(vers->UniqID, p->Player[Index]->IPAddress) == 1) {
+		if (p->Account->CheckBan(vers->UniqID, player->IPAddress) == 1) {
 			p->Winsock->SendData(Index, smError, "G");
 		}
 
 		// Else (no IP ban), send success
 		else  {
-			p->Player[Index]->UniqID = vers->UniqID;
-			p->Player[Index]->State = State_Verified;
-			p->Player[Index]->id = Index;
+			player->UniqID = vers->UniqID;
+			player->State = State_Verified;
+			player->id = Index;
 		}
 	}
 }
@@ -648,9 +705,11 @@ void CProcess::ProcessVersion(sCMVersion *vers, int Index) {
 void CProcess::ProcessLogin(sCMLogin *login, int Index) {
 	int CorrectPassword;
 	int foundmatch;
+	CPlayer* player = this->p->Player[Index];
+	CPlayer* playerToCompare;
 
 	// If the player's state is Verified (past version check and ban check),
-	if (p->Player[Index]->State == State_Verified)  {
+	if (player->State == State_Verified)  {
 
 		// If the account exists,
 		if (p->Account->CheckAccount(login->User) == 1) {
@@ -667,17 +726,18 @@ void CProcess::ProcessLogin(sCMLogin *login, int Index) {
 					// TODO: FIX "- 1"
 					// For each possible player,
 					for (int j = 0; j < (MAX_PLAYERS-1); j++) {
+						playerToCompare = this->p->Player[j];
 						
 						// If the account is already in use, clear the player and set foundmatch=1
-						if (p->PlatformCaseCompare(login->User, p->Player[j]->Name.c_str()) == 0) {
-							p->Player[j]->Clear();
+						if (p->PlatformCaseCompare(login->User, playerToCompare->Name.c_str()) == 0) {
+							playerToCompare->Clear();
 							foundmatch = 1;
 						}
 
 /*
 						// If the CPU is already connected, clear the player and set foundmatch=2
-						if (p->PlatformCaseCompare(p->Player[Index]->UniqID.c_str(), p->Player[j]->UniqID.c_str()) == 0 && Index != j) {
-							p->Player[j]->Clear();
+						if (p->PlatformCaseCompare(player->UniqID.c_str(), playerToCompare->UniqID.c_str()) == 0 && Index != j) {
+							playerToCompare->Clear();
 							foundmatch = 2;
 						}
 */
@@ -703,7 +763,7 @@ void CProcess::ProcessLogin(sCMLogin *login, int Index) {
 
 					// Else (no Multilog, no Multicpu), log the player in
 					else {	
-						p->Player[Index]->LoggedIn(login->User);
+						player->LoggedIn(login->User);
 					}
 				}
 
@@ -760,9 +820,10 @@ void CProcess::ProcessNewAccount(sCMNewAccount *newaccount, int Index) {
  **************************************************************/
 void CProcess::ProcessSetState(char *TheData, int Index) {
 	char tmpString[5];
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is Verified,
-	if (p->Player[Index]->State >= State_Verified) {
+	if (player->State >= State_Verified) {
 		memset(tmpString, 0, 5);
 		tmpString[0] = (unsigned char)Index;
 
@@ -776,8 +837,8 @@ void CProcess::ProcessSetState(char *TheData, int Index) {
 
 			//State C/City List
 			case 67: 
-				if (p->Player[Index]->State == State_Game) {
-					p->Player[Index]->LeaveGame(true);
+				if (player->State == State_Game) {
+					player->LeaveGame(true);
 				}
 				p->Send->SendMeetingRoom(Index);
 				break;
@@ -785,7 +846,7 @@ void CProcess::ProcessSetState(char *TheData, int Index) {
 			//State D/Disconnected
 			case 68: 
 				strcpy(&tmpString[1], "D"); 
-				p->Player[Index]->Clear(); 
+				player->Clear(); 
 				p->Send->SendToChat(smChatCommand, tmpString); 
 				break;
 		}
@@ -800,24 +861,30 @@ void CProcess::ProcessSetState(char *TheData, int Index) {
  **************************************************************/
 void CProcess::ProcessShot(sCMShot *data, int Index) {
 	sSMShot shotsfired;
+	CPlayer* player = this->p->Player[Index];
 
-	// If the Shot timer is up, or the player is an admin,
-	if ( (p->Tick > p->Player[Index]->lastShot + 500) || (p->Player[Index]->isAdmin()) )	{
+	// If the player is not an admin,
+	if (! player->isAdmin()) {
 
-		// Reset the Shot timer
-		p->Player[Index]->lastShot = p->Tick;
-
-		// Create a new shot
-		shotsfired.id = Index;
-		shotsfired.type = data->type;
-		shotsfired.x = data->x;
-		shotsfired.y = data->y;
-		shotsfired.dir = data->dir;
-		p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
-
-		// Tell everyone but the player about the new shot
-		p->Send->SendRadarNotIndex(Index, smShoot, (char *)&shotsfired, sizeof(sSMShot));
+		// If the Shot timer is not up, return
+		if (p->Tick <= (player->lastShot + 500)) {
+			return;
+		}
 	}
+
+	// Reset the Shot timer
+	player->lastShot = p->Tick;
+
+	// Create a new shot
+	shotsfired.id = Index;
+	shotsfired.type = data->type;
+	shotsfired.x = data->x;
+	shotsfired.y = data->y;
+	shotsfired.dir = data->dir;
+	p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
+
+	// Tell everyone but the player about the new shot
+	p->Send->SendRadarNotIndex(Index, smShoot, (char *)&shotsfired, sizeof(sSMShot));
 
 /*
 	// Possible replacement for code above, once SHOT_TYPE_LASER and SHOT_TYPE_ROCKET are defined
@@ -860,39 +927,43 @@ void CProcess::ProcessShot(sCMShot *data, int Index) {
  **************************************************************/
 void CProcess::ProcessDeath(char *TheData, int Index) {
 	char packet[3];
+	CPlayer* player = this->p->Player[Index];
+	CPlayer* playerToGivePoints;
+	int cityIndexThatKilledPlayer = TheData[0];
 
 	// If the player is in game,
-	if (p->Player[Index]->State == State_Game) {
+	if (player->State == State_Game) {
 
 		// Add the death
 		p->Account->AddDeath(Index);
 
-		// Tell everyone else about the death,
+		// Tell everyone about the death,
 		packet[0] = (unsigned char)Index;
 		packet[1] = 0;
-		packet[2] = TheData[0];
+		packet[2] = cityIndexThatKilledPlayer;
 		p->Send->SendGameAllBut(-1, smDeath, packet, 3);
-		cout << p->Player[Index]->Name << " has died" << endl;
-		p->Player[Index]->isDead = true;
-		p->Player[Index]->timeDeath = p->Tick;
+		cout << player->Name << " has died" << endl;
+		player->isDead = true;
+		player->timeDeath = p->Tick;
 
 		// Delete the player's items
 		p->Item->deleteItemsByPlayer(Index);
 
 		// If the player has more than 100 points,
-		if (p->Player[Index]->Points > 100) {
+		if (player->Points > 100) {
 
 			// Subtract two points
 			p->Account->Sub2Points(Index);
 
 			// If the player's not in your city,
-			if (p->Player[Index]->City != TheData[0]) {
+			if (player->City != cityIndexThatKilledPlayer) {
 
 				// For each possible player,
 				for (int j = 0; j < MAX_PLAYERS; j++) {
+					playerToGivePoints = this->p->Player[j];
 
 					// If the player is in that city and in game,
-					if ((p->Player[j]->isInGame()) && (p->Player[j]->City == TheData[0])) {
+					if ((playerToGivePoints->isInGame()) && (playerToGivePoints->City == cityIndexThatKilledPlayer)) {
 
 						// Give that player two points
 						p->Account->AddPoints(j, 2);
@@ -930,7 +1001,8 @@ void CProcess::ProcessMedKit(int *data, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessCloak(int *data, int Index) {
-	CItem *itm = p->Item->findItem(*data);
+	CItem *itm = this->p->Item->findItem(*data);
+	CPlayer* player = this->p->Player[Index];
 	char packet[3];
 
 	// If the item is found, the player holds it, and it's a Cloak,
@@ -939,7 +1011,7 @@ void CProcess::ProcessCloak(int *data, int Index) {
 
 			// Use and delete the Cloak
 			this->p->Item->delItem(itm);
-			this->p->Player[Index]->setCloak(true);
+			player->setCloak(true);
 
 			// Tell everyone else about the cloak
 			packet[0] = (unsigned char)Index;
@@ -959,21 +1031,26 @@ void CProcess::ProcessCloak(int *data, int Index) {
  **************************************************************/
 void CProcess::ProcessDemolish(sCMDemolish *data, int Index) {
 	CBuilding *bld;
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is dead, return
-	if (p->Player[Index]->isDead == true) {
+	if (player->isDead == true) {
 		return;
 	}
 
-	// If the building is found, and it belongs to the player's city,
-	bld = p->Build->findBuilding(data->id);
-	if (bld) {
-		if (bld->City == p->Player[Index]->City) {
-
-			// Delete building
-			p->Build->delBuilding(bld);
-		}
+	// If the building is not found, return
+	bld = this->p->Build->findBuilding(data->id);
+	if (! bld) {
+		return;
 	}
+
+	// If the building is not the player's building, return
+	if(bld->City != player->City) {
+		return;
+	}
+
+	// Delete building
+	this->p->Build->delBuilding(bld);
 }
 
 /***************************************************************
@@ -1013,11 +1090,13 @@ void CProcess::ProcessCrash(char *TheData,int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessNextStep(char TheStep, int Index) {
+	CPlayer* player = this->p->Player[Index];
+
 	switch (TheStep) {
 
 		// A Ready to start receiving data
 		case 65: 
-			p->Player[Index]->JoinGame();
+			player->JoinGame();
 			p->Winsock->SendData(Index, smNextStep, "B");
 			break;
 
@@ -1038,14 +1117,27 @@ void CProcess::ProcessNextStep(char TheStep, int Index) {
  * @param Successor
  * @param Index
  **************************************************************/
-void CProcess::ProcessSuccessor(char Successor, int Index) {
+void CProcess::ProcessSuccessor(char successorIndex, int Index) {
+	CPlayer* player = this->p->Player[Index];
+	CPlayer* successor = this->p->Player[successorIndex];
 
-	// If the successor is in the same city as the player, and the player is Mayor,
-	if (p->Player[Successor]->City == p->Player[Index]->City && p->Player[Index]->Mayor) {
-
-		// Set the successor
-		p->City[p->Player[Index]->City]->Successor = Successor;
+	// If the player is not mayor, return
+	if (! player->Mayor) {
+		return;
 	}
+
+	// If the successor is not in game, return
+	if (! successor->isInGame()) {
+		return;
+	}
+
+	// If the player and successor are in different cities, return
+	if (player->City != successor->City) {
+		return;
+	}
+
+	// Set the successor
+	this->p->City[player->City]->Successor = successorIndex;
 }
 
 /***************************************************************
@@ -1055,6 +1147,9 @@ void CProcess::ProcessSuccessor(char Successor, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessAdmin(sCMAdmin *admin, int Index) {
+	CPlayer* player = this->p->Player[Index];
+	CPlayer* playerTarget;
+	CCity* cityTarget;
 	sSMAdmin sadmin;
 	string LogAdminString;
 	ostringstream convert;
@@ -1065,227 +1160,232 @@ void CProcess::ProcessAdmin(sCMAdmin *admin, int Index) {
 	sSMItem msg;
 	sSMBan ban;
 
-	// If the player is an admin,
-	if (p->Player[Index]->isAdmin()) {
+	// If the player is not an admin, return
+	if (! player->isAdmin()) {
+		this->p->Log->logClientError("Attempted Admin Command", Index);
+		return;
+	}
 
-		// Switch on the Admin command
-		switch (admin->command) {
+	// Switch on the Admin command
+	switch (admin->command) {
+		
+		// Command: KICK
+		case 1:
+			playerTarget = this->p->Player[admin->id];
 
-			// Command: KICK
-			case 1:
-				sadmin.adminIndex = Index;
-				sadmin.command = 1;
-				sadmin.id = admin->id;
-
-				// If the player is in game, kick the player
-				if (p->Player[admin->id]->State == State_Game) {
-					LogAdminString = "Kick ";
-					LogAdminString += p->Player[admin->id]->Name;
-					p->Log->logAdmin(LogAdminString, Index);
-					cout << "Kick::" << p->Player[Index]->Name << "::" << p->Player[admin->id]->Name << endl;
-					p->Player[admin->id]->LeaveGame(true);
-					p->Send->SendGameAllBut(admin->id, smAdmin, (char *)&sadmin, sizeof(sadmin));
-					p->Winsock->SendData(admin->id, smKicked, " ");
-				}
-				break;
-
-			// Command: JOIN CITY
-			case 2:
-				
-				// If the city is a valid city,
-				if (admin->id >= 0 && admin->id < MAX_CITIES) {
-					LogAdminString = "Join City ";		
-					convert << admin->id;
-					LogAdminString += convert.str();
-					p->Log->logAdmin(LogAdminString, Index);
-					p->Player[Index]->LeaveGame(true);
-					p->Player[Index]->City = admin->id;
-
-					// If the city has no mayor, set the admin to mayor
-					if (p->City[admin->id]->Mayor == -1) {
-						p->Player[Index]->setMayor(1);
-					}
-					p->Player[Index]->StartJoin();
-				}
-				break;
-
-			// Command: WARP
-			case 3:
-
-				// Warp the player
-				LogAdminString = "Warp ";
-				LogAdminString += p->Player[admin->id]->Name;
+			sadmin.adminIndex = Index;
+			sadmin.command = 1;
+			sadmin.id = admin->id;
+			
+			// If the player is in game, kick the player
+			if (playerTarget->isInGame()) {
+				LogAdminString = "Kick ";
+				LogAdminString += playerTarget->Name;
 				p->Log->logAdmin(LogAdminString, Index);
-				cout << "Warp::" << p->Player[Index]->Name << "::" << p->Player[admin->id]->Name << endl;
-				p->Player[Index]->X = p->Player[admin->id]->X;
-				p->Player[Index]->Y = p->Player[admin->id]->Y;
-				break;
+				cout << "Kick::" << playerTarget->Name << "::" << playerTarget->Name << endl;
+				playerTarget->LeaveGame(true);
+				p->Send->SendGameAllBut(admin->id, smAdmin, (char *)&sadmin, sizeof(sadmin));
+				p->Winsock->SendData(admin->id, smKicked, " ");
+			}
+			break;
 
-			// Command: SUMMON
-			case 4:
+		// Command: JOIN CITY
+		case 2:
 
-				// Summon the player
-				LogAdminString = "Summon ";
-				LogAdminString += p->Player[admin->id]->Name;
-				p->Log->logAdmin(LogAdminString, Index);
-				cout << "Summon::" << p->Player[Index]->Name << "::" << p->Player[admin->id]->Name << endl;
-				p->Player[admin->id]->X = p->Player[Index]->X;
-				p->Player[admin->id]->Y = p->Player[Index]->Y;
-				break;
+			// If the city is a valid city,
+			if (admin->id >= 0 && admin->id < MAX_CITIES) {
+				cityTarget = this->p->City[admin->id];
 
-			// Command: BAN
-			case 5:
-				queryString = "INSERT INTO tBans (Account, IPAddress, Reason, UniqID) VALUES ('";
-				queryString += p->Player[admin->id]->Name;
-				queryString += "', '";
-				queryString += p->Player[admin->id]->IPAddress;
-				queryString += "', '";
-				queryString += p->Player[Index]->Name;
-				queryString += "', '";
-				queryString += p->Player[admin->id]->UniqID;
-				queryString += "');";
-				p->Database->Database.execDML(queryString.c_str());
-
-				sadmin.adminIndex = Index;
-				sadmin.command = 5;
-				sadmin.id = admin->id;
-
-				// If the player is in game, boot the player
-				if (p->Player[admin->id]->State == State_Game) {
-					LogAdminString = "Ban " + p->Player[admin->id]->Name;
-					p->Log->logAdmin(LogAdminString, Index);
-					cout << "Ban::" << p->Player[Index]->Name << "::" << p->Player[admin->id]->Name << endl;
-					p->Player[admin->id]->LeaveGame(true);
-					p->Send->SendGameAllBut(admin->id, smAdmin, (char *)&sadmin, sizeof(sadmin));
-					p->Winsock->SendData(admin->id, smKicked, " ");
-				}
-				break;
-
-			// Command: SHUTDOWN
-			case 6:
-				p->Log->logAdmin("Shutdown", Index);
-				cout << "Shutdown::" << p->Player[Index]->Name << endl;
-				p->running = 0;
-				break;
-
-			// Command: SPAWN ITEM
-			case 7:
-
-				// Spawn the item
-				LogAdminString = "Spawn Item ";
+				LogAdminString = "Join City ";		
 				convert << admin->id;
 				LogAdminString += convert.str();
 				p->Log->logAdmin(LogAdminString, Index);
-				cout << "Spawn Item::" << p->Player[Index]->Name << "::" << admin->id << endl;
+				player->LeaveGame(true);
+				player->City = admin->id;
 
-				// HACK: cap itemID at 30000
-				tmpID = p->Item->itmID++;
-				if (p->Item->itmID > 30000) {
-					p->Item->itmID = 1;
+				// If the city has no mayor, set the admin to mayor
+				if (cityTarget->Mayor == -1) {
+					player->setMayor(true);
 				}
-				
-				// Create the item, add it to the user
-				itm = p->Item->newItem(0, 0, admin->id, p->Player[Index]->City, tmpID);
-				itm->holder = Index;
-				
-				PickUp.id = itm->id;
-				PickUp.active = itm->active;
-				PickUp.type = itm->type;
+				player->StartJoin();
+			}
+			break;
 
-				// Tell everone you created, picked up, and removed the item
-				msg.id = itm->id;
-				msg.x = 0;
-				msg.y = 0;
-				msg.City = p->Player[Index]->City;
-				msg.active = 0;
-				msg.type = (unsigned char)admin->id;
+		// Command: WARP
+		case 3:
+			playerTarget = this->p->Player[admin->id];
 
-				p->Winsock->SendData(Index,smAddItem,(char *)&msg, sizeof(msg));
-				p->Winsock->SendData(Index,smPickedUp, (char *)&PickUp, sizeof(PickUp));
-				p->Winsock->SendData(Index,smRemItem, (char *)&msg, sizeof(msg));
-				break;
+			// Warp the player
+			LogAdminString = "Warp ";
+			LogAdminString += playerTarget->Name;
+			p->Log->logAdmin(LogAdminString, Index);
+			cout << "Warp::" << player->Name << "::" << playerTarget->Name << endl;
+			player->X = playerTarget->X;
+			player->Y = playerTarget->Y;
+			break;
 
-			// Command: GET BANS
-			case 8:
+		// Command: SUMMON
+		case 4:
+			playerTarget = this->p->Player[admin->id];
 
-				// Get the bans
-				p->Log->logAdmin("Request Bans", Index);
-				queryString = "SELECT * FROM tBans";
-				p->Database->Query = p->Database->Database.execQuery(queryString.c_str());
+			// Summon the player
+			LogAdminString = "Summon ";
+			LogAdminString += playerTarget->Name;
+			p->Log->logAdmin(LogAdminString, Index);
+			cout << "Summon::" << player->Name << "::" << playerTarget->Name << endl;
+			playerTarget->X = player->X;
+			playerTarget->Y = player->Y;
+			break;
 
-				// For each ban,
-				while (!p->Database->Query.eof()) {
+		// Command: BAN
+		case 5:
+			playerTarget = this->p->Player[admin->id];
 
-					// Tell the admin about the ban
-					memset(&ban, 0, sizeof(ban));
-					strcpy(ban.Account, p->Database->Query.getStringField("Account"));
-					strcpy(ban.IPAddress, p->Database->Query.getStringField("IPAddress"));
-					strcpy(ban.Reason, p->Database->Query.getStringField("Reason"));
-					p->Winsock->SendData(Index, smBan, (char *)&ban, sizeof(ban));
+			queryString = "INSERT INTO tBans (Account, IPAddress, Reason, UniqID) VALUES ('";
+			queryString += playerTarget->Name;
+			queryString += "', '";
+			queryString += playerTarget->IPAddress;
+			queryString += "', '";
+			queryString += player->Name;
+			queryString += "', '";
+			queryString += playerTarget->UniqID;
+			queryString += "');";
+			p->Database->Database.execDML(queryString.c_str());
 
-					p->Database->Query.nextRow();
-				}
+			sadmin.adminIndex = Index;
+			sadmin.command = 5;
+			sadmin.id = admin->id;
 
-				p->Database->Query.finalize();
-				break;
+			// If the player is in game, boot the player
+			if (playerTarget->isInGame()) {
+				LogAdminString = "Ban " + playerTarget->Name;
+				p->Log->logAdmin(LogAdminString, Index);
+				cout << "Ban::" << player->Name << "::" << playerTarget->Name << endl;
+				playerTarget->LeaveGame(true);
+				p->Send->SendGameAllBut(admin->id, smAdmin, (char *)&sadmin, sizeof(sadmin));
+				p->Winsock->SendData(admin->id, smKicked, " ");
+			}
+			break;
 
-			// Command: UNBAN
-			case 9:
+		// Command: SHUTDOWN
+		case 6:
+			p->Log->logAdmin("Shutdown", Index);
+			cout << "Shutdown::" << player->Name << endl;
+			p->running = 0;
+			break;
 
-				// Get the bans
-				p->Log->logAdmin("Unban Attempt", Index);
-				queryString = "SELECT * FROM tBans";
-				p->Database->Query = p->Database->Database.execQuery(queryString.c_str());
+		// Command: SPAWN ITEM
+		case 7:
 
-				// For each ban,
-				for (int i = 0; i < admin->id; i++) {
-					if (!p->Database->Query.eof()) {
-						p->Database->Query.nextRow();
-					}
-					else {
-						p->Database->Query.finalize();
-						return;
-					}
-				}
+			// Spawn the item
+			LogAdminString = "Spawn Item ";
+			convert << admin->id;
+			LogAdminString += convert.str();
+			p->Log->logAdmin(LogAdminString, Index);
+			cout << "Spawn Item::" << player->Name << "::" << admin->id << endl;
 
+			// HACK: cap itemID at 30000
+			tmpID = p->Item->itmID++;
+			if (p->Item->itmID > 30000) {
+				p->Item->itmID = 1;
+			}
+			
+			// Create the item, add it to the user
+			itm = p->Item->newItem(0, 0, admin->id, player->City, tmpID);
+			itm->holder = Index;
+			
+			PickUp.id = itm->id;
+			PickUp.active = itm->active;
+			PickUp.type = itm->type;
+
+			// Tell everone you created, picked up, and removed the item
+			msg.id = itm->id;
+			msg.x = 0;
+			msg.y = 0;
+			msg.City = player->City;
+			msg.active = 0;
+			msg.type = (unsigned char)admin->id;
+
+			p->Winsock->SendData(Index,smAddItem,(char *)&msg, sizeof(msg));
+			p->Winsock->SendData(Index,smPickedUp, (char *)&PickUp, sizeof(PickUp));
+			p->Winsock->SendData(Index,smRemItem, (char *)&msg, sizeof(msg));
+			break;
+
+		// Command: GET BANS
+		case 8:
+
+			// Get the bans
+			p->Log->logAdmin("Request Bans", Index);
+			queryString = "SELECT * FROM tBans";
+			p->Database->Query = p->Database->Database.execQuery(queryString.c_str());
+
+			// For each ban,
+			while (!p->Database->Query.eof()) {
+
+				// Tell the admin about the ban
+				memset(&ban, 0, sizeof(ban));
+				strcpy(ban.Account, p->Database->Query.getStringField("Account"));
+				strcpy(ban.IPAddress, p->Database->Query.getStringField("IPAddress"));
+				strcpy(ban.Reason, p->Database->Query.getStringField("Reason"));
+				p->Winsock->SendData(Index, smBan, (char *)&ban, sizeof(ban));
+
+				p->Database->Query.nextRow();
+			}
+
+			p->Database->Query.finalize();
+			break;
+
+		// Command: UNBAN
+		case 9:
+
+			// Get the bans
+			p->Log->logAdmin("Unban Attempt", Index);
+			queryString = "SELECT * FROM tBans";
+			p->Database->Query = p->Database->Database.execQuery(queryString.c_str());
+
+			// For each ban,
+			for (int i = 0; i < admin->id; i++) {
 				if (!p->Database->Query.eof()) {
-					try {
-						// Delete the ban
-						queryString = "DELETE FROM tBans WHERE Account = '";
-						queryString += p->Database->Query.getStringField("Account");
-						queryString += "';";
-						p->Database->Query.finalize();
-						p->Log->logAdmin(queryString, Index);
-						p->Database->Database.execDML(queryString.c_str());
-					}
-					catch (CppSQLite3Exception& e) {
-						cerr << e.errorCode() << ":" << e.errorMessage() << endl;
-						return;
-					}
+					p->Database->Query.nextRow();
 				}
 				else {
 					p->Database->Query.finalize();
 					return;
 				}
-				break;
+			}
 
-			// Command: REQUEST NEWS
-			case 10: 
-				p->Log->logAdmin("Request News", Index);
-				p->Send->SendAdminNews(Index);
-				break;
+			if (!p->Database->Query.eof()) {
+				try {
+					// Delete the ban
+					queryString = "DELETE FROM tBans WHERE Account = '";
+					queryString += p->Database->Query.getStringField("Account");
+					queryString += "';";
+					p->Database->Query.finalize();
+					p->Log->logAdmin(queryString, Index);
+					p->Database->Database.execDML(queryString.c_str());
+				}
+				catch (CppSQLite3Exception& e) {
+					cerr << e.errorCode() << ":" << e.errorMessage() << endl;
+					return;
+				}
+			}
+			else {
+				p->Database->Query.finalize();
+				return;
+			}
+			break;
 
-			// Command: UPDATE NEWS
-			case 11:
-				p->Log->logAdmin("Update News", Index);
-				break;
+		// Command: REQUEST NEWS
+		case 10: 
+			p->Log->logAdmin("Request News", Index);
+			p->Send->SendAdminNews(Index);
+			break;
 
-		}
-	}
+		// Command: UPDATE NEWS
+		case 11:
+			p->Log->logAdmin("Update News", Index);
+			break;
 
-	// Else (player is not admin),
-	else {
-		p->Log->logClientError("Attempted Admin Command", Index);
 	}
 }
 
@@ -1296,18 +1396,20 @@ void CProcess::ProcessAdmin(sCMAdmin *admin, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessBan(char *TheData, int Index) {
+	CPlayer* player = this->p->Player[Index];
 	string DMLString;
+
 	DMLString = "INSERT INTO tBans (Account, IPAddress, Reason, UniqID) VALUES ('";
-	DMLString += p->Player[Index]->Name;
+	DMLString += player->Name;
 	DMLString += "', '";
-	DMLString += p->Player[Index]->IPAddress;
+	DMLString += player->IPAddress;
 	DMLString += "', '";
 	DMLString += TheData;
 	DMLString += "', '";
-	DMLString += p->Player[Index]->UniqID;
+	DMLString += player->UniqID;
 	DMLString += "');";
 	p->Database->Database.execDML(DMLString.c_str());
-	cout << "Ban::" << p->Player[Index]->Name << endl;
+	cout << "Ban::" << player->Name << endl;
 }
 
 /***************************************************************
@@ -1317,10 +1419,11 @@ void CProcess::ProcessBan(char *TheData, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessIsHiring(char NotHiring, int Index) {
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is Mayor and in game, set notHiring
-	if (p->Player[Index]->Mayor && p->Player[Index]->State == State_Game) {
-		p->City[p->Player[Index]->City]->notHiring = NotHiring;
+	if (player->Mayor && player->isInGame()) {
+		p->City[player->City]->notHiring = NotHiring;
 	}
 }
 
@@ -1343,9 +1446,10 @@ void CProcess::ProcessRequestSector(sCMSector *sector, int Index) {
 void CProcess::ProcessEditAccount(sCMLogin *login, int Index) {
 	int CorrectPassword;
 	int foundmatch = 0;
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is at Verified state,
-	if (p->Player[Index]->State == State_Verified) {
+	if (player->State == State_Verified) {
 
 		// If the account exists,
 		if (p->Account->CheckAccount(login->User) == 1) {
@@ -1368,7 +1472,7 @@ void CProcess::ProcessEditAccount(sCMLogin *login, int Index) {
 						}
 
 						// If the CPU is already connected, set foundmatch=2
-						if (p->PlatformCaseCompare(p->Player[Index]->UniqID.c_str(), p->Player[j]->UniqID.c_str()) == 0 && Index != j) {
+						if (p->PlatformCaseCompare(player->UniqID.c_str(), p->Player[j]->UniqID.c_str()) == 0 && Index != j) {
 							foundmatch = 2;
 						}
 					}
@@ -1387,9 +1491,9 @@ void CProcess::ProcessEditAccount(sCMLogin *login, int Index) {
 
 					// Else, send successful login and set state to Editing
 					else {
-						p->Player[Index]->Name = login->User;
+						player->Name = login->User;
 						p->Account->SendAccountInformation(Index);
-						p->Player[Index]->State = State_Editing;
+						player->State = State_Editing;
 					}
 				}
 
@@ -1407,9 +1511,9 @@ void CProcess::ProcessEditAccount(sCMLogin *login, int Index) {
 			// Else (CorrectPassword == 1), allow edit
 			// ???
 			else  {
-				p->Player[Index]->Name = login->User;
+				player->Name = login->User;
 				p->Account->SendAccountInformation(Index);
-				p->Player[Index]->State = State_Editing;
+				player->State = State_Editing;
 			}
 		}
 
@@ -1429,9 +1533,10 @@ void CProcess::ProcessEditAccount(sCMLogin *login, int Index) {
 void CProcess::ProcessUpdateAccount(sCMNewAccount *updateaccount, int Index) {
 	int UpdateAccount;
 	int CorrectPassword;
+	CPlayer* player = this->p->Player[Index];
 
 	// If the player is Editing,
-	if (p->Player[Index]->State == State_Editing) {
+	if (player->State == State_Editing) {
 
 		// Try to update the account
 		UpdateAccount = p->Account->UpdateAccount(Index, updateaccount->Pass, updateaccount->Email, updateaccount->FullName, updateaccount->Town, updateaccount->State);
@@ -1444,7 +1549,7 @@ void CProcess::ProcessUpdateAccount(sCMNewAccount *updateaccount, int Index) {
 
 			// If the password is correct, log the player in
 			if (CorrectPassword == 2) {
-				p->Player[Index]->LoggedIn(p->Player[Index]->Name);
+				player->LoggedIn(player->Name);
 			}
 
 			// If the password is wrong, send wrong password error
@@ -1487,8 +1592,11 @@ void CProcess::ProcessRecover(char *TheData, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessRequestInfo(int Index) {
-	int SearchX = (int)p->Player[Index]->X/48;
-	int SearchY = (int)p->Player[Index]->Y/48;
+	CPlayer* player = this->p->Player[Index];
+	CCity* city;
+	int searchX = player->getTileX();
+	int searchY = player->getTileY();
+	int myCityIndex = player->City;
 
 	short int selectedCity = 255;
 
@@ -1502,20 +1610,22 @@ void CProcess::ProcessRequestInfo(int Index) {
 	for (int i = 0; i < MAX_CITIES; i++) {
 
 		// If the city isn't this player's city,
-		if (i != p->Player[Index]->City) {
+		if (i != myCityIndex) {
+
+			city = this->p->City[i];
 
 			// If the city is orbable,
-			if (p->City[i]->isOrbable()) {
+			if (city->isOrbable()) {
 
 				// ??
-				if (p->City[i]->x == 0 || p->City[i]->y == 0) {
-					p->City[i]->x = (unsigned short)(512*48)-(32+(i % 8*MAX_CITIES)) * 48;
-					p->City[i]->y = (unsigned short)(512*48)-(32+(i / 8*MAX_CITIES)) * 48; 
+				if (city->x == 0 || city->y == 0) {
+					city->x = (unsigned short)(512*48)-(32+(i % 8*MAX_CITIES)) * 48;
+					city->y = (unsigned short)(512*48)-(32+(i / 8*MAX_CITIES)) * 48; 
 				}
 
 				// Get the city's orb value and distance from the player's city
-				orbValue = p->City[i]->getOrbValue();
-				distance = (int)sqrt((float)((p->City[i]->x - SearchX)^2 + (p->City[i]->y - SearchY)^2));
+				orbValue = city->getOrbValue();
+				distance = (int)sqrt((float)((city->x - searchX)^2 + (city->y - searchY)^2));
 
 				// If the city is worth more than the others found so far, select it
 				if (orbValue > bestOrbValue) {
@@ -1543,17 +1653,18 @@ void CProcess::ProcessRequestInfo(int Index) {
  * @param City
  * @param Index
  **************************************************************/
-void CProcess::ProcessRightClickCity(int City, int Index) {
-	sSMRightClickCity cityinfo;
+void CProcess::ProcessRightClickCity(int cityIndex, int Index) {
+	CCity* city = this->p->City[cityIndex];
+	sSMRightClickCity response;
 
 	// Send the city's building count and orb points
-	cityinfo.BuildingCount = p->City[City]->currentBuildingCount;
-	cityinfo.City = City;
-	cityinfo.IsOrbable = p->City[City]->isOrbable();
-	cityinfo.Orbs = p->City[City]->Orbs;
-	cityinfo.OrbPoints = p->City[City]->getOrbValue();
-	cityinfo.UptimeInMinutes = p->City[City]->getUptimeInMinutes();
-	p->Winsock->SendData(Index, smRightClickCity, (char *)&cityinfo, sizeof(cityinfo));
+	response.BuildingCount = city->currentBuildingCount;
+	response.City = cityIndex;
+	response.IsOrbable = city->isOrbable();
+	response.Orbs = city->Orbs;
+	response.OrbPoints = city->getOrbValue();
+	response.UptimeInMinutes = city->getUptimeInMinutes();
+	p->Winsock->SendData(Index, smRightClickCity, (char *)&response, sizeof(response));
 }
 
 /***************************************************************
@@ -1566,16 +1677,18 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit) {
 	string DMLString;
 	std::ostringstream converter;
 	sSMPoints pts;
-	sSMPlayer player;
+	sSMPlayer response;
+	CPlayer *playerEditing = this->p->Player[Index];
+	CPlayer *playerToEdit;
 
 	// If the player is an admin,
-	if (p->Player[Index]->isAdmin()) {
+	if (playerEditing->isAdmin()) {
 
 		// If the player is in a certain set of names,
 		if (
-			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
+			(p->PlatformCaseCompare(playerEditing->Name.c_str(), "Weebo") == 0)
 			||
-			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Vindkast") == 0)
+			(p->PlatformCaseCompare(playerEditing->Name.c_str(), "Vindkast") == 0)
 		) {
 			
 			// If the account to edit exists,
@@ -1704,52 +1817,53 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit) {
 				// HACK: FIX "- 1"
 				// TODO: FIX "- 1"
 				for (int i = 0; i < MAX_PLAYERS-1; i++) {
+					playerToEdit = this->p->Player[i];
 
 					// If that player is the player we are editing,
-					if (p->PlatformCaseCompare(adminedit->User, p->Player[i]->Name) == 0) {
+					if (p->PlatformCaseCompare(adminedit->User, playerToEdit->Name) == 0) {
 
 						// Set the new information on the player
-						p->Player[i]->Red = adminedit->Red;
-						p->Player[i]->Green = adminedit->Green;
-						p->Player[i]->Blue = adminedit->Blue;
-						p->Player[i]->Member = adminedit->Member;
-						p->Player[i]->playerType = adminedit->playerType;
-						p->Player[i]->Tank = adminedit->Tank;
-						p->Player[i]->Tank2 = adminedit->Tank2;
-						p->Player[i]->Tank3 = adminedit->Tank3;
-						p->Player[i]->Tank4 = adminedit->Tank4;
-						p->Player[i]->Tank5 = adminedit->Tank5;
-						p->Player[i]->Tank6 = adminedit->Tank6;
-						p->Player[i]->Tank7 = adminedit->Tank7;
-						p->Player[i]->Tank8 = adminedit->Tank8;
-						p->Player[i]->Tank9 = adminedit->Tank9;
-						p->Player[i]->Town = adminedit->Town;
+						playerToEdit->Red = adminedit->Red;
+						playerToEdit->Green = adminedit->Green;
+						playerToEdit->Blue = adminedit->Blue;
+						playerToEdit->Member = adminedit->Member;
+						playerToEdit->playerType = adminedit->playerType;
+						playerToEdit->Tank = adminedit->Tank;
+						playerToEdit->Tank2 = adminedit->Tank2;
+						playerToEdit->Tank3 = adminedit->Tank3;
+						playerToEdit->Tank4 = adminedit->Tank4;
+						playerToEdit->Tank5 = adminedit->Tank5;
+						playerToEdit->Tank6 = adminedit->Tank6;
+						playerToEdit->Tank7 = adminedit->Tank7;
+						playerToEdit->Tank8 = adminedit->Tank8;
+						playerToEdit->Tank9 = adminedit->Tank9;
+						playerToEdit->Town = adminedit->Town;
 
-						p->Player[i]->Points = adminedit->Points;
-						p->Player[i]->Deaths = adminedit->Deaths;
-						p->Player[i]->Assists = adminedit->Assists;
-						p->Player[i]->Orbs = adminedit->Orbs;
+						playerToEdit->Points = adminedit->Points;
+						playerToEdit->Deaths = adminedit->Deaths;
+						playerToEdit->Assists = adminedit->Assists;
+						playerToEdit->Orbs = adminedit->Orbs;
 
 						// Send the points to everyone but the player
 						pts.Index = i;
-						pts.Points = p->Player[i]->Points;
-						pts.Deaths = p->Player[i]->Deaths;
-						pts.Assists = p->Player[i]->Assists;
-						pts.Orbs = p->Player[i]->Orbs;
-						pts.MonthlyPoints = p->Player[i]->MonthlyPoints;
+						pts.Points = playerToEdit->Points;
+						pts.Deaths = playerToEdit->Deaths;
+						pts.Assists = playerToEdit->Assists;
+						pts.Orbs = playerToEdit->Orbs;
+						pts.MonthlyPoints = playerToEdit->MonthlyPoints;
 						p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 
 						// Send the player info to everyone but the player
-						player.Red = p->Player[i]->Red;
-						player.Green = p->Player[i]->Green;
-						player.Blue = p->Player[i]->Blue;
-						player.Member = p->Player[i]->Member;
-						player.Index = i;
-						player.playerType = p->Player[i]->playerType;
-						player.Tank = p->Player[i]->displayTank;
-						strcpy(player.Name, p->Player[i]->Name.c_str());
-						strcpy(player.Town, p->Player[i]->Town.c_str());
-						p->Send->SendAllBut(-1, smPlayerData, (char *)&player, sizeof(player));
+						response.Red = playerToEdit->Red;
+						response.Green = playerToEdit->Green;
+						response.Blue = playerToEdit->Blue;
+						response.Member = playerToEdit->Member;
+						response.Index = i;
+						response.playerType = playerToEdit->playerType;
+						response.Tank = playerToEdit->displayTank;
+						strcpy(response.Name, playerToEdit->Name.c_str());
+						strcpy(response.Town, playerToEdit->Town.c_str());
+						p->Send->SendAllBut(-1, smPlayerData, (char *)&response, sizeof(response));
 					}
 				}
 			}
@@ -1766,15 +1880,16 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit) {
 void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *admineditrequest) {
 	string QueryString;
 	sCMAdminEdit newedit;
+	CPlayer *player = this->p->Player[Index];
 
 	// If the player is an admin,
-	if (p->Player[Index]->isAdmin()) {
+	if (player->isAdmin()) {
 
 		// If the player is in a certain set of names,
 		if (
-			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Weebo") == 0)
+			(p->PlatformCaseCompare(player->Name.c_str(), "Weebo") == 0)
 			||
-			(p->PlatformCaseCompare(p->Player[Index]->Name.c_str(), "Vindkast") == 0)
+			(p->PlatformCaseCompare(player->Name.c_str(), "Vindkast") == 0)
 		) {	
 
 			// Try to select the account from the database
@@ -1836,14 +1951,15 @@ void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *adminedit
 * @param Clicked
  **************************************************************/
 void CProcess::ProcessClickPlayer(int Index, int Clicked) {
-	sSMClickPlayer clickplayer;
+	CPlayer *playerClicked = this->p->Player[Clicked];
+	sSMClickPlayer response;
 
 	// Send the player info back to the clicker
-	clickplayer.Index = Clicked;
-	clickplayer.Orbs = p->Player[Clicked]->Orbs;
-	clickplayer.Assists = p->Player[Clicked]->Assists;
-	clickplayer.Deaths = p->Player[Clicked]->Deaths;
-	p->Winsock->SendData(Index, smClickPlayer, (char *)&clickplayer, sizeof(clickplayer));
+	response.Index = Clicked;
+	response.Orbs = playerClicked->Orbs;
+	response.Assists = playerClicked->Assists;
+	response.Deaths = playerClicked->Deaths;
+	p->Winsock->SendData(Index, smClickPlayer, (char *)&response, sizeof(response));
 }
 
 /***************************************************************
@@ -1854,7 +1970,8 @@ void CProcess::ProcessClickPlayer(int Index, int Clicked) {
  **************************************************************/
 void CProcess::ProcessChangeTank(int Index, int tankIndex) {
 	unsigned char tank;
-	sSMPlayer player;
+	CPlayer *player = this->p->Player[Index];
+	sSMPlayer response;
 
 	// If player wants tank index 0, set no-custom-tank
 	if (tankIndex == 0) {
@@ -1863,50 +1980,82 @@ void CProcess::ProcessChangeTank(int Index, int tankIndex) {
 
 	// Else, set tank to the requested tank index
 	else if (tankIndex == 1) {
-		tank = p->Player[Index]->Tank;
+		tank = player->Tank;
 	}
 	else if (tankIndex == 2) {
-		tank = p->Player[Index]->Tank2;
+		tank = player->Tank2;
 	}
 	else if (tankIndex == 3) {
-		tank = p->Player[Index]->Tank3;
+		tank = player->Tank3;
 	}
 	else if (tankIndex == 4) {
-		tank = p->Player[Index]->Tank4;
+		tank = player->Tank4;
 	}
 	else if (tankIndex == 5) {
-		tank = p->Player[Index]->Tank5;
+		tank = player->Tank5;
 	}
 	else if (tankIndex == 6) {
-		tank = p->Player[Index]->Tank6;
+		tank = player->Tank6;
 	}
 	else if (tankIndex == 7) {
-		tank = p->Player[Index]->Tank7;
+		tank = player->Tank7;
 	}
 	else if (tankIndex == 8) {
-		tank = p->Player[Index]->Tank8;
+		tank = player->Tank8;
 	}
 	else if (tankIndex == 9) {
-		tank = p->Player[Index]->Tank9;
+		tank = player->Tank9;
 	}
 
 	// If the player is already using this tank as the displayTank, return
-	if (tank == p->Player[Index]->displayTank) {
+	if (tank == player->displayTank) {
 		return;
 	}
 
 	// Else, change the player's displayTank, and notify all players
-	p->Player[Index]->displayTank = tank;
+	player->displayTank = tank;
 
 	// Tell everyone about the tank change
-	player.Red = p->Player[Index]->Red;
-	player.Green = p->Player[Index]->Green;
-	player.Blue = p->Player[Index]->Blue;
-	player.Member = p->Player[Index]->Member;
-	player.Index = Index;
-	player.playerType = p->Player[Index]->playerType;
-	player.Tank = p->Player[Index]->displayTank;
-	strcpy(player.Name, p->Player[Index]->Name.c_str());
-	strcpy(player.Town, p->Player[Index]->Town.c_str());
-	p->Send->SendAllBut(-1, smPlayerData, (char *)&player, sizeof(player));
+	response.Red = player->Red;
+	response.Green = player->Green;
+	response.Blue = player->Blue;
+	response.Member = player->Member;
+	response.Index = Index;
+	response.playerType = player->playerType;
+	response.Tank = player->displayTank;
+	strcpy(response.Name, player->Name.c_str());
+	strcpy(response.Town, player->Town.c_str());
+	p->Send->SendAllBut(-1, smPlayerData, (char *)&response, sizeof(response));
+}
+
+/***************************************************************
+ * Function:	ProcessAutoBuild
+ *
+ * @param Index
+ * @param tankIndex
+ **************************************************************/
+void CProcess::ProcessAutoBuild(int Index, sCMAutoBuild *request) {
+	sSMAutoBuild response;
+	CPlayer *player = this->p->Player[Index];
+	CCity *city = this->p->City[player->City];
+	bool isAllowed = true;
+
+	// If the player is not an admin,
+	if (player->isAdmin() == false) {
+
+		// If player is not mayor, return
+		if (! player->Mayor) {
+			isAllowed = false;
+		}
+
+		// If city is orbable, return
+		if (city->isOrbable()) {
+			isAllowed = false;
+		}
+	}
+
+	// Send the response
+	response.isAllowed = isAllowed;
+	strcpy(response.filename, request->filename);
+	p->Winsock->SendData(Index, smAutoBuild, (char *)&response, sizeof(response));
 }
