@@ -13,6 +13,9 @@ class CItem {
 		
 		CItem(int X, int Y, int Type, int City, unsigned short id, int active, CGame *game);
 		~CItem();
+		void targetNearestEnemy();
+		void verifyBulletExists();
+
 		int X;
 		int Y;
 		int active;
@@ -26,6 +29,7 @@ class CItem {
 		char dmg;
 		float lastturn;
 		int target;
+		int bulletDamage;
 		CBullet *bullet;
 
 		int Animation;

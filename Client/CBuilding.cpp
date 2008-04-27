@@ -15,7 +15,6 @@ CBuilding::CBuilding(unsigned short X, unsigned short Y, int Type, unsigned char
 	this->City = City;
 	this->X = X;
 	this->Y = Y;
-	this->Type = Type;
 	this->pop = 0;
 	this->Animation = rand()%6;
 	this->timeAnimation = 0;
@@ -26,6 +25,14 @@ CBuilding::CBuilding(unsigned short X, unsigned short Y, int Type, unsigned char
 
 	this->prev = 0;
 	this->next = 0;
+
+	this->rawType = Type;
+	if( Type > -1 ) {
+		this->Type = buildingTypes[Type - 1];
+	}
+	else {
+		this->Type = 6;
+	}
 }
 
 /***************************************************************
@@ -282,12 +289,17 @@ void CBuildingList::deleteBuildingsByCity(int city) {
  * Function:	inRange
  *
  **************************************************************/
-int CBuildingList::inRange() {
+bool CBuildingList::inRange(bool withBuildingProximity) {
 	CBuilding *bld;
+	int city = p->Player[p->Winsock->MyIndex]->City;
+	int playerTileX = p->Player[p->Winsock->MyIndex]->getTileX();
+	int playerTileY = p->Player[p->Winsock->MyIndex]->getTileY();
+	int buildingTileX;
+	int buildingTileY;
 
 	// If the player is an admin, return 1
 	if (p->Player[p->Winsock->MyIndex]->isAdmin()) {
-		return 1;
+		return true;
 	}
 
 	// Else, normal player,
@@ -297,14 +309,27 @@ int CBuildingList::inRange() {
 	while (bld) {
 
 		// If the building belongs to the builder's city,
-		if (bld->City == p->Player[p->Winsock->MyIndex]->City) {
+		if (bld->City == city) {
 
-			// If the building is the CC,
+			// Get the center tile of the building
+			buildingTileX = bld->X-1;
+			buildingTileY = bld->Y-1;
+
+			// If withBuildingProximity is true,
+				if (withBuildingProximity) {
+
+				// If we're near the building, return true
+				if ( (abs(buildingTileX - playerTileX) <= DISTANCE_MAX_FROM_BUILDING) && (abs(buildingTileY - playerTileY) <= DISTANCE_MAX_FROM_BUILDING)) {
+					return true;
+				}
+			}
+
+			// if the building is the CC,
 			if (bld->isCC()) {
 
 				//If the building's location is close enough to the player's location, return 1
-				if ((abs((bld->X*48) - p->Player[p->Winsock->MyIndex]->X) < DISTANCE_MAX_FROM_CC) && (abs((bld->Y*48) - p->Player[p->Winsock->MyIndex]->Y) < DISTANCE_MAX_FROM_CC)) {
-					return 1;
+				if ( (abs(buildingTileX - playerTileX) < DISTANCE_MAX_FROM_CC) && (abs(buildingTileY - playerTileY) < DISTANCE_MAX_FROM_CC)) {
+					return true;
 				}
 			}
 		}
@@ -314,7 +339,8 @@ int CBuildingList::inRange() {
 	}
 
 	// If no building was found in range, return 0
-	p->InGame->NewbieTip = "You cannot build this far away from your City Center!";
+	p->InGame->NewbieTip = "You cannot build or drop defensive items this far away from your City Center!";
 
 	return 0;
 }
+

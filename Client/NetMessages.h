@@ -64,7 +64,8 @@ enum ServerMessages {
 	smClickPlayer,
 	smWhisper,
 	smCount,
-	smCloak
+	smCloak,
+	smAutoBuild
 };
 
 struct sSMUpdate
@@ -237,6 +238,12 @@ struct sSMBan
 	char Reason[31];
 };
 
+struct sSMAutoBuild
+{
+	bool isAllowed;
+	char filename[64];
+};
+
 enum ClientMessages {
 	CMTCP,
 	cmVersion,
@@ -284,7 +291,8 @@ enum ClientMessages {
 	cmChangeTank,
 	cmWhisper,
 	cmCount,
-	cmCloak
+	cmCloak,
+	cmAutoBuild
 };
 
 struct sCMBuild
@@ -292,6 +300,7 @@ struct sCMBuild
 	unsigned short x;
 	unsigned short y;
 	unsigned char type;
+	bool isAutoBuild;
 };
 
 struct sCMUpdate
@@ -396,6 +405,12 @@ struct sCMWhisper
 	char Sender;
 	char Recipient;
 	char Message[128];
+};
+
+struct sCMAutoBuild
+{
+	bool isAllowed;
+	char filename[64];
 };
 
 #endif

@@ -589,3 +589,183 @@ void CInGame::setIsUnderAttack(bool isUnderAttack) {
 	}
 
 }
+
+/***************************************************************
+ * Function:	requestAutoBuild
+ *
+ * @param chatLine
+ **************************************************************/
+void CInGame::requestAutoBuild(string chatLine) {
+	string fileName = this->getFileNameFromChatLine(chatLine);
+	CPlayer* player = this->p->Player[this->p->Winsock->MyIndex];
+	int* buildingInfo;
+	sCMAutoBuild request;
+	
+	// If there is no filename, return
+	if (fileName.length() == 0) {
+		return;
+	}
+
+	// If the player is dead, return
+	if (player->isDead) {
+		return;
+	}
+
+	// If the player is not mayor, return
+	if (player->isMayor == false) {
+		return;
+	}
+
+	strcpy(request.filename, fileName.c_str());
+	this->p->Winsock->SendData(cmAutoBuild,(char *)&request,sizeof(request));
+}
+
+/***************************************************************
+ * Function:	saveCity
+ *
+ * @param chatLine
+ **************************************************************/
+void CInGame::saveCity(string chatLine) {
+	CBuilding *bld = this->p->Build->buildingListHead;
+	stringstream ss;
+	string fileName = this->getFileNameFromChatLine(chatLine);
+	string folderName;
+	int city = this->p->Player[this->p->Winsock->MyIndex]->City;
+	string cityName = CityList[city];
+	FILE *cityFile;
+
+	// If there is no filename, return
+	if (fileName.length() == 0) {
+		return;
+	}
+
+
+	// Create the directory (does nothing if directory already exists)
+	folderName = FILE_CITIES_FOLDER;
+	CreateDirectory(folderName.c_str(), NULL);
+	folderName = folderName + "/" + cityName;
+	CreateDirectory(folderName.c_str(), NULL);
+
+	// Get the filename from the ChatLine
+	fileName = folderName + "/" + fileName + FILE_CITIES_EXTENSION;
+
+	// Open the file for writing
+	cityFile = fopen(fileName.c_str(),"w+");
+
+	// If the file couldn't be opened, error
+	if (!cityFile) {
+		this->AppendChat("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
+		return;
+	}
+
+	// For each building in the linked list,
+	while (bld) {
+
+		// If the building belongs to this city, and building isn't a CC,
+		if ((bld->City == city) && (bld->isCC() == false)) {
+
+			// Write the building's info to the file
+			ss.str("");
+			ss << bld->rawType << " " << bld->X << " " << bld->Y << endl;
+			fwrite(ss.str().c_str(), ss.str().size(), 1, cityFile); 
+		}
+
+		// Move the pointer to the next building in the linked list
+		bld = bld->next;
+	}
+
+	// Close the file
+	fclose(cityFile);
+}
+
+/***************************************************************
+ * Function:	getFileNameFromChatLine
+ *
+ * @param chatLine
+ **************************************************************/
+string CInGame::getFileNameFromChatLine(string chatLine) {
+	string fileName;
+	int fileNameStartIndex = chatLine.find(" ",0) + 1;
+	int fileNameEndIndex = chatLine.find(" ",fileNameStartIndex) + 1;
+
+	// If there was no space, set filenameEndIndex to the end of the chatline
+	if (fileNameEndIndex == 0) {
+		fileNameEndIndex = chatLine.length();
+	}
+
+	// If there is no filename, return
+	if (fileNameStartIndex == fileNameEndIndex) {
+		return "";
+	}
+
+	// Get the filename from the chatLine
+	return chatLine.substr(fileNameStartIndex, fileNameEndIndex-fileNameStartIndex);
+}
+
+/***************************************************************
+ * Function:	splitStringIntoInts
+ *
+ * @param chatLine
+ **************************************************************/
+int* CInGame::splitStringIntoInts(char* buildingLine) {
+	int counter = 0;
+	int *buildingInts = new int[3];
+	string buf;
+
+	// Insert the string into a stream
+	stringstream buildingStream(buildingLine); 
+
+	// Add each "word" in the string (separated by whitespace) to th
+	while (buildingStream >> buf) {
+		buildingInts[counter] = atoi(buf.c_str());
+		counter++;
+	}
+
+	return buildingInts;
+}
+
+/***************************************************************
+ * Function:	createBuilding
+ *
+ * @param type
+ * @param x
+ * @param y
+ * @param isAutoBuild
+ **************************************************************/
+bool CInGame::createBuilding(unsigned char type, unsigned short x, unsigned short y, bool isAutoBuild) {
+	sCMBuild buildingPacket;
+	int collision;
+
+	// If the player is not an admin, check for conditions...
+	if (! this->p->Player[this->p->Winsock->MyIndex]->isAdmin()) {
+
+		// If the city can't afford a building, return
+		if (this->Cash < COST_BUILDING) {
+			return false;
+		}
+
+		// If there is a collision, return
+		collision = this->p->Collision->CheckBuildingCollision(x, y);
+		if (collision) {
+			return false;
+		}
+		
+		// If the building is not in the city's build range, return
+		if (! this->p->Build->inRange(false)) {
+			return false;
+		}
+
+		// If the building is not on the map, return
+		if ((x < 0) || (x > 510) || (y < 0) || (y > 510)) {
+			return false;
+		}
+	}
+
+	buildingPacket.type = type;
+	buildingPacket.x = x;
+	buildingPacket.y = y;
+	buildingPacket.isAutoBuild = isAutoBuild;
+	this->p->Winsock->SendData(cmBuild,(char *)&buildingPacket,sizeof(buildingPacket));
+
+	return true;
+}

@@ -383,12 +383,13 @@ void CInput::MouseUp(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]) {
 void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]) {
 	X -= p->DDraw->XOff;
 	Y -= p->DDraw->YOff;
-	
+
 	// If we're ignoring all actions until the player lets go of the button, return
 	if (NeedRelease) {
 		return;
 	}
 
+	CBuilding *TestBuilding;
 	int me = p->Winsock->MyIndex;
 	int myX = (int)p->Player[me]->X / 48;
 	int myY = (int)p->Player[me]->Y / 48;
@@ -396,6 +397,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 	int tY = p->Input->LastMouseY / 48;
 	int Xloc = myX - tX + p->Draw->clickOffsetX;
 	int Yloc = myY - tY + p->Draw->clickOffsetY;
+	bool success = false;
 
 	/************************************************
 	 * Button: LEFT
@@ -410,84 +412,20 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 			************************************************/
 			if (p->InGame->IsBuilding == -1) {
 
-				// If the demolish timer is up,
-// COMMENTED OUT: Demo Timer
-/*
-				if (p->Tick > DemolishTimer) {
-*/
-					CBuilding *TestBuilding;
+				// Check whether there is a building under the cursor
+				for (int j = 0; j < 3; j++) {
+					for (int k = 0; k < 3; k++) {
+						TestBuilding = p->Build->findBuildingbyLocation((Xloc-1) + j, (Yloc-1) + k);
 
-					// Check whether there is a building under the cursor
-					for (int j = 0; j < 3; j++) {
-						for (int k = 0; k < 3; k++) {
-							TestBuilding = p->Build->findBuildingbyLocation((Xloc-1) + j, (Yloc-1) + k);
+						// If there is a building under the cursor,
+						if (TestBuilding) {
+							
+							// Tell the server to demolish the building
+							sCMDemolish d_packet;
+							d_packet.id = TestBuilding->id;
+							p->Winsock->SendData(cmDemolish,(char *)&d_packet,sizeof(d_packet));
+							NeedRelease = 1;
 
-							// If there is a building under the cursor,
-							if (TestBuilding) {
-								
-								// Tell the server to demolish the building
-								sCMDemolish d_packet;
-								d_packet.id = TestBuilding->id;
-								p->Winsock->SendData(cmDemolish,(char *)&d_packet,sizeof(d_packet));
-								NeedRelease = 1;
-
-								// Reset the demolish timer
-// COMMENTED OUT: Demo Timer
-/*
-								if (p->Tick - DemolishTimer < 1000) {
-									DemolishTimer = p->Tick + TIMER_DEMOLISH;
-								}
-								else {
-									DemolishTimer = p->Tick;
-								}
-*/
-
-								// Save the mouse state and return
-								this->endMouseDown(mouse_state);
-								return;
-							}
-						}
-					}
-// COMMENTED OUT: Demo Timer
-/*
-				}
-*/
-			}
-
-			/************************************************
-			* Building
-			************************************************/
-			else {
-
-				// If the player doesn't have enough money to build (and isn't an admin), return
-				if (p->InGame->Cash < COST_BUILDING && (p->Player[p->Winsock->MyIndex]->isAdmin() == false)) {
-					return;
-				}
-
-				// ???
-				if (p->InGame->IsBuilding == 0 && p->InGame->Cash < 2000000) {
-					return;
-				}
-				
-				// If there is nothing under the building (or the user is an admin),
-				if (p->Collision->CheckBuildingCollision(Xloc, Yloc) == 0 || p->Player[p->Winsock->MyIndex]->isAdmin()) {
-					
-					// If the building is in the city's build range,
-					if (p->Build->inRange() == 1) {
-
-						// ???
-						// If the building is on the map
-						if (Xloc > 0 && Xloc < 510 && Yloc > 0 && Yloc < 510) {
-
-							// Tell the server to build the building
-							sCMBuild b_packet;
-							b_packet.x = Xloc;
-							b_packet.y = Yloc;
-							b_packet.type = (unsigned char)p->InGame->IsBuilding;
-							p->Winsock->SendData(cmBuild,(char *)&b_packet,sizeof(b_packet));
-
-							// Clear the building off the cursor
-							p->InGame->IsBuilding = 0;
 
 							// Save the mouse state and return
 							this->endMouseDown(mouse_state);
@@ -495,6 +433,24 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 						}
 					}
 				}
+			}
+
+			/************************************************
+			* Building
+			************************************************/
+			else {
+				
+				// Tell the server to create the building
+				success = this->p->InGame->createBuilding((unsigned char)p->InGame->IsBuilding, Xloc, Yloc, false);
+
+				// If the build command succeeded, clear the cursor
+				if (success) {
+					this->p->InGame->IsBuilding = 0;
+				}
+
+				// Save the mouse state and return
+				this->endMouseDown(mouse_state);
+				return;
 			}
 		}
 

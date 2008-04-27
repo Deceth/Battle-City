@@ -330,6 +330,11 @@ int CProcess::ProcessData(char *TheData) {
 			this->ProcessWhisper(TheData);
 			break;
 
+		// Packet: smAutoBuild
+		case smAutoBuild:
+			this->ProcessAutoBuild((sSMAutoBuild*)&TheData[1]);
+			break;
+
 		// Packet: unknown!
 		default:
 			std::ostringstream thing;
@@ -558,7 +563,7 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
  * @param sound
  **************************************************************/
 void CProcess::ProcessNewBuilding(sSMBuild *data, int sound) {
-	this->p->Build->newBuilding(data->x,data->y,data->City,buildingTypes[(unsigned char)data->type - 1], data->id);
+	this->p->Build->newBuilding(data->x, data->y, data->City, data->type, data->id);
 	CBuilding *bld = this->p->Build->findBuilding(data->id);
 	if (bld) {
 		bld->pop = data->pop;
@@ -757,11 +762,11 @@ void CProcess::ProcessItemCount(sSMItemCount *count) {
 void CProcess::ProcessJoinData(sSMJoinData *join) {
 	string tmpString;
 	int i = join->id;
-	this->p->Player[i]->isMayor = join->Mayor;
 	this->p->Player[i]->City = join->City;
 	this->p->Player[i]->isInGame = 1;
 	this->p->Player[i]->X = 0;
 	this->p->Player[i]->Y = 0;
+	this->p->Player[i]->setMayor(join->Mayor != 0);
 	this->p->Player[i]->GenerateNameString();
 
 	if (this->p->Player[i]->Name.length() > 0 && this->p->State == STATE_GAME) {
@@ -881,70 +886,86 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
     srand((unsigned int)this->p->Tick);
     int random_integer = rand()%13;
 	int me = this->p->Winsock->MyIndex;
+	CPlayer* player = this->p->Player[Index];
+	CPlayer* playerMe = this->p->Player[me];
+	string cityName = CityList[City];
 
-	this->p->Player[Index]->isDead = true;
-	this->p->Player[Index]->isMoving = false;
-	this->p->Player[Index]->isTurning = false;
+	player->isDead = true;
+	player->isMoving = false;
+	player->isTurning = false;
 
-	if (Index != this->p->Winsock->MyIndex) {
+	// If this player is not the player who died,
+	if (Index != me) {
 
-		if ((abs(this->p->Player[Index]->X - this->p->Player[me]->X) < 1000) && (abs(this->p->Player[Index]->Y - this->p->Player[me]->Y) < 1000)) {
+		// If the dead player is in sound range,
+		if ((abs(player->X - playerMe->X) < 1000) && (abs(player->Y - playerMe->Y) < 1000)) {
 
-			this->p->Explode->newExplosion((int)this->p->Player[Index]->X, (int)this->p->Player[Index]->Y, 1);
-			this->p->Sound->Play3dSound(this->p->Sound->s_eXplode, 100, this->p->Player[Index]->X, this->p->Player[Index]->Y);
-			this->p->Sound->Play3dSound(this->p->Sound->s_die, 100, this->p->Player[Index]->X, this->p->Player[Index]->Y);
+			// Add an explosion and play explosion and death sounds
+			this->p->Explode->newExplosion((int)player->X, (int)player->Y, 1);
+			this->p->Sound->Play3dSound(this->p->Sound->s_eXplode, 100, player->X, player->Y);
+			this->p->Sound->Play3dSound(this->p->Sound->s_die, 100, player->X, player->Y);
 		}
 	}
+
+	// Else (I died), stop tank sound
 	else {
 		this->p->Sound->StopWav(12);
 	}
 
+	// Choose a random death message
 	switch (random_integer) {
 		case 0:
-			tmpString = this->p->Player[Index]->Name + " no longer exists as a single entity";
+			tmpString = player->Name + " no longer exists as a single entity";
 			break;
 		case 1:
-			tmpString = this->p->Player[Index]->Name + " just had a TNT experience";
+			tmpString = player->Name + " just had a TNT experience";
 			break;
 		case 2:
-			tmpString = this->p->Player[Index]->Name + " has shattered into many pieces";
+			tmpString = player->Name + " has shattered into many pieces";
 			break;
 		case 3:
-			tmpString = this->p->Player[Index]->Name + " has been blown up";
+			tmpString = player->Name + " has been blown up";
 			break;
 		case 4:
-			tmpString = this->p->Player[Index]->Name + " is no more";
+			tmpString = player->Name + " is no more";
 			break;
 		case 5:
-			tmpString = this->p->Player[Index]->Name + " is worm food";
+			tmpString = player->Name + " is worm food";
 			break;
 		case 6:
-			tmpString = this->p->Player[Index]->Name + " just ran out of luck";
+			tmpString = player->Name + " just ran out of luck";
 			break;
 		case 7:
-			tmpString = "Alas poor " + this->p->Player[Index]->Name + " we knew him well";
+			tmpString = "Alas poor " + player->Name + " we knew him well";
 			break;
 		case 8:
-			tmpString = "A funeral service will shortly be held for " + this->p->Player[Index]->Name;
+			tmpString = "A funeral service will shortly be held for " + player->Name;
 			break;
 		case 9:
-			tmpString = this->p->Player[Index]->Name + " has bitten the dust";
+			tmpString = player->Name + " has bitten the dust";
 			break;
 		case 10:
-			tmpString = this->p->Player[Index]->Name + " has gone to meet his maker";
+			tmpString = player->Name + " has gone to meet his maker";
 			break;
 		case 11:
-			tmpString = this->p->Player[Index]->Name + " is dead meat";
+			tmpString = player->Name + " is dead meat";
 			break;
 		case 12:
-			tmpString = this->p->Player[Index]->Name + " was useless at this game anyway!";
+			tmpString = player->Name + " was useless at this game anyway!";
 			break;
 	}
 
-	if (this->p->Player[this->p->Winsock->MyIndex]->City == City) {
-		tmpString += " (2)";
+	// If the player was killed by his own city, show "(Friendly Fire!)"
+	if (player->City == City) {
+		tmpString += " (Friendly Fire!)";
 	}
 
+	// Else, show "(" + cityName + ")"
+	else {
+		tmpString += " (" + cityName + ")";
+	}
+
+	// Add the death message to the chat
 	this->p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 }
 
@@ -955,35 +976,38 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
  **************************************************************/
 void CProcess::ProcessShot(sSMShot *shotsfired) {
 	int me = this->p->Winsock->MyIndex;
+	CPlayer* playerShooter = this->p->Player[shotsfired->id];
+	CPlayer* playerMe = this->p->Player[me];
+
 	float fDir;
 	int FlashY;
 	int FlashX; 
 
-	if (this->p->Player[shotsfired->id]->isAdmin()) {
-		fDir = (float)-this->p->Player[shotsfired->id]->Direction+32;
-		FlashY = (int)this->p->Player[shotsfired->id]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-		FlashX = (int)this->p->Player[shotsfired->id]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+	if (playerShooter->isAdmin()) {
+		fDir = (float)-playerShooter->Direction+32;
+		FlashY = (int)playerShooter->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+		FlashX = (int)playerShooter->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
 		this->p->Explode->newExplosion(FlashX, FlashY, 3);
 		this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, shotsfired->dir, shotsfired->id);
 
-		if ((abs(this->p->Player[shotsfired->id]->X - this->p->Player[me]->X) < 1000) && (abs(this->p->Player[shotsfired->id]->Y - this->p->Player[me]->Y) < 1000)) {
-			this->p->Sound->Play3dSound(this->p->Sound->s_turret, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
+		if ((abs(playerShooter->X - this->p->Player[me]->X) < 1000) && (abs(playerShooter->Y - playerMe->Y) < 1000)) {
+			this->p->Sound->Play3dSound(this->p->Sound->s_turret, 100, playerShooter->X, playerShooter->Y);
 		}
 	}
 
 	else {
-		fDir = (float)-this->p->Player[shotsfired->id]->Direction+32;
-		FlashY = (int)this->p->Player[shotsfired->id]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-		FlashX = (int)this->p->Player[shotsfired->id]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+		fDir = (float)-playerShooter->Direction+32;
+		FlashY = (int)playerShooter->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+		FlashX = (int)playerShooter->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
 		this->p->Explode->newExplosion(FlashX, FlashY, 3);
 		this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, shotsfired->dir, shotsfired->id);
 
-		if ((abs(this->p->Player[shotsfired->id]->X - this->p->Player[me]->X) < 1000) && (abs(this->p->Player[shotsfired->id]->Y - this->p->Player[me]->Y) < 1000)) {
+		if ((abs(playerShooter->X - playerMe->X) < 1000) && (abs(playerShooter->Y - playerMe->Y) < 1000)) {
 
 			switch(shotsfired->type) {
 
 				case 0:
-					this->p->Sound->Play3dSound(this->p->Sound->s_tanklaser, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
+					this->p->Sound->Play3dSound(this->p->Sound->s_tanklaser, 100, playerShooter->X, this->p->Player[shotsfired->id]->Y);
 					break;
 				case 1:
 					this->p->Sound->Play3dSound(this->p->Sound->s_bigturret, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
@@ -1010,7 +1034,7 @@ void CProcess::ProcessDestroyCity(char City) {
  **************************************************************/
 void CProcess::ProcessRemoveBuilding(sSMBuild *build) {
 	CBuilding *bld = this->p->Build->findBuilding(build->id);
-	int me = this->p->Winsock->MyIndex;
+	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
 
 	// If the building was found,
 	if (bld) {
@@ -1021,17 +1045,17 @@ void CProcess::ProcessRemoveBuilding(sSMBuild *build) {
 		}
 
 		// If the building is within sound range,
-		if (bld->X * 48 < this->p->Player[this->p->Winsock->MyIndex]->X + 400 &&
-			bld->X * 48 + 400 > this->p->Player[this->p->Winsock->MyIndex]->X &&
-			bld->Y * 48 < this->p->Player[this->p->Winsock->MyIndex]->Y + 400 &&
-			bld->Y * 48 + 400 > this->p->Player[this->p->Winsock->MyIndex]->Y) {
+		if (bld->X * 48 < playerMe->X + 400 &&
+			bld->X * 48 + 400 > playerMe->X &&
+			bld->Y * 48 < playerMe->Y + 400 &&
+			bld->Y * 48 + 400 > playerMe->Y) {
 
 				// Play the Demolish sound
 				this->p->Sound->Play3dSound(this->p->Sound->s_demolish, 100, (float)bld->X*48, (float)bld->Y*48);
 		}
 		
 		// If the building is from this player's city,
-		if (bld->City == this->p->Player[me]->City) {
+		if (bld->City == playerMe->City) {
 			this->p->InGame->setIsUnderAttack(true);
 		}
 
@@ -1046,8 +1070,10 @@ void CProcess::ProcessRemoveBuilding(sSMBuild *build) {
  * @param orbed
  **************************************************************/
 void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
+	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
+	CPlayer* playerOrbed;
 
-	if (this->p->Player[this->p->Winsock->MyIndex]->City == orbed->City) {
+	if (playerMe->City == orbed->City) {
 
 		this->p->State = STATE_MEETING;
 		this->p->Sound->PlayWav(sDie, -1);
@@ -1074,17 +1100,25 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 		msg.append(thing2.str());
 		msg.append(" Points!");
 
+		// For each possible player,
 		for (int i = 0; i < MAX_PLAYERS; i++) {
-			if (this->p->Player[i]->City == orbed->City) {
-				this->p->Player[i]->isInGame = false;
-				this->p->Player[i]->X = 0;
-				this->p->Player[i]->Y = 0;
-				this->p->Player[i]->isDead = false;
+			playerOrbed = this->p->Player[i];
+
+			// If the player was in the orbed city,
+			if (playerOrbed->City == orbed->City) {
+
+				// Reset the player
+				playerOrbed->isInGame = false;
+				playerOrbed->X = 0;
+				playerOrbed->Y = 0;
+				playerOrbed->isDead = false;
 			}
 		}
+		
+		// Show the orbed message
 		this->p->InGame->AppendChat(msg.c_str(), COLOR_BLUE);
 
-		if (orbed->OrberCity == this->p->Player[this->p->Winsock->MyIndex]->City) {
+		if (orbed->OrberCity == playerMe->City) {
 			this->p->Engine->ThreadMessage(msg.c_str());
 		}
 	}
@@ -1096,12 +1130,14 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
  * @param pts
  **************************************************************/
 void CProcess::ProcessPointsUpdate(sSMPoints *pts) {
-	this->p->Player[pts->Index]->Points = pts->Points;
-	this->p->Player[pts->Index]->Deaths = pts->Deaths;
-	this->p->Player[pts->Index]->Orbs = pts->Orbs;
-	this->p->Player[pts->Index]->Assists = pts->Assists;
-	this->p->Player[pts->Index]->MonthlyPoints = pts->MonthlyPoints;
-	this->p->Player[pts->Index]->GenerateNameString();
+	CPlayer* player = this->p->Player[pts->Index];
+
+	player->Points = pts->Points;
+	player->Deaths = pts->Deaths;
+	player->Orbs = pts->Orbs;
+	player->Assists = pts->Assists;
+	player->MonthlyPoints = pts->MonthlyPoints;
+	player->GenerateNameString();
 }
 
 /***************************************************************
@@ -1109,7 +1145,9 @@ void CProcess::ProcessPointsUpdate(sSMPoints *pts) {
  *
  **************************************************************/
 void CProcess::ProcessMedKit() {
-	this->p->Player[this->p->Winsock->MyIndex]->SetHP(40);
+	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
+
+	playerMe->SetHP(MAX_HEALTH);
 	this->p->Sound->PlayWav(sClick, -1);
 }
 
@@ -1118,9 +1156,10 @@ void CProcess::ProcessMedKit() {
  *
  **************************************************************/
 void CProcess::ProcessCloak(int index) {
-	
+	CPlayer* player = this->p->Player[index];
+
 	// Cloak the player
-	this->p->Player[index]->setCloak(true);
+	player->setCloak(true);
 
 	// If the player is me, play the cloak sound
 	if (this->p->Winsock->MyIndex == index) {
@@ -1129,7 +1168,7 @@ void CProcess::ProcessCloak(int index) {
 
 	// Else, play the cloak sound directional
 	else {
-		this->p->Sound->Play3dSound(p->Sound->s_cloak, 100, this->p->Player[index]->X, this->p->Player[index]->Y);
+		this->p->Sound->Play3dSound(p->Sound->s_cloak, 100, player->X, player->Y);
 	}
 }
 
@@ -1140,22 +1179,30 @@ void CProcess::ProcessCloak(int index) {
  **************************************************************/
 void CProcess::ProcessExplosion(sSMExplode *bomb) {
 	int me = this->p->Winsock->MyIndex;
+	CPlayer* playerMe = this->p->Player[me];
+
 	this->p->Explode->newExplosion(bomb->x*48, bomb->y*48, 2);
 
-	if ((abs(bomb->x - (this->p->Player[me]->X / 48) - 1) <= 1) && (abs(bomb->y - (this->p->Player[me]->Y / 48) - 1) <= 1)) {
-
-		if ((this->p->Player[me]->isAdmin() == false) && (this->p->Player[this->p->Winsock->MyIndex]->isDead == false)) {
-			char packet[3];
-			packet[0] = (char)bomb->City;
-			packet[1] = 0;
-			this->p->Player[this->p->Winsock->MyIndex]->isDead = true;
-			this->p->InGame->timeDeath = this->p->Tick;
-			this->p->Winsock->SendData(cmDeath, packet, 1);
-			this->p->Sound->PlayWav(sDie, -1);
-		}
-	}
-	if ((abs(bomb->x*48 - this->p->Player[me]->X) < 1000) && (abs(bomb->y*48 - this->p->Player[me]->Y) < 1000)) {
+	if ((abs(bomb->x - playerMe->getTileX()) < 1000) && (abs(bomb->y - playerMe->getTileY()) < 1000)) {
 		this->p->Sound->Play3dSound(this->p->Sound->s_eXplode, 100, (float)bomb->x*48, (float)bomb->y*48);
+	}
+
+	if (playerMe->isAdmin()) {
+		return;
+	}
+
+	if (playerMe->isDead) {
+		return;
+	}
+
+	if ((abs(bomb->x - playerMe->getTileX() - 1) <= 1) && (abs(bomb->y - playerMe->getTileY() - 1) <= 1)) {
+		char packet[3];
+		packet[0] = (char)bomb->City;
+		packet[1] = 0;
+		playerMe->isDead = true;
+		this->p->InGame->timeDeath = this->p->Tick;
+		this->p->Winsock->SendData(cmDeath, packet, 1);
+		this->p->Sound->PlayWav(sDie, -1);
 	}
 }
 
@@ -1165,12 +1212,13 @@ void CProcess::ProcessExplosion(sSMExplode *bomb) {
  * @param game
  **************************************************************/
 void CProcess::ProcessWarp(sSMStateGame *game) {
-	int me = this->p->Winsock->MyIndex;
-	this->p->Player[me]->X = (float)game->x;
-	this->p->Player[me]->Y = (float)game->y;
-	this->p->Player[me]->City = game->City;
-	this->p->Player[me]->SectorX = (game->x/48) / SectorSize;
-	this->p->Player[me]->SectorY = (game->y/48) / SectorSize;
+	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
+
+	playerMe->X = (float)game->x;
+	playerMe->Y = (float)game->y;
+	playerMe->City = game->City;
+	playerMe->SectorX = (game->x/48) / SectorSize;
+	playerMe->SectorY = (game->y/48) / SectorSize;
 	this->p->InGame->RefreshArea();
 }
 
@@ -1180,12 +1228,12 @@ void CProcess::ProcessWarp(sSMStateGame *game) {
  * @param itm
  **************************************************************/
 void CProcess::ProcessItemLife(sSMItemLife *itm) {
-	CItem *sdf = this->p->Item->findItem(itm->id);
+	CItem *item = this->p->Item->findItem(itm->id);
 
-	if (sdf) {
-		sdf->Life = itm->life;
-		sdf->Animation = 1;
-		sdf->Animationtick = 0;
+	if (item) {
+		item->Life = itm->life;
+		item->Animation = 1;
+		item->Animationtick = 0;
 	}
 }
 
@@ -1249,17 +1297,27 @@ void CProcess::ProcessKicked() {
  * @param admin
  **************************************************************/
 void CProcess::ProcessAdmin(sSMAdmin *admin) {
-	
+	CPlayer* player = this->p->Player[admin->adminIndex];
+	CPlayer* playerTarget;
+
+	// Even tho playerTarget = this->p->Player[admin->id] in each case below,
+	// admin->id will mean something else in other admin->command commands,
+	// So it can't be set otuside the case statements.
+
 	switch(admin->command) {
 		
 		// Command: KICK
 		case 1:
-			this->p->InGame->AppendChat(this->p->Player[admin->id]->Name + " has been kicked by " + this->p->Player[admin->adminIndex]->Name, COLOR_SYSTEM);
+			playerTarget = this->p->Player[admin->id];
+
+			this->p->InGame->AppendChat(playerTarget->Name + " has been kicked by " + player->Name, COLOR_SYSTEM);
 			break;
 		
 		// Command: BAN
 		case 5:
-			this->p->InGame->AppendChat(this->p->Player[admin->id]->Name + " has been banned by " + this->p->Player[admin->adminIndex]->Name, COLOR_SYSTEM);
+			playerTarget = this->p->Player[admin->id];
+
+			this->p->InGame->AppendChat(playerTarget->Name + " has been banned by " + player->Name, COLOR_SYSTEM);
 			break;
 	}
 
@@ -1322,70 +1380,73 @@ void CProcess::ProcessEditAccount(char TheData[255]) {
  **************************************************************/
 void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity) {
 	int me = this->p->Winsock->MyIndex;
-	string AppendString = "";
+	CPlayer* playerMe = this->p->Player[me];
+	string direction;
+	string cityName = CityList[selectedcity->city];
 
-	int cityX = (unsigned short)(512*48)-(32+(selectedcity->city % 8*64)) * 48;
-	int cityY = (unsigned short)(512*48)-(32+(selectedcity->city / 8*64)) * 48; 
+	int cityX = ((512*48) - (32+(selectedcity->city % 8*64) + 1) * 48);
+	int cityY = ((512*48) - (32+(selectedcity->city / 8*64) + 1) * 48); 
+	
+	bool isCityNorth = cityY > playerMe->Y;
+	bool isCityWest = cityX > playerMe->X;
+	int distanceX = abs( (int)playerMe->X - cityX);
+	int distanceY = abs( (int)playerMe->Y - cityY);
+	int distance = (int)sqrt((float)((distanceY/48)*(distanceY/48) + (distanceX/48)*(distanceX/48)));
+	bool isMoreXThanY = (distanceX > (distanceY*2));
+	bool isMoreYThanX = (distanceY > (distanceX*2));
+	stringstream ss;
 
-	if (this->p->Player[me]->X <= cityX) {
-		if (cityY >= this->p->Player[me]->Y) {
-			if ((cityX - this->p->Player[me]->X) / (cityY - this->p->Player[me]->Y) > 2) {
-				AppendString += "West.";
-			}
-			else if ((cityY - this->p->Player[me]->Y) / (cityX - this->p->Player[me]->X) > 2) {
-				AppendString +=  "North.";
-			}
-			else {
-				AppendString += "West.";
-			}
-		}
-		if (cityY < this->p->Player[me]->Y) {
-			if ((cityX - this->p->Player[me]->X) / (this->p->Player[me]->Y - cityY) > 2) {
-				AppendString += "West.";
-			}
-			else if ((this->p->Player[me]->Y - cityY) / (cityX - this->p->Player[me]->X) > 2) {
-				AppendString += "South.";
-			}
-			else {
-				AppendString += "West.";
-			}
-		}
-	}
-	else {
-		if (cityY >= this->p->Player[me]->Y) {
-			if ((this->p->Player[me]->X - cityX) / (cityY - this->p->Player[me]->Y) > 2) {
-				AppendString += "East.";
-			}
-			else if ((cityY - this->p->Player[me]->Y) / (this->p->Player[me]->X - cityX) > 2) {
-				AppendString += "North.";
-			}
-			else {
-				AppendString += "East.";
-			}
-		}
-		if (cityY < this->p->Player[me]->Y) {
-			if ((this->p->Player[me]->X - cityX) / (this->p->Player[me]->Y - cityY) > 2) {
-				AppendString += "East.";
-			}
-			else if ((this->p->Player[me]->Y - cityY) / (this->p->Player[me]->X - cityX) > 2) {
-				AppendString += "South.";
-			}
-			else {
-				AppendString += "East.";
-			}
-		}
-	}
-			
+	// If there is no info city, show message and return
 	if (selectedcity->city == 255) {
 		this->p->Draw->ClearPanel();
-		this->p->Draw->PanelLine1 = "Existing cities are";
-		this->p->Draw->PanelLine2 = "too small to detect!";
+		this->p->Draw->PanelLine1 = "No Threats Detected";
+		this->p->Draw->PanelLine2 = "All existing cities";
+		this->p->Draw->PanelLine3 = "are too small to";
+		this->p->Draw->PanelLine4 = "attack!";
+		return;
+	}
+
+	// Else, find the direction of the info city
+	if (isMoreXThanY) {
+		if (isCityWest) {
+			direction = "West";
+		}
+		else {
+			direction = "East";
+		}
+	}
+	else if (isMoreYThanX) {
+		if (isCityNorth) {
+			direction = "North";
+		}
+		else {
+			direction = "South";
+		}
+	}
+	else if (isCityNorth) {
+		if (isCityWest) {
+			direction = "North-West";
+		}
+		else {
+			direction = "North-East";
+		}
 	}
 	else {
-		this->p->Draw->ClearPanel();
-		this->p->Draw->PanelLine1 = "Enemy city to the ";
-		this->p->Draw->PanelLine2 = AppendString;
+		if (isCityWest) {
+			direction = "South-West";
+		}
+		else {
+			direction = "South-East";
+		}
 	}
+
+	this->p->Draw->ClearPanel();
+	this->p->Draw->PanelLine1 = "Threat Detected!";
+	this->p->Draw->PanelLine2 = "City:    " + cityName;
+	this->p->Draw->PanelLine3 = "Heading: " + direction;
+
+	ss << "Range:   " << distance << " click" << (distance == 1 ? "" : "s");
+	this->p->Draw->PanelLine4 = ss.str();
 }
 
 /***************************************************************
@@ -1583,15 +1644,15 @@ void CProcess::ProcessClickPlayer(sSMClickPlayer *clickplayer) {
 	this->p->Draw->ClearPanel();
 
 	this->p->Draw->PanelLine1 = this->p->Player[clickplayer->Index]->NameString;
-	this->p->Draw->PanelLine2 = "Points: ";
+	this->p->Draw->PanelLine2 = "Points:  ";
 	this->p->Draw->PanelLine2 += ConvertPoints.str();
-	this->p->Draw->PanelLine3 = "Orbs: ";
+	this->p->Draw->PanelLine3 = "Orbs:    ";
 	this->p->Draw->PanelLine3 += ConvertOrbs.str();
 	this->p->Draw->PanelLine4 = "Assists: ";
 	this->p->Draw->PanelLine4 += ConvertAssists.str();
-	this->p->Draw->PanelLine5 = "Deaths: ";
+	this->p->Draw->PanelLine5 = "Deaths:  ";
 	this->p->Draw->PanelLine5 += ConvertDeaths.str();
-	this->p->Draw->PanelLine6 = "Points Per Death: ";
+	this->p->Draw->PanelLine6 = "PPD:     ";
 	this->p->Draw->PanelLine6 += ConvertPtsPerDeath.str();
 
 	this->p->Engine->MsgQueue = 0;
@@ -1645,4 +1706,51 @@ void CProcess::ProcessGlobal(char *TheData) {
  **************************************************************/
 void CProcess::ProcessUnderAttack() {
 	this->p->InGame->setIsUnderAttack(true);
+}
+
+/***************************************************************
+ * Function:	ProcessAutoBuild
+ *
+ * @param chatLine
+ **************************************************************/
+void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
+	string fileName = response->filename;
+	string folderName;
+	CPlayer *player = this->p->Player[this->p->Winsock->MyIndex];
+	int city = player->City;
+	string cityName = CityList[city];
+	char buffer[1024];
+	int* buildingInfo;
+
+	// If the request was denied,
+	if (response->isAllowed == false) {
+		this->p->InGame->AppendChat("You cannot load a city template now!", COLOR_SYSTEM);
+		return;
+	}
+
+	// Else, request was approved,
+
+	// Get the filename from the ChatLine
+	folderName = FILE_CITIES_FOLDER + "/" + cityName;
+	fileName = folderName + "/" + fileName + FILE_CITIES_EXTENSION;
+
+	// If you can't open the file, exit
+	ifstream cityFileStream(fileName.c_str());
+	if (! cityFileStream.is_open()) {
+		this->p->InGame->AppendChat("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
+		return;
+	}
+
+	// Read the file,
+	while (! cityFileStream.eof() ) {
+		cityFileStream.getline(buffer,1024);
+		buildingInfo = this->p->InGame->splitStringIntoInts(buffer);
+		
+		// If all three values are valid,
+		if ( (buildingInfo[0] > 0) && (buildingInfo[1] > 0) && (buildingInfo[2] > 0) ) {
+
+			// Create the building
+			this->p->InGame->createBuilding(buildingInfo[0], buildingInfo[1], buildingInfo[2], true);
+		}
+	}
 }

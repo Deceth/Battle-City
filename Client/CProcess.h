@@ -66,6 +66,7 @@ public:
 	void ProcessWhisper(char *TheData);
 	void ProcessGlobal(char *TheData);
 	void ProcessUnderAttack();
+	void ProcessAutoBuild(sSMAutoBuild* response);
 
 private:
 	CGame *p;
