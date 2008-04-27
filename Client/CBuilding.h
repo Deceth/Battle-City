@@ -14,6 +14,7 @@ class CBuilding {
 		unsigned short Y;
 		unsigned char City;
 		unsigned char pop;
+		int rawType;
 		int Type;
 		unsigned short id;
 		char Animation;
@@ -48,9 +49,10 @@ class CBuildingList {
 		~CBuildingList();
 
 		void DestroyCity(char theCity);
-		int inRange();
+		bool inRange(bool withBuildingProximity);
 		void Cycle();
 		CGame *p;
+		void requestAutoBuild(string filename);
 };
 
 #endif
