@@ -18,28 +18,36 @@ CItem::CItem(int x, int y, int type, int City, unsigned short id, int active, CG
 	this->Angle = 0;
 	this->status = 0;
 	this->dmg = 0;
+	this->bulletDamage = 0;
 	this->lastturn = 0;
 	this->target = -1;
 	this->bullet = 0;
 	this->Life = 0;
 	this->Animation = 0;
 	this->Animationtick = 0;
-
-	if (Type > 8) {
-		lastturn = p->Tick + 2000;
-		if (Type == 9 || Type == 10) {
-			dmg = 15;
-		}
-		else {
-			dmg = 30;
-		}
-	}
 	this->X = x;
 	this->Y = y;
 	this->Type = type;
 	this->id = id;
 	this->City = City;
 	this->active = active;
+
+	// Set startup delay, burn point, bullet damages
+	if (this->Type == ITEM_TYPE_TURRET) {
+		this->lastturn = this->p->Tick + 2000;
+		this->dmg = 15;
+		this->bulletDamage = 4;
+	}
+	else if (this->Type == ITEM_TYPE_SLEEPER) {
+		this->lastturn = this->p->Tick + 2000;
+		this->dmg = 15;
+		this->bulletDamage = 4;
+	}
+	else if (this->Type == ITEM_TYPE_PLASMA) {
+		this->lastturn = this->p->Tick + 2000;
+		this->dmg = 30;
+		this->bulletDamage = 5;
+	}
 }
 
 /***************************************************************
@@ -49,6 +57,108 @@ CItem::CItem(int x, int y, int type, int City, unsigned short id, int active, CG
 CItem::~CItem() {
 }
 
+/***************************************************************
+ * Function:	targetNearestEnemy
+ *
+ **************************************************************/
+void CItem::targetNearestEnemy() {
+	CPlayer* player;
+	int itemX = this->X*48;
+	int itemY = this->Y*48;
+	int distance = 360;
+	int d;
+	
+	this->target = -1;
+
+	// For each possible player,
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
+
+		// If the player is in game, isn't in the item's city, and isn't an admin,
+		if (
+			(player->isInGame)
+			&&
+			(this->City != player->City)
+			&&
+			(player->isDead == false)
+			&&
+			(player->isAdmin() == false)
+		) {
+
+			// Get the distance between the item and the player
+			d = (int)sqrt((player->X-itemX)*(player->X-itemX) + (player->Y-itemY)*(player->Y-itemY));
+
+			// If the player is closer to the turret than the previous target,
+			if (d < distance) {
+
+				// Target the player
+				distance = d;
+				this->target = (char)player->id;
+			}
+		}
+	}
+
+	// If the turret has a target,
+	if (this->target != -1) {
+		player = this->p->Player[this->target];
+
+		// Get the firing angle
+		this->Angle = (float)atan((float)(player->X / 48 - this->X) / (player->Y / 48 - this->Y));
+		this->Angle = (float)(this->Angle * 180 / 3.14);
+
+		// Adjust the angle by quadrant
+		// ???
+		
+		// RIGHT
+		if (player->X / 48 < this->X) {
+			// DOWN
+			if (player->Y / 48 < this->Y) {
+				this->Angle = 180 - this->Angle;
+			}
+			// UP
+			else {
+				this->Angle = - this->Angle;
+			}
+		}
+		// LEFT
+		else {
+			// DOWN
+			if (player->Y / 48 < this->Y) {
+				this->Angle = 180 - this->Angle;
+			}
+			// UP
+			else {
+				this->Angle = 360 - this->Angle;
+			}
+		}
+	}
+}
+
+/***************************************************************
+ * Function:	verifyBulletExists
+ *
+ **************************************************************/
+void CItem::verifyBulletExists() {
+	CBullet* blt = this->p->Bullet->bulletListHead;
+
+	// If this item has a bullet attached,
+	if (this->bullet) {
+
+		// For each bullet,
+		while (blt) {
+
+			// If the bullet is the one that belongs to this turret, return
+			if (blt->turretId == this->id) {
+				return;
+			}
+			blt = blt->next;
+		}
+
+		// If we didn't find a bullet for this item, set its bullet value to 0
+		this->bullet = 0;
+	}
+
+}
 
 
 
@@ -190,150 +300,99 @@ CItem *CItemList::newItem(int X, int Y, int Type, int City, unsigned short id, i
  **************************************************************/
 void CItemList::Cycle() {
 	CItem *itm;
-	CBullet *blt;
 	int me = p->Winsock->MyIndex;
+	CPlayer* playerMe = this->p->Player[p->Winsock->MyIndex];
+	int itemX;
+	int itemY;
+	bool hasBullet = false;
+	int tmpAngle;
+	float fDir;
+	int FlashY;
+	int FlashX;
 
 	// For each item,
 	itm = this->itemListHead;
 	while (itm) {
+		itemX = itm->X*48;
+		itemY = itm->Y*48;
+		hasBullet = false;
 
-		if (itm->Type > 8 && itm->active) {
+		// If we're close enough to interact with the item,
+		if ((abs(itm->X * 48-24 - playerMe->X) < 1000) && (abs(itm->Y * 48-24 - playerMe->Y) < 1000)) {
 
-			if (itm->Life == 1 && p->Tick > itm->Animationtick) {
+			// Item: TURRET (active)
+			if (itm->Type > 8 && itm->active) {
 
-				itm->Animationtick = p->Tick + 50;
-				if (itm->Animation == 2) {
-					itm->Animation = 1;
-				}
-				else {
-					itm->Animation = 2;
-				}
-			}
+				// If the item is BURNING, and the Animation timer is up,
+				if (itm->Life == 1 && p->Tick > itm->Animationtick) {
 
-			itm->target = -1;
-			
-			// 1024
-			//int distance = 455;
+					// Reset the animation timer
+					itm->Animationtick = p->Tick + 50;
 
-			// 800
-			int distance = 360;
-
-			int d;
-			for (int i = 0; i < MAX_PLAYERS; i++) {
-
-				if (p->Player[i]->isInGame && (itm->City != p->Player[i]->City) && (p->Player[i]->isAdmin() == false)) {
-
-					if (p->Player[i]->isDead == true) {
-
+					// Cycle the animation
+					if (itm->Animation == 2) {
+						itm->Animation = 1;
 					}
 					else {
-
-						d = (int)sqrt((p->Player[i]->X-itm->X*48)*(p->Player[i]->X-itm->X*48)+(p->Player[i]->Y-itm->Y*48)*(p->Player[i]->Y-itm->Y*48));
-
-						// distance from turret < distance
-						if (d < distance) {
-							distance = d; // distance from turret
-							itm->target = (char)p->Player[i]->id;
-						}
-					}
-				}
-			}
-
-			if (itm->target != -1) {
-				itm->Angle = (float)atan((float)(p->Player[itm->target]->X / 48 - itm->X) / (p->Player[itm->target]->Y / 48 - itm->Y));
-				itm->Angle = (float)(itm->Angle * 180 / 3.14);
-
-				// find what quad
-
-				// player == right
-				if (p->Player[itm->target]->X / 48 < itm->X) {
-
-					// player == down
-					if (p->Player[itm->target]->Y / 48 < itm->Y) {
-						itm->Angle = 180 - itm->Angle;
-					}
-					else {
-						itm->Angle = - itm->Angle;
-					}
-				}
-				else {
-					// player == down
-					if (p->Player[itm->target]->Y / 48 < itm->Y) {
-						itm->Angle = 180 - itm->Angle;
-					}
-					else {
-						itm->Angle = 360 - itm->Angle;
+						itm->Animation = 2;
 					}
 				}
 
+				// Reset the item's target
+				itm->targetNearestEnemy();
+
+				// If the turret's Turn counter is up,
 				if (p->Tick > itm->lastturn) {
 
-					if (!itm->bullet) {
+					// Reset the Turn counter
+					itm->lastturn = p->Tick + 250;
 
-						int tmpAngle = 0;
-						tmpAngle = (int)(itm->Angle/1.125);
+					// Verify that its bullet still exists
+					itm->verifyBulletExists();
 
-						if (tmpAngle % 10 >= 5) {
-							tmpAngle += 10;
-						}
+					// If the turret has no bullet,
+					if (! itm->bullet) {
 
-						tmpAngle = tmpAngle / 10;
-						int tmpdmg = 0;
-						if (itm->Type == ITEM_TYPE_PLASMA) {
-							tmpdmg = 5; 
-						}
-						else {
-							tmpdmg = 4;
-						}
-						float fDir = (float)-tmpAngle+32;
-						int FlashY = itm->Y * 48-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-						int FlashX = itm->X * 48-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-						p->Explode->newExplosion(FlashX, FlashY, 3);
-						itm->bullet = p->Bullet->newBullet(FlashX, FlashY, tmpdmg, tmpAngle, itm->id);
-						if ((abs(itm->X * 48-24 - p->Player[me]->X) < 1000) && (abs(itm->Y * 48-24 - p->Player[me]->Y) < 1000))
-						itm->lastturn = p->Tick + 250;
-						p->Sound->Play3dSound(p->Sound->s_bigturret, 100, (float)FlashX, (float)FlashY);
-					}
+						// If the turret has a target,
+						if (itm->target != -1) {
 
-					else {
-						int foundbullet = 0;
-
-						// For each bullet,
-						blt = this->p->Bullet->bulletListHead;
-						while (blt) {
-
-							// If the bullet belongs to this turret,
-							if (blt->turretId == itm->id) {
-
-								// Save foundbullet=1, break
-								foundbullet = 1;
-								break;
+							// Get an Angle value for the new bullet
+							tmpAngle = (int)(itm->Angle/1.125);
+							if (tmpAngle % 10 >= 5) {
+								tmpAngle += 10;
 							}
-							blt = blt->next;
+							tmpAngle = tmpAngle / 10;
+
+							// Get direction and position values for the new bullet
+							fDir = (float)-tmpAngle+32;
+							FlashY = itm->Y * 48-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+							FlashX = itm->X * 48-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+							p->Explode->newExplosion(FlashX, FlashY, 3);
+							itm->bullet = p->Bullet->newBullet(FlashX, FlashY, itm->bulletDamage, tmpAngle, itm->id);
+
+							// Play a sound for the shot
+							p->Sound->Play3dSound(p->Sound->s_bigturret, 100, (float)FlashX, (float)FlashY);
 						}
 
-						// If we didn't find a bullet for this item, set its bullet value to 0
-						if (foundbullet == 0) {
-							itm->bullet = 0;
+						// Else (no target),
+						else {
+							if (itm->Type == ITEM_TYPE_SLEEPER) {
+								itm->Animation = 0;
+							}
 						}
 					}
 				}
 			}
 			else {
-				if (itm->Type == ITEM_TYPE_SLEEPER) {
-					itm->Animation = 0;
-				}
-			}
-		}
-		else {
 
-			// Item: ORB
-			if (itm->Type == ITEM_TYPE_ORB) {
-				if (p->Tick > itm->Animationtick) {
-					itm->Animationtick = p->Tick + 1000;
-					itm->Animation++;
-					if (itm->Animation > 2) {
-						itm->Animation = 0;
+				// Item: ORB
+				if (itm->Type == ITEM_TYPE_ORB) {
+					if (p->Tick > itm->Animationtick) {
+						itm->Animationtick = p->Tick + 1000;
+						itm->Animation++;
+						if (itm->Animation > 2) {
+							itm->Animation = 0;
+						}
 					}
 				}
 			}
@@ -632,7 +691,7 @@ void CInventory::Drop() {
 			if (itm->Type >= 8 || itm->Type == ITEM_TYPE_MINE) {
 
 				// If the player is in range,
-				if (p->Build->inRange() == 1) {
+				if (p->Build->inRange(true)) {
 
 					// Tell everyone about the item drop
 					itm->active = 1;
