@@ -339,7 +339,7 @@ void CItemList::cycle() {
 				}
 
 				// If the item pointer got deleted (such as by bombing your own bombs), start over
-				if (!itm->type || (itm->type < 0)) {
+				if (!itm || !itm->type || (itm->type < 0)) {
 					itm = this->itemListHead;
 				}
 			}
