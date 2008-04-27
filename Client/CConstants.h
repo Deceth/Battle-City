@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.1"
+#define VERSION "3.5.2"
 
 const int TCPPORT = 5643;
 //static const int TCPPORT = 6643;
@@ -12,11 +12,13 @@ static const unsigned char MaxSectors = (512 / SectorSize);
 static const short int RadarSize = 2400;
 
 static const unsigned char MAX_PLAYERS = 63;
+static const int MAX_HEALTH = 40;
 static const int COST_BUILDING = 500000;
 static const int DAMAGE_LASER = 5;
 static const int DAMAGE_MINE = 19;
 static const int DAMAGE_ROCKET = 8;
-static const int DISTANCE_MAX_FROM_CC = 1400;
+static const int DISTANCE_MAX_FROM_BUILDING = 11;
+static const int DISTANCE_MAX_FROM_CC = 29;
 static const int MAP_SQUARE_LAVA = 1;
 static const int MAP_SQUARE_ROCK = 2;
 static const float MOVEMENT_SPEED_ADMIN = 1.0f;
@@ -33,6 +35,9 @@ static const int TIMER_SHOOT_ADMIN = 50;
 static const int TIMER_SHOOT_LASER = 650;
 static const int TIMER_SHOOT_ROCKET = 650;
 static const int TIMER_UNDER_ATTACK = 3000;
+
+static const string FILE_CITIES_FOLDER = "cities";
+static const string FILE_CITIES_EXTENSION = ".city";
 
 // Item types
 static const int ITEM_TYPE_CLOAK = 0;
