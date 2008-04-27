@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.1"
+#define VERSION "3.5.2"
 
 // Note: to change build tree order, you must change the following:
 // Server: itemTypes
@@ -15,8 +15,9 @@ static const unsigned char SectorSize = 16;
 static const unsigned char MaxSectors = (512 / SectorSize);
 static const short int RadarSize = 1800;
 
-static const unsigned char MAX_PLAYERS = 64;
 static const int MAX_CITIES = 64;
+static const int MAX_HEALTH = 40;
+static const unsigned char MAX_PLAYERS = 64;
 static const int MONEY_MAX_VALUE = 95000000;
 static const int MONEY_STARTING_VALUE = 95000000;
 static const float MOVEMENT_SPEED_BULLET = 0.80f;
