@@ -395,6 +395,16 @@ void CGame::handleChatKey(WPARAM wParam) {
 				this->Send->SendWhisper();
 			}
 
+			// Else, if Load,
+			else if (this->InGame->ChatLine.find("/load ",0) == 0) {
+				this->InGame->requestAutoBuild(this->InGame->ChatLine);
+			}
+
+			// Else, if Save,
+			else if (this->InGame->ChatLine.find("/save ",0) == 0) {
+				this->InGame->saveCity(this->InGame->ChatLine);
+			}
+
 			// Else, NORMAL,
 			else {
 				this->Send->SendMessage();
@@ -560,3 +570,5 @@ void CGame::handleGameKey(WPARAM wParam) {
 		this->Input->PointsButton();
 	}
 }
+
+									
