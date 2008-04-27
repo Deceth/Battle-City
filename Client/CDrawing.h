@@ -25,6 +25,7 @@ class CDrawing {
 		void DrawHealth();
 		void DrawItems();
 		void DrawChat();
+		void DrawInfo();
 		void DrawInventory();
 		void DrawBullets();
 		void DrawRadar();

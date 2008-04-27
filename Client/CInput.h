@@ -17,6 +17,7 @@ class CInput {
 		void PointsButton();
 
 		char MouseOverChat;
+		char MouseOverInfo;
 		float lastRefresh;
 		int LastMouseX;
 		int LastMouseY;

@@ -502,7 +502,7 @@ void CProcess::ProcessChatCommand(int Index, int message) {
 		}
 		switch(this->p->State) {
 			case STATE_GAME:
-				this->p->InGame->AppendChat(&tmpString[0], COLOR_SYSTEM);
+				this->p->InGame->AppendInfo(&tmpString[0], COLOR_SYSTEM);
 				break;
 			default:
 				break;
@@ -541,10 +541,10 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 		this->p->InGame->NewbieTip += ".  Press 'u' on top of an item to pick it up, and 'd' to drop it!";
 	}
 
-	this->p->InGame->AppendChat("Full instructions at:", COLOR_SYSTEM);
-	this->p->InGame->AppendChat("http://battlecity.looble.com/", COLOR_SYSTEM);
+	this->p->InGame->AppendInfo("Full instructions at:", COLOR_SYSTEM);
+	this->p->InGame->AppendInfo("http://battlecity.looble.com/", COLOR_SYSTEM);
 	this->p->InGame->PrintWhoData();
-	this->p->InGame->AppendChat(this->p->Player[me]->Name + " has just joined!", COLOR_SYSTEM);
+	this->p->InGame->AppendInfo(this->p->Player[me]->Name + " has just joined!", COLOR_SYSTEM);
 
 	this->p->Dialog->StartDialog = 0;
 	
@@ -697,7 +697,7 @@ void CProcess::ProcessMayorHire(int Index) {
 			tmpString += this->p->Player[Index]->Town;
 			tmpString += + " is looking for a job";
 			this->p->Personnel->ApplicantWaiting = 1;
-			this->p->InGame->AppendChat("Note:  Another player is applying for a position in your city.", COLOR_SYSTEM);
+			this->p->InGame->AppendInfo("Note:  Another player is applying for a position in your city.", COLOR_SYSTEM);
 			this->p->Personnel->AppendData(tmpString);
 			this->p->Sound->PlayWav(sBuzz,-1);
 		}
@@ -771,7 +771,7 @@ void CProcess::ProcessJoinData(sSMJoinData *join) {
 
 	if (this->p->Player[i]->Name.length() > 0 && this->p->State == STATE_GAME) {
 		tmpString = this->p->Player[i]->Name + " has just joined";
-		this->p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
+		this->p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
 	}
 	if (this->p->Admin->IsOpen) {
 		this->p->Admin->DrawPlayerList();
@@ -966,7 +966,7 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
 	}
 
 	// Add the death message to the chat
-	this->p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
+	this->p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
 }
 
 /***************************************************************
@@ -1116,7 +1116,7 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 		}
 		
 		// Show the orbed message
-		this->p->InGame->AppendChat(msg.c_str(), COLOR_BLUE);
+		this->p->InGame->AppendInfo(msg.c_str(), COLOR_BLUE);
 
 		if (orbed->OrberCity == playerMe->City) {
 			this->p->Engine->ThreadMessage(msg.c_str());
@@ -1310,14 +1310,14 @@ void CProcess::ProcessAdmin(sSMAdmin *admin) {
 		case 1:
 			playerTarget = this->p->Player[admin->id];
 
-			this->p->InGame->AppendChat(playerTarget->Name + " has been kicked by " + player->Name, COLOR_SYSTEM);
+			this->p->InGame->AppendInfo(playerTarget->Name + " has been kicked by " + player->Name, COLOR_SYSTEM);
 			break;
 		
 		// Command: BAN
 		case 5:
 			playerTarget = this->p->Player[admin->id];
 
-			this->p->InGame->AppendChat(playerTarget->Name + " has been banned by " + player->Name, COLOR_SYSTEM);
+			this->p->InGame->AppendInfo(playerTarget->Name + " has been banned by " + player->Name, COLOR_SYSTEM);
 			break;
 	}
 
@@ -1400,9 +1400,10 @@ void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity) {
 	if (selectedcity->city == 255) {
 		this->p->Draw->ClearPanel();
 		this->p->Draw->PanelLine1 = "No Threats Detected";
-		this->p->Draw->PanelLine2 = "All existing cities";
-		this->p->Draw->PanelLine3 = "are too small to";
-		this->p->Draw->PanelLine4 = "attack!";
+		this->p->Draw->PanelLine2 = "";
+		this->p->Draw->PanelLine3 = "All existing cities";
+		this->p->Draw->PanelLine4 = "are too small to";
+		this->p->Draw->PanelLine5 = "attack!";
 		return;
 	}
 
@@ -1442,11 +1443,12 @@ void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity) {
 
 	this->p->Draw->ClearPanel();
 	this->p->Draw->PanelLine1 = "Threat Detected!";
-	this->p->Draw->PanelLine2 = "City:    " + cityName;
-	this->p->Draw->PanelLine3 = "Heading: " + direction;
+	this->p->Draw->PanelLine2 = "";
+	this->p->Draw->PanelLine3 = "City:    " + cityName;
+	this->p->Draw->PanelLine4 = "Heading: " + direction;
 
 	ss << "Range:   " << distance << " click" << (distance == 1 ? "" : "s");
-	this->p->Draw->PanelLine4 = ss.str();
+	this->p->Draw->PanelLine5 = ss.str();
 }
 
 /***************************************************************
@@ -1724,7 +1726,7 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 
 	// If the request was denied,
 	if (response->isAllowed == false) {
-		this->p->InGame->AppendChat("You cannot load a city template now!", COLOR_SYSTEM);
+		this->p->InGame->AppendInfo("You cannot load a city template now!", COLOR_SYSTEM);
 		return;
 	}
 
@@ -1737,7 +1739,7 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 	// If you can't open the file, exit
 	ifstream cityFileStream(fileName.c_str());
 	if (! cityFileStream.is_open()) {
-		this->p->InGame->AppendChat("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
+		this->p->InGame->AppendInfo("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
 		return;
 	}
 

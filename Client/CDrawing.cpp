@@ -33,6 +33,7 @@ void CDrawing::DrawGame() {
 	this->DrawExplosions();
 	this->DrawRadar();
 	this->DrawChat();
+	this->DrawInfo();
 	this->DrawInventory();
 
 	// If the player is Mayor,
@@ -79,7 +80,8 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 25;
 		this->clickOffsetX = 9;
 		this->clickOffsetY = 9;
-		this->chatBarWidth = 103;
+		//this->chatBarWidth = 103;
+		this->chatBarWidth = 51;
 	}
 	// 800
 	else {
@@ -95,7 +97,8 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 7;
 		this->clickOffsetX = 7;
 		this->clickOffsetY = 7;
-		this->chatBarWidth = 75;
+		//this->chatBarWidth = 75;
+		this->chatBarWidth = 37;
 	}
 
 	arrowTick = 0;
@@ -731,28 +734,47 @@ void CDrawing::DrawItems() {
  *
  **************************************************************/
 void CDrawing::DrawChat() {
+	int X = MaxMapX / 2;
 	int Y = MaxMapY - 126;
 
-	// If mouse is over chat, fill the chat box with black
-	if (p->Input->MouseOverChat == 1) {
-		p->DDraw->DFillRect(0, MaxMapY-126, MaxMapX, 126);
+	// If mouse is over chat,
+	if (p->Input->MouseOverChat || p->Input->MouseOverInfo) {
+		
+		// Draw 1px black line
+		p->DDraw->DFillRect(0, Y-1, MaxMapX, 1);
+
+		// Fill text area with imgLoading
+		for (int i=0; i<MaxMapX; i=i+48) {
+			for (int j=Y; j<MaxMapY; j=j+48) {
+				p->DDraw->Draw(p->DDraw->imgLoading, i, j, 48, 48, 0, 0, MaxMapX, MaxMapY);
+			}
+		}
+		//p->DDraw->DFillRect(0, Y, X, 126);
 	}
-	
+
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine1, p->InGame->chatColor1);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine1, p->InGame->infoColor1);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine2, p->InGame->chatColor2);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine2, p->InGame->infoColor2);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine3, p->InGame->chatColor3);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine3, p->InGame->infoColor3);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine4, p->InGame->chatColor4);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine4, p->InGame->infoColor4);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine5, p->InGame->chatColor5);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine5, p->InGame->infoColor5);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine6, p->InGame->chatColor6);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine6, p->InGame->infoColor6);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine7, p->InGame->chatColor7);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine7, p->InGame->infoColor7);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine8, p->InGame->chatColor8);
+	p->DDraw->DTextOut(X, Y, p->InGame->infoLine8, p->InGame->infoColor8);
 	Y += 14;
 
 	// If chatting, fill just the chat bar with black
@@ -766,6 +788,13 @@ void CDrawing::DrawChat() {
 		p->DDraw->DFillRect(0, 0, MaxMapX, 15);
 		p->DDraw->DTextOut(0, 0, p->InGame->NewbieTip, COLOR_YELLOW);
 	}
+}
+
+/***************************************************************
+ * Function:	DrawInfo
+ *
+ **************************************************************/
+void CDrawing::DrawInfo() {
 }
 
 /***************************************************************
@@ -1203,7 +1232,6 @@ void CDrawing::DrawMiniMap() {
 	Rect terrain_rect = {0,0,tilesize,tilesize};
 	char DrawX = 0;
 
-	// Fill the map rectangle
 	p->DDraw->DFillRect(10, 10, 460, 460);
 
 	/************************************************

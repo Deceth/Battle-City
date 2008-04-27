@@ -8,16 +8,17 @@
  * @param Game
  **************************************************************/
 CInput::CInput(CGame *Game) {
-	p = Game;
-	LastMouseX = 0;
-	LastMouseY = 0;
-	LastShot = 0;
-	LastTankChange = 0;
-	NeedRelease = 0;
-	Tab = 0;
-	MouseOverChat = 0;
-	DemolishTimer = 0;
-	lastRefresh = 0;
+	this->p = Game;
+	this->LastMouseX = 0;
+	this->LastMouseY = 0;
+	this->LastShot = 0;
+	this->LastTankChange = 0;
+	this->NeedRelease = 0;
+	this->Tab = 0;
+	this->MouseOverChat = 0;
+	this->MouseOverInfo = 0;
+	this->DemolishTimer = 0;
+	this->lastRefresh = 0;
 }
 
 /***************************************************************
@@ -350,13 +351,34 @@ void CInput::ProcessKeys(char buffer[256]) {
  * @param buffer
  **************************************************************/
 void CInput::MouseMove(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]) {
-	X -= p->DDraw->XOff;
-	Y -= p->DDraw->YOff;
+	int halfScreen = this->p->Draw->MaxMapX / 2;
+	int chatTop = this->p->Draw->MaxMapY - 126;
+
+	X -= this->p->DDraw->XOff;
+	Y -= this->p->DDraw->YOff;
 	this->LastMouseX = X;
 	this->LastMouseY = Y;
-	if (this->LastMouseX < 0) this->LastMouseX = 0;
-	if (this->LastMouseY < 0) this->LastMouseY = 0;
-	if (X < p->Draw->MaxMapX && Y > (p->Draw->MaxMapY - 84)) MouseOverChat = 1; else MouseOverChat = 0;
+
+	if (this->LastMouseX < 0) {
+		this->LastMouseX = 0;
+	}
+	if (this->LastMouseY < 0) {
+		this->LastMouseY = 0;
+	}
+
+	if ((X < halfScreen) && (Y > chatTop)) {
+		this->MouseOverChat = 1;
+	}
+	else {
+		this->MouseOverChat = 0;
+	}
+
+	if ((X > halfScreen) && (X < this->p->Draw->MaxMapX) && (Y > chatTop)) {
+		this->MouseOverInfo = 1;
+	}
+	else {
+		this->MouseOverInfo = 0;
+	}
 }
 
 /***************************************************************
@@ -935,7 +957,7 @@ void CInput::PointsButton() {
 	PointString += "   Points this month: ";
 	thing << p->Player[p->Winsock->MyIndex]->MonthlyPoints;
 	PointString += thing.str();
-	p->InGame->AppendChat(PointString.c_str(), COLOR_SYSTEM);
+	this->p->InGame->AppendInfo(PointString.c_str(), COLOR_SYSTEM);
 }
 
 /***************************************************************

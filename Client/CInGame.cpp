@@ -1,90 +1,110 @@
 #include "CInGame.h"
 
-CInGame::CInGame(CGame *game)
-{
-	p = game;
-	IsBuilding = 0;
-	Cash = 0;
-	ShowBuildMenu = 0;
-	chatLine1.clear();
-	chatLine2.clear();
-	chatLine3.clear();
-	chatLine4.clear();
-	chatLine5.clear();
-	chatLine6.clear();
-	chatLine7.clear();
-	chatLine8.clear();
-	ChatLine.clear();
-	IsChatting = 0;
-	ShowMap = 0;
-	Successor = 0;
-	HasLaser = 0;
-	HasRocket = 0;
-	HasUpLink = 0;
-	updateTick = 0;
-	lastTick = 0;
-	hospTick = 0;
-	TCPPing = 0;
-	memset(TCPPingValues, 0, sizeof(TCPPingValues));
-	PingTick = 0;
-	PingTimer = 0;
-	Minimized = 0;
-	timeDeath = 0;
-	timeLastAttack = 0;
+/***************************************************************
+ * Constructor
+ *
+ **************************************************************/
+CInGame::CInGame(CGame *game) {
+	this->p = game;
+	this->IsBuilding = 0;
+	this->Cash = 0;
+	this->ShowBuildMenu = 0;
 
-	for (int i = 0; i < 27; i++)
-	{
-		CanBuild[i] = 0;
+	this->chatLine1.clear();
+	this->chatLine2.clear();
+	this->chatLine3.clear();
+	this->chatLine4.clear();
+	this->chatLine5.clear();
+	this->chatLine6.clear();
+	this->chatLine7.clear();
+	this->chatLine8.clear();
+	this->ChatLine.clear();
+
+	this->infoLine1.clear();
+	this->infoLine2.clear();
+	this->infoLine3.clear();
+	this->infoLine4.clear();
+	this->infoLine5.clear();
+	this->infoLine6.clear();
+	this->infoLine7.clear();
+	this->infoLine8.clear();
+
+	this->IsChatting = 0;
+	this->ShowMap = 0;
+	this->Successor = 0;
+	this->HasLaser = 0;
+	this->HasRocket = 0;
+	this->HasUpLink = 0;
+	this->updateTick = 0;
+	this->lastTick = 0;
+	this->hospTick = 0;
+	this->TCPPing = 0;
+	memset(this->TCPPingValues, 0, sizeof(this->TCPPingValues));
+	this->PingTick = 0;
+	this->PingTimer = 0;
+	this->Minimized = 0;
+	this->timeDeath = 0;
+	this->timeLastAttack = 0;
+
+	for (int i = 0; i < 27; i++) {
+		this->CanBuild[i] = 0;
 	}
 
-	memset(HasSector, 0, sizeof(HasSector));
-	memset(RequestedSector, 0, sizeof(RequestedSector));
+	memset(this->HasSector, 0, sizeof(this->HasSector));
+	memset(this->RequestedSector, 0, sizeof(this->RequestedSector));
 
 }
 
+/***************************************************************
+ * Destructor
+ *
+ **************************************************************/
 CInGame::~CInGame() {
-
 }
 
+/***************************************************************
+ * Function:	Cycle
+ *
+ **************************************************************/
 void CInGame::Cycle() {
-	float curTick = p->Tick;
+	float curTick = this->p->Tick;
 
 	// For each possible player,
 	for (int j = 0; j < MAX_PLAYERS; j++) {
 
 		// Run the Player cycle
-		p->Player[j]->Cycle();
+		this->p->Player[j]->Cycle();
 	}
 
 	// Run the Bullet cycle
-	p->Bullet->Cycle();
-	p->Explode->Cycle();
-	p->Item->Cycle();
-	p->Build->Cycle();
-	p->Inventory->Cycle();
+	this->p->Bullet->Cycle();
+	this->p->Explode->Cycle();
+	this->p->Item->Cycle();
+	this->p->Build->Cycle();
+	this->p->Inventory->Cycle();
 
 	// Draw the game
-	p->Draw->DrawGame();
+	this->p->Draw->DrawGame();
 
 	// If the player update timer is up, and this player is still alive,
-	if ( (curTick > updateTick) && (p->Player[p->Winsock->MyIndex]->isDead == false)) {
+	if ( (curTick > updateTick) && (this->p->Player[this->p->Winsock->MyIndex]->isDead == false)) {
 		sCMUpdate packet;
-		int me = p->Winsock->MyIndex;
-		p->Player[me]->SectorX = (char)((p->Player[me]->X/48) / SectorSize);
-		p->Player[me]->SectorY = (char)((p->Player[me]->Y/48) / SectorSize);
-		packet.x = (int)p->Player[me]->X;
-		packet.y = (int)p->Player[me]->Y;
-		packet.dir = (unsigned char)p->Player[me]->Direction;
-		packet.move = (unsigned char)(p->Player[me]->isMoving + 1);
-		packet.turn = (unsigned char)(p->Player[me]->isTurning + 1);
-		p->Winsock->SendData(cmUpdate, (char *)&packet, sizeof(packet));
-		updateTick = curTick + 150;
+		int me = this->p->Winsock->MyIndex;
+		this->p->Player[me]->SectorX = (char)((this->p->Player[me]->X/48) / SectorSize);
+		this->p->Player[me]->SectorY = (char)((this->p->Player[me]->Y/48) / SectorSize);
+		packet.x = (int)this->p->Player[me]->X;
+		packet.y = (int)this->p->Player[me]->Y;
+		packet.dir = (unsigned char)this->p->Player[me]->Direction;
+		packet.move = (unsigned char)(this->p->Player[me]->isMoving + 1);
+		packet.turn = (unsigned char)(this->p->Player[me]->isTurning + 1);
+		this->p->Winsock->SendData(cmUpdate, (char *)&packet, sizeof(packet));
+		this->updateTick = curTick + 150;
 	}
 
 	// If the Ping timer is up,
 	if (curTick > PingTick) {
 		this->CheckRefVariables();
-		p->Winsock->SendData(cmTCPPing, " ");
+		this->p->Winsock->SendData(cmTCPPing, " ");
 		this->PingTimer = p->Tick;
 		this->PingTick = curTick + 5000;
 	}
@@ -93,18 +113,22 @@ void CInGame::Cycle() {
 	if (this->isUnderAttack) {
 
 		// If the Under Attack timer is up,
-		if (p->Tick > this->timeUnderAttack) {
+		if (this->p->Tick > this->timeUnderAttack) {
 
 			// Turn off Under Attack
 			this->setIsUnderAttack(false);
 		}
 	}
 
-	this->lastTick = p->Tick;
+	this->lastTick = this->p->Tick;
 }
 
-string CInGame::ReturnRank(int Points)
-{
+/***************************************************************
+ * Function:	ReturnRank
+ *
+ * @param Points
+ **************************************************************/
+string CInGame::ReturnRank(int Points) {
 	string rank;
 
 	if (Points < 100) {
@@ -177,8 +201,11 @@ string CInGame::ReturnRank(int Points)
 	return rank;
 }
 
-void CInGame::PrintWhoData()
-{
+/***************************************************************
+ * Function:	PrintWhoData
+ *
+ **************************************************************/
+void CInGame::PrintWhoData() {
 		string Players;
 		int PlayerCount = 0;
 		for (int i = 0; i < MAX_PLAYERS; i++)
@@ -204,22 +231,48 @@ void CInGame::PrintWhoData()
 		Converter << (PlayerCount == 1 ? " player" : " players");
 		Converter << " currently online:  ";
 		Converter << Players;
-		AppendChat(Converter.str(), COLOR_SYSTEM);
+		this->AppendInfo(Converter.str(), COLOR_SYSTEM);
 }
 
-void CInGame::AppendChat(string ChatText, COLORREF color)
-{
+/***************************************************************
+ * Function:	AppendChat
+ *
+ * @param chatText
+ * @param color
+ **************************************************************/
+void CInGame::AppendChat(string chatText, COLORREF color) {
 	unsigned int MessageLength = this->p->Draw->chatBarWidth;
-	while (ChatText.length() > MessageLength) {
-		AppendLine(ChatText.substr(0, MessageLength), color);
-		ChatText = ChatText.substr(MessageLength, ChatText.length());
+	while (chatText.length() > MessageLength) {
+		AppendLine(chatText.substr(0, MessageLength), color);
+		chatText = chatText.substr(MessageLength, chatText.length());
 	}
 
-	AppendLine(ChatText, color);
+	AppendLine(chatText, color);
 }
 
-void CInGame::AppendLine(string ChatText, COLORREF color)
-{
+/***************************************************************
+ * Function:	AppendInfo
+ *
+ * @param chatText
+ * @param color
+ **************************************************************/
+void CInGame::AppendInfo(string chatText, COLORREF color) {
+	unsigned int MessageLength = this->p->Draw->chatBarWidth;
+	while (chatText.length() > MessageLength) {
+		AppendInfoLine(chatText.substr(0, MessageLength), color);
+		chatText = chatText.substr(MessageLength, chatText.length());
+	}
+
+	AppendInfoLine(chatText, color);
+}
+
+/***************************************************************
+ * Function:	AppendLine
+ *
+ * @param chatText
+ * @param color
+ **************************************************************/
+void CInGame::AppendLine(string chatText, COLORREF color) {
 	chatLine1 = chatLine2;
 	chatLine2 = chatLine3;
 	chatLine3 = chatLine4;
@@ -227,7 +280,7 @@ void CInGame::AppendLine(string ChatText, COLORREF color)
 	chatLine5 = chatLine6;
 	chatLine6 = chatLine7;
 	chatLine7 = chatLine8;
-	chatLine8 = ChatText;
+	chatLine8 = chatText;
 	chatColor1 = chatColor2;
 	chatColor2 = chatColor3;
 	chatColor3 = chatColor4;
@@ -238,6 +291,35 @@ void CInGame::AppendLine(string ChatText, COLORREF color)
 	chatColor8 = color;	
 }
 
+/***************************************************************
+ * Function:	AppendInfoLine
+ *
+ * @param infoText
+ * @param color
+ **************************************************************/
+void CInGame::AppendInfoLine(string infoText, COLORREF color) {
+	infoLine1 = infoLine2;
+	infoLine2 = infoLine3;
+	infoLine3 = infoLine4;
+	infoLine4 = infoLine5;
+	infoLine5 = infoLine6;
+	infoLine6 = infoLine7;
+	infoLine7 = infoLine8;
+	infoLine8 = infoText;
+	infoColor1 = infoColor2;
+	infoColor2 = infoColor3;
+	infoColor3 = infoColor4;
+	infoColor4 = infoColor5;
+	infoColor5 = infoColor6;
+	infoColor6 = infoColor7;	
+	infoColor7 = infoColor8;
+	infoColor8 = color;	
+}
+
+/***************************************************************
+ * Function:	ClearOut
+ *
+ **************************************************************/
 void CInGame::ClearOut() {
 	CBuilding *bld;
 
@@ -329,22 +411,23 @@ void CInGame::ClearOut() {
 	p->InGame->ClearAllSectors();
 }
 
-void CInGame::CheckRefVariables()
-{
+/***************************************************************
+ * Function:	CheckRefVariables
+ *
+ **************************************************************/
+void CInGame::CheckRefVariables() {
 	int me = p->Winsock->MyIndex;
 	int HP = p->Player[me]->HP;
 	int HP1 = (HP^2-31)*2;
 	int HP2 = -(HP);
 
-	if (p->Player[me]->refHP1 != HP1)
-	{
+	if (p->Player[me]->refHP1 != HP1) {
 		p->Winsock->SendData(cmBan, "refHP1gdmde");
 		p->Process->ProcessKicked();
 		return;
 	}
 
-	if (p->Player[me]->refHP2 != HP2)
-	{
+	if (p->Player[me]->refHP2 != HP2) {
 		p->Winsock->SendData(cmBan, "refHP2gdmde");
 		p->Process->ProcessKicked();
 		return;
@@ -353,19 +436,20 @@ void CInGame::CheckRefVariables()
 	CheckCheatTools();
 }
 
-void CInGame::CheckCheatTools()
-{
+/***************************************************************
+ * Function:	CheckCheatTools
+ *
+ **************************************************************/
+void CInGame::CheckCheatTools() {
 	HWND wnd = 0;
 	wnd = FindWindow(0 , "WPE PRO");
-	if (wnd > 0)
-	{
+	if (wnd > 0) {
 		p->Winsock->SendData(cmBan, "wsckpkedtrpro");
 		p->Process->ProcessKicked();
 	}
 
 	wnd = FindWindow(0 , "TSearch");
-	if (wnd > 0)
-	{
+	if (wnd > 0) {
 		p->Winsock->SendData(cmBan, "tsch");
 		p->Process->ProcessKicked();
 	}
