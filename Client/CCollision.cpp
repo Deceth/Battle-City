@@ -124,10 +124,10 @@ int CCollision::CheckPlayerCollision(unsigned short id) {
 			}
 
 			// Mine and DFG checking, use smaller player collision area for player
-			if (RectCollision(tPlayerRect, ItemRect) && itm->Type == 4 && p->Player[id]->City != itm->City) {
+			if (RectCollision(tPlayerRect, ItemRect) && itm->Type == ITEM_TYPE_MINE && p->Player[id]->City != itm->City) {
 				return 101;
 			}
-			if (RectCollision(tPlayerRect, ItemRect) && itm->Type == 7 && p->Player[id]->City != itm->City) {
+			if (RectCollision(tPlayerRect, ItemRect) && itm->Type == ITEM_TYPE_DFG && p->Player[id]->City != itm->City) {
 				return 103;
 			}
 
