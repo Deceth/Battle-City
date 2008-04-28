@@ -687,16 +687,19 @@ void CInGame::requestAutoBuild(string chatLine) {
 	
 	// If there is no filename, return
 	if (fileName.length() == 0) {
+		this->AppendInfo("Please specify a city design name!", COLOR_SYSTEM);
 		return;
 	}
 
 	// If the player is dead, return
 	if (player->isDead) {
+		this->AppendInfo("You must be alive to load a city design!", COLOR_SYSTEM);
 		return;
 	}
 
 	// If the player is not mayor, return
 	if (player->isMayor == false) {
+		this->AppendInfo("You must be mayor to load a city design!", COLOR_SYSTEM);
 		return;
 	}
 
@@ -715,14 +718,21 @@ void CInGame::saveCity(string chatLine) {
 	string fileName = this->getFileNameFromChatLine(chatLine);
 	string folderName;
 	int city = this->p->Player[this->p->Winsock->MyIndex]->City;
+	CPlayer* player = this->p->Player[this->p->Winsock->MyIndex];
 	string cityName = CityList[city];
 	FILE *cityFile;
 
-	// If there is no filename, return
-	if (fileName.length() == 0) {
+	// If not mayor, return
+	if (player->isMayor == false) {
+		this->AppendInfo("You must be mayor to save the city design!", COLOR_SYSTEM);
 		return;
 	}
-
+	
+	// If there is no filename, return
+	if (fileName.length() == 0) {
+		this->AppendInfo("Please specify a city design name!", COLOR_SYSTEM);
+		return;
+	}
 
 	// Create the directory (does nothing if directory already exists)
 	folderName = FILE_CITIES_FOLDER;
@@ -738,7 +748,7 @@ void CInGame::saveCity(string chatLine) {
 
 	// If the file couldn't be opened, error
 	if (!cityFile) {
-		this->AppendChat("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
+		this->AppendInfo("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
 		return;
 	}
 
@@ -760,6 +770,7 @@ void CInGame::saveCity(string chatLine) {
 
 	// Close the file
 	fclose(cityFile);
+	this->AppendInfo("Saved as: \"" + fileName + "\"!", COLOR_SYSTEM);
 }
 
 /***************************************************************
