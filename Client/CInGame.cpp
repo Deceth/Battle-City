@@ -105,8 +105,8 @@ void CInGame::Cycle() {
 	if (curTick > PingTick) {
 		this->CheckRefVariables();
 		this->p->Winsock->SendData(cmTCPPing, " ");
-		this->PingTimer = p->Tick;
-		this->PingTick = curTick + 5000;
+		this->PingTimer = this->p->Tick;
+		this->PingTick = curTick + 10000;
 	}
 
 	// If the player is under attack,
@@ -416,24 +416,26 @@ void CInGame::ClearOut() {
  *
  **************************************************************/
 void CInGame::CheckRefVariables() {
-	int me = p->Winsock->MyIndex;
-	int HP = p->Player[me]->HP;
+	int me = this->p->Winsock->MyIndex;
+	int HP = this->p->Player[me]->HP;
 	int HP1 = (HP^2-31)*2;
 	int HP2 = -(HP);
 
-	if (p->Player[me]->refHP1 != HP1) {
-		p->Winsock->SendData(cmBan, "refHP1gdmde");
-		p->Process->ProcessKicked();
+	if (this->p->Player[me]->refHP1 != HP1) {
+		this->p->Winsock->SendData(cmBan, "refHP1gdmde");
+		this->p->Process->ProcessKicked();
 		return;
 	}
 
-	if (p->Player[me]->refHP2 != HP2) {
-		p->Winsock->SendData(cmBan, "refHP2gdmde");
-		p->Process->ProcessKicked();
+	if (this->p->Player[me]->refHP2 != HP2) {
+		this->p->Winsock->SendData(cmBan, "refHP2gdmde");
+		this->p->Process->ProcessKicked();
 		return;
 	}
 
-	CheckCheatTools();
+	this->CheckCheatTools();
+
+	this->SendCheatCheck();
 }
 
 /***************************************************************
@@ -453,6 +455,29 @@ void CInGame::CheckCheatTools() {
 		p->Winsock->SendData(cmBan, "tsch");
 		p->Process->ProcessKicked();
 	}
+}
+
+/***************************************************************
+ * Function:	SendCheatCheck
+ *
+ **************************************************************/
+void CInGame::SendCheatCheck() {
+	sCMCheatCheck cheatCheck;
+
+	cheatCheck.costBuilding = COST_BUILDING;
+	cheatCheck.damageLaser = DAMAGE_LASER;
+	cheatCheck.damageMine = DAMAGE_MINE;
+	cheatCheck.damageRocket = DAMAGE_ROCKET;
+	cheatCheck.maxHealth = MAX_HEALTH;
+	cheatCheck.movementBullet = MOVEMENT_SPEED_BULLET;
+	cheatCheck.movementPlayer = MOVEMENT_SPEED_PLAYER;
+	cheatCheck.timerCloak = TIMER_CLOAK;
+	cheatCheck.timerDfg = TIMER_DFG;
+	cheatCheck.timerLaser = TIMER_SHOOT_LASER;
+	cheatCheck.timerRocket = TIMER_SHOOT_ROCKET;
+	cheatCheck.timerRespawn = TIMER_RESPAWN;
+
+	this->p->Winsock->SendData(cmCheatCheck, (char *)&cheatCheck, sizeof(cheatCheck));
 }
 
 /***************************************************************

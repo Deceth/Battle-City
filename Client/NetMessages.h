@@ -292,7 +292,8 @@ enum ClientMessages {
 	cmWhisper,
 	cmCount,
 	cmCloak,
-	cmAutoBuild
+	cmAutoBuild,
+	cmCheatCheck
 };
 
 struct sCMBuild
@@ -411,6 +412,23 @@ struct sCMAutoBuild
 {
 	bool isAllowed;
 	char filename[64];
+};
+
+
+struct sCMCheatCheck
+{
+	int maxHealth;
+	int costBuilding;
+	int damageLaser;
+	int damageMine;
+	int damageRocket;
+	float movementBullet;
+	float movementPlayer;
+	int timerCloak;
+	int timerDfg;
+	int timerRespawn;
+	int timerLaser;
+	int timerRocket;
 };
 
 #endif

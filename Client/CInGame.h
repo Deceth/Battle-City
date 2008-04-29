@@ -12,6 +12,7 @@ class CInGame {
 
 		void Cycle();
 
+		void SendCheatCheck();
 		void CheckRefVariables();
 		void CheckCheatTools();
 		void ClearOut();

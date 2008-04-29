@@ -734,25 +734,36 @@ void CInventory::Drop() {
  * @param type
  **************************************************************/
 void CInventory::triggerItem(int type) {
-	CItem *itm = p->Inventory->findItembyType(type);
+	CItem *itm;
+	CPlayer* player = this->p->Player[this->p->Winsock->MyIndex];
 
-	// If the item was found,
-	if (itm) {
+	// If the current player is alive,
+	if (!player->isDead)  {
 
-		// Item: MEDKIT
-		if (type == ITEM_TYPE_MEDKIT) {
-			this->p->Winsock->SendData(cmMedKit, (char *)&itm->id, sizeof(itm->id));
-		}
+		// If the item was found,
+		itm = p->Inventory->findItembyType(type);
+		if (itm) {
 
-		// Item: CLOAK
-		else if (type == ITEM_TYPE_CLOAK) {
-			this->p->Winsock->SendData(cmCloak, (char *)&itm->id, sizeof(itm->id));
-		}
+			// Item: MEDKIT
+			if (type == ITEM_TYPE_MEDKIT) {
 
-		// Item: BOMB
-		else if (type == ITEM_TYPE_BOMB) {
-			// Activate the bomb stack
-			p->InGame->BombsAreActivated = 1 - p->InGame->BombsAreActivated;
+				// Refill health, play sound, tell server to delete item (and check for med), delete item
+				player->SetHP(MAX_HEALTH);
+				this->p->Sound->PlayWav(sClick, -1);
+				this->p->Winsock->SendData(cmMedKit, (char *)&itm->id, sizeof(itm->id));
+				this->p->Inventory->delItem(itm);
+			}
+
+			// Item: CLOAK
+			else if (type == ITEM_TYPE_CLOAK) {
+				this->p->Winsock->SendData(cmCloak, (char *)&itm->id, sizeof(itm->id));
+			}
+
+			// Item: BOMB
+			else if (type == ITEM_TYPE_BOMB) {
+				// Activate the bomb stack
+				p->InGame->BombsAreActivated = 1 - p->InGame->BombsAreActivated;
+			}
 		}
 	}
 }

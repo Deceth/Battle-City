@@ -526,7 +526,7 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	this->p->Player[me]->CityX = game->x;
 	this->p->Player[me]->CityY = game->y;
 	this->p->Player[me]->City = game->City;
-	this->p->Player[me]->SetHP(40);
+	this->p->Player[me]->SetHP(MAX_HEALTH);
 	this->p->Player[me]->isInGame = 1;
 	this->p->Player[me]->GenerateNameString();
 
@@ -736,7 +736,7 @@ void CProcess::ProcessRemoveItem(sSMItem *item) {
 	else {
 		item2 = this->p->Inventory->findItem(item->id);
 		if (item2) {
-			this->p->Inventory->delItem(this->p->Inventory->findItem(item->id));
+			this->p->Inventory->delItem(item2);
 			this->p->Inventory->ItemCheck();
 		}
 	}
@@ -1145,10 +1145,10 @@ void CProcess::ProcessPointsUpdate(sSMPoints *pts) {
  *
  **************************************************************/
 void CProcess::ProcessMedKit() {
-	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
+	//CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
 
-	playerMe->SetHP(MAX_HEALTH);
-	this->p->Sound->PlayWav(sClick, -1);
+	//playerMe->SetHP(MAX_HEALTH);
+	//this->p->Sound->PlayWav(sClick, -1);
 }
 
 /***************************************************************
@@ -1550,7 +1550,7 @@ void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo) {
 void CProcess::ProcessRespawn(unsigned char Index) {
 	if (this->p->Winsock->MyIndex == Index) {
 		this->p->Draw->resetPlayerOffset();
-		this->p->Player[this->p->Winsock->MyIndex]->SetHP(40);
+		this->p->Player[this->p->Winsock->MyIndex]->SetHP(MAX_HEALTH);
 	}
 	else {
 		this->p->Player[Index]->X = 0;
