@@ -1,7 +1,6 @@
 #include "CWinsock.h"
 
-CWinsock::CWinsock(CGame *game) 
-{
+CWinsock::CWinsock(CGame *game)  {
 	p = game;
 	Connected = false;
 	MyIndex = 0;
@@ -11,40 +10,15 @@ CWinsock::CWinsock(CGame *game)
 	memset(Buffer, 0, 2048);
 }
 
-CWinsock::~CWinsock()
-{
-#ifndef _DEBUG
-	try {
-#endif
-
+CWinsock::~CWinsock() {
 	CloseWinsock();
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "CloseWinsock"); p->Engine->logerror("CloseWinsock");}
-#endif
 }
 
-void CWinsock::Init(char *IP)
-{
-#ifndef _DEBUG
-	try {
-#endif
-
+void CWinsock::Init(char *IP) {
 	ServerIP = IP;
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "Winsock::Init"); p->Engine->logerror("Winsock::Init");}
-#endif
 }
 
-void CWinsock::StartTCP()
-{
-#ifndef _DEBUG
-	try {
-#endif
-
+void CWinsock::StartTCP() {
 	this->CloseWinsock();
 	this->StartWinsock();
 
@@ -59,63 +33,34 @@ void CWinsock::StartTCP()
 
 	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	if (Socket == -1) 
-	{
+	if (Socket == -1) {
 		MessageBox(p->hWnd, "Invalid Socket!", 0, 0);
 	} 
 
-	if (connect(Socket, (sockaddr*)(&sockAddr), sizeof(sockaddr_in)) != 0)
-	{
+	if (connect(Socket, (sockaddr*)(&sockAddr), sizeof(sockaddr_in)) != 0) {
 		this->CloseWinsock();
 		p->Process->ProcessEvent(1); //Error connecting
 	}
-	else
-	{
+	else {
 		this->Connected = true;
 		p->Process->ProcessEvent(2); //Connected
 	}
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "StartTCP"); p->Engine->logerror("StartTCP");}
-#endif
 }
 
-void CWinsock::StartWinsock()
-{
-#ifndef _DEBUG
-	try {
-#endif
-
-		WSADATA WsaDat;
-		WSAStartup(MAKEWORD(2, 2), &WsaDat);
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "StartWinsock"); p->Engine->logerror("StartWinsock");}
-#endif
+void CWinsock::StartWinsock() {
+	WSADATA WsaDat;
+	WSAStartup(MAKEWORD(2, 2), &WsaDat);
 }
 
-void CWinsock::CloseWinsock()
-{
-#ifndef _DEBUG
-	try {
-#endif
-
+void CWinsock::CloseWinsock() {
 	closesocket(Socket);
 	Connected = false;
 	MyIndex = 0;
 	Sleep(5);
 	WSACleanup();
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "CloseWinsock"); p->Engine->logerror("CloseWinsock");}
-#endif
 }
 
-void CWinsock::SendData(unsigned char PacketID, char *TheData, int len)
-{
+void CWinsock::SendData(unsigned char PacketID, char *TheData, int len) {
 	char SendString[256];
 	memset(SendString, 0, 256);
 	int length = 0;
@@ -126,8 +71,7 @@ void CWinsock::SendData(unsigned char PacketID, char *TheData, int len)
 		length = len + 2;
 
 	int checksum = 0;
-	for (int j = 0; j < (length - 2); j++)
-	{
+	for (int j = 0; j < (length - 2); j++) {
 		checksum += TheData[j];
 	}
 	checksum += 3412;
@@ -141,31 +85,15 @@ void CWinsock::SendData(unsigned char PacketID, char *TheData, int len)
 	SendAll(SendString, length + 1);
 }
 
-void CWinsock::Cycle()
-{
-#ifndef _DEBUG
-	try {
-#endif
-
-	if (hasData(Socket))
-	{
+void CWinsock::Cycle() {
+	if (hasData(Socket)) {
 		RecvTCP();	
 	}
 
 	ProcessBuffer();
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "Winsock::Cycle"); p->Engine->logerror("Winsock::Cycle");}
-#endif
 }
 
-bool CWinsock::hasData(SOCKET sock)
-{
-#ifndef _DEBUG
-	try {
-#endif
-
+bool CWinsock::hasData(SOCKET sock) {
 	timeval timev;
 	timev.tv_sec = 0;
 	timev.tv_usec = 0;
@@ -175,30 +103,20 @@ bool CWinsock::hasData(SOCKET sock)
 	select((int)sock+1,&dta,0,0,&timev);
 	if (FD_ISSET(sock, &dta)) return true;
 	return false;
-
-#ifndef _DEBUG
-	}
-	catch (...) {p->Winsock->SendData(cmCrash, "hasData"); p->Engine->logerror("hasData");}
-#endif
 }
 
-void CWinsock::RecvTCP()
-{
+void CWinsock::RecvTCP() {
 	int nbytes = 0;
-	if ((nbytes = recv(Socket, this->Buffer + this->BufferLength, 2048 - this->BufferLength, 0)) <= 0)
-	{
+	if ((nbytes = recv(Socket, this->Buffer + this->BufferLength, 2048 - this->BufferLength, 0)) <= 0) {
 		p->Process->ProcessEvent(3); //Disconnected
 	}
-	else
-	{
+	else {
 		this->BufferLength += nbytes;
 	}
 }
 
-void CWinsock::ProcessBuffer()
-{
-	while (this->BufferLength > 0)
-	{
+void CWinsock::ProcessBuffer() {
+	while (this->BufferLength > 0) {
 		int packetlength = (unsigned char)this->Buffer[0] + 1;
 
 		if (packetlength > this->BufferLength || packetlength < 3) break;
@@ -207,42 +125,41 @@ void CWinsock::ProcessBuffer()
 		memset(ValidPacket, 0, 256);
 
 		memcpy(ValidPacket, this->Buffer, packetlength);
-		if (this->BufferLength == packetlength) 
-		{
+		if (this->BufferLength == packetlength)  {
 			memset(this->Buffer, 0, 2048);
 			this->BufferLength = 0;
 		}
-		else
-		{
+		else {
 			memcpy(this->Buffer, &this->Buffer[packetlength], this->BufferLength - packetlength);
 			this->BufferLength -= packetlength;
 		}
 		
 		int checksum = (unsigned char)ValidPacket[1];
 		int checksum2 = 0;
-		for (int j = 0; j < (packetlength - 2); j++)
-		{
+		for (int j = 0; j < (packetlength - 2); j++) {
 			checksum2 += ValidPacket[3 + j];
 		}
 		checksum2 += 3412;
 		checksum2 = checksum2 % 71;
-		if (checksum == checksum2)
+		if (checksum == checksum2) {
 			p->Process->ProcessData(&ValidPacket[2]);
-		else
+		}
+		else {
 			p->Engine->logerror("Packet Dropped TCP - Invalid Checksum");
+		}
 	}
 }
 
-int CWinsock::SendAll(char *SendString, int SendLength)
-{
+int CWinsock::SendAll(char *SendString, int SendLength) {
     int TotalSent = 0;
     int bytesLeft = SendLength;
     int SendReturn;
 
-    while(TotalSent < SendLength) 
-	{
+    while(TotalSent < SendLength)  {
         SendReturn = send(Socket, SendString+TotalSent, bytesLeft, 0);
-        if (SendReturn == -1) { break; }
+        if (SendReturn == -1) {
+			break;
+		}
         TotalSent += SendReturn;
         bytesLeft -= SendReturn;
     }
