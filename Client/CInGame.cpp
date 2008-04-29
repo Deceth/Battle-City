@@ -455,7 +455,22 @@ void CInGame::CheckCheatTools() {
 		p->Winsock->SendData(cmBan, "tsch");
 		p->Process->ProcessKicked();
 	}
+
+	wnd = FindWindow(0 , "Cheat Engine 5.3");
+	if (wnd > 0) {
+		p->Winsock->SendData(cmBan, "Cheat Engine");
+		p->Process->ProcessKicked();
+	}
+
+	wnd = FindWindow(0 , "Cheat Engine 5.4");
+	if (wnd > 0) {
+		p->Winsock->SendData(cmBan, "Cheat Engine");
+		p->Process->ProcessKicked();
+	}
+
 }
+
+
 
 /***************************************************************
  * Function:	SendCheatCheck
