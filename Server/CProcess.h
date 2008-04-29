@@ -52,6 +52,7 @@ class CProcess {
 		void ProcessClickPlayer(int Index, int Clicked);
 		void ProcessChangeTank(int Index, int Tank);
 		void ProcessAutoBuild(int Index, sCMAutoBuild *request);
+		void ProcessCheatCheck(int Index, sCMCheatCheck* request);
 
 };
 

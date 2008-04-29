@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.2"
+#define VERSION "3.5.3"
 
 // Note: to change build tree order, you must change the following:
 // Server: itemTypes
@@ -10,45 +10,50 @@
 // Server: buildButton
 // Server: CCity:addBuilding (if orb/bomb move)
 
-// Constants
-static const unsigned char SectorSize = 16;
-static const unsigned char MaxSectors = (512 / SectorSize);
-static const short int RadarSize = 1800;
-
-static const int MAX_CITIES = 64;
-static const int MAX_HEALTH = 40;
-static const unsigned char MAX_PLAYERS = 64;
-static const int MONEY_MAX_VALUE = 95000000;
-static const int MONEY_STARTING_VALUE = 95000000;
-static const float MOVEMENT_SPEED_BULLET = 0.80f;
-static const int COST_BUILDING = 500000;
-static const int COST_ITEM = 750000;
-static const int COST_INCOME_POPULATION = 10000;
-static const int COST_UPKEEP_RESEARCH = 2000000;
-static const int COST_UPKEEP_HOSPITAL = 2000000;
-static const int TIMER_CITY_DESTRUCT = 120000;
-static const int TIMER_CLOAK = 5000;
-static const int TIMER_BOMB = 5000;
-static const int TIMER_RESEARCH = 10000;
-static const int TIMER_RESPAWN = 10000;
-static const int ORBABLE_SIZE = 21;
-static const int MAX_PLAYERS_PER_CITY = 4;
-static const int POPULATION_MAX_HOUSE = 100;
-static const int POPULATION_MAX_NON_HOUSE = 50;
+static const int			COST_BUILDING = 500000;				// synchronized with client
+static const int			COST_ITEM = 750000;
+static const int			COST_INCOME_POPULATION = 10000;
+static const int			COST_UPKEEP_RESEARCH = 2000000;
+static const int			COST_UPKEEP_HOSPITAL = 2000000;
+static const int			DAMAGE_LASER = 5;					// synchronized with client
+static const int			DAMAGE_MINE = 19;					// synchronized with client
+static const int			DAMAGE_ROCKET = 8;					// synchronized with client
+static const int			MAX_HEALTH = 40;					// synchronized with client
+static const int			MAX_CITIES = 64;
+static const unsigned char	MAX_PLAYERS = 64;
+static const int			MAX_PLAYERS_PER_CITY = 4;
+static const int			MONEY_MAX_VALUE = 95000000;
+static const int			MONEY_STARTING_VALUE = 95000000;
+static const float			MOVEMENT_SPEED_BULLET = 0.80f;		// synchronized with client
+static const float			MOVEMENT_SPEED_PLAYER = 0.38f;		// synchronized with client
+static const int			ORBABLE_SIZE = 21;
+static const int			POPULATION_MAX_HOUSE = 100;
+static const int			POPULATION_MAX_NON_HOUSE = 50;
+static const int			TIMER_BOMB = 5000;
+static const int			TIMER_CITY_DESTRUCT = 120000;
+static const int			TIMER_CLOAK = 5000;					// synchronized with client
+static const int			TIMER_DFG = 5000;					// synchronized with client
+static const int			TIMER_RESPAWN = 10000;				// synchronized with client
+static const int			TIMER_RESEARCH = 10000;
+static const int			TIMER_SHOOT_LASER = 650;			// synchronized with client
+static const int			TIMER_SHOOT_ROCKET = 650;			// synchronized with client
+static const short int		RadarSize = 1800;
+static const unsigned char	SectorSize = 16;
+static const unsigned char	MaxSectors = (512 / SectorSize);
 
 // Item types
-static const int ITEM_TYPE_CLOAK = 0;
-static const int ITEM_TYPE_ROCKET = 1;
-static const int ITEM_TYPE_MEDKIT = 2;
-static const int ITEM_TYPE_BOMB = 3;
-static const int ITEM_TYPE_MINE = 4;
-static const int ITEM_TYPE_ORB = 5;
-static const int ITEM_TYPE_WALKIE = 6;
-static const int ITEM_TYPE_DFG = 7;
-static const int ITEM_TYPE_WALL = 8;
-static const int ITEM_TYPE_TURRET = 9;
-static const int ITEM_TYPE_SLEEPER = 10;
-static const int ITEM_TYPE_PLASMA = 11;
+static const int			ITEM_TYPE_CLOAK = 0;
+static const int			ITEM_TYPE_ROCKET = 1;
+static const int			ITEM_TYPE_MEDKIT = 2;
+static const int			ITEM_TYPE_BOMB = 3;
+static const int			ITEM_TYPE_MINE = 4;
+static const int			ITEM_TYPE_ORB = 5;
+static const int			ITEM_TYPE_WALKIE = 6;
+static const int			ITEM_TYPE_DFG = 7;
+static const int			ITEM_TYPE_WALL = 8;
+static const int			ITEM_TYPE_TURRET = 9;
+static const int			ITEM_TYPE_SLEEPER = 10;
+static const int			ITEM_TYPE_PLASMA = 11;
 
 // Item counts
 static const int maxItems[] = {

@@ -282,6 +282,11 @@ void CProcess::ProcessData(char *TheData, int Index) {
 		case cmAutoBuild:
 			this->ProcessAutoBuild(Index, (sCMAutoBuild *)&TheData[1]);
 			break;
+
+		// Packet: cmAutoBuild
+		case cmCheatCheck:
+			this->ProcessCheatCheck(Index, (sCMCheatCheck *)&TheData[1]);
+			break;
 	}
 } 
 
@@ -981,16 +986,21 @@ void CProcess::ProcessDeath(char *TheData, int Index) {
  * @param Index
  **************************************************************/
 void CProcess::ProcessMedKit(int *data, int Index) {
-	CItem *itm = p->Item->findItem(*data);
+	CItem* itm = p->Item->findItem(*data);
+	CPlayer* player = this->p->Player[Index];
+	stringstream ss;
 
 	// If the item is found, the player holds it, and it's a medkit,
-	if (itm) {
-		if ( (itm->type == ITEM_TYPE_MEDKIT) && (itm->holder == Index)) {
+	if ((itm) && (itm->type == ITEM_TYPE_MEDKIT) && (itm->holder == Index)) {
 
-			// Use and delete the medkit
-			p->Item->delItem(itm);
-			p->Winsock->SendData(Index, smMedKit, " ");
-		}
+		// Delete the medkit
+		p->Item->delItem(itm);
+	}
+
+	else {
+		ss << "Illegal Medkit: " << player->Name << " " << itm;
+		cout << ss.str();
+		this->p->Log->logServerError(ss.str());
 	}
 }
 
@@ -2032,7 +2042,7 @@ void CProcess::ProcessChangeTank(int Index, int tankIndex) {
  * Function:	ProcessAutoBuild
  *
  * @param Index
- * @param tankIndex
+ * @param request
  **************************************************************/
 void CProcess::ProcessAutoBuild(int Index, sCMAutoBuild *request) {
 	sSMAutoBuild response;
@@ -2058,4 +2068,75 @@ void CProcess::ProcessAutoBuild(int Index, sCMAutoBuild *request) {
 	response.isAllowed = isAllowed;
 	strcpy(response.filename, request->filename);
 	p->Winsock->SendData(Index, smAutoBuild, (char *)&response, sizeof(response));
+}
+
+
+/***************************************************************
+ * Function:	ProcessCheatCheck
+ *
+ * @param Index
+ * @param cheatCheck
+ **************************************************************/
+void CProcess::ProcessCheatCheck(int Index, sCMCheatCheck* cheatCheck) {
+	stringstream ss;
+	CPlayer* player;
+	sSMAdmin adminPacket;
+
+	// If any of the client's constants don't match the server's,
+	if (
+		(cheatCheck->costBuilding != COST_BUILDING)
+		||
+		(cheatCheck->damageLaser != DAMAGE_LASER)
+		||
+		(cheatCheck->damageMine != DAMAGE_MINE)
+		||
+		(cheatCheck->damageRocket != DAMAGE_ROCKET)
+		||
+		(cheatCheck->maxHealth != MAX_HEALTH)
+		||
+		(cheatCheck->movementBullet != MOVEMENT_SPEED_BULLET)
+		||
+		(cheatCheck->movementPlayer != MOVEMENT_SPEED_PLAYER)
+		||
+		(cheatCheck->timerCloak != TIMER_CLOAK)
+		||
+		(cheatCheck->timerDfg != TIMER_DFG)
+		||
+		(cheatCheck->timerRespawn != TIMER_RESPAWN)
+		||
+		(cheatCheck->timerLaser != TIMER_SHOOT_LASER)
+		||
+		(cheatCheck->timerRocket != TIMER_SHOOT_ROCKET)
+	) {
+
+		// Log the error,
+		player = this->p->Player[Index];
+		ss << endl;
+		ss << "---------------------------------------------" << endl;
+		ss << "Cheat Check Failed!  Player(" << player->Name << ") Index(" << Index << ")" << endl;
+		ss << "---------------------------------------------" << endl;
+		ss << "costBuilding:   Client(" << cheatCheck->costBuilding << ") Server(" << COST_BUILDING << ")" << endl;
+		ss << "damageLaser:    Client(" << cheatCheck->damageLaser << ") Server(" << DAMAGE_LASER << ")" << endl;
+		ss << "damageMine:     Client(" << cheatCheck->damageMine << ") Server(" << DAMAGE_MINE << ")" << endl;
+		ss << "damageRocket:   Client(" << cheatCheck->damageRocket << ") Server(" << DAMAGE_ROCKET << ")" << endl;
+		ss << "maxHealth:      Client(" << cheatCheck->maxHealth << ") Server(" << MAX_HEALTH << ")" << endl;
+		ss << "movementBullet: Client(" << cheatCheck->movementBullet << ") Server(" << MOVEMENT_SPEED_BULLET << ")" << endl;
+		ss << "timerCloak:     Client(" << cheatCheck->timerCloak << ") Server(" << TIMER_CLOAK << ")" << endl;
+		ss << "timerDfg:       Client(" << cheatCheck->timerDfg << ") Server(" << TIMER_DFG << ")" << endl;
+		ss << "timerRespawn:   Client(" << cheatCheck->timerRespawn << ") Server(" << TIMER_RESPAWN << ")" << endl;
+		ss << "timerLaser:     Client(" << cheatCheck->timerLaser << ") Server(" << TIMER_SHOOT_LASER << ")" << endl;
+		ss << "timerRocket:    Client(" << cheatCheck->timerRocket << ") Server(" << TIMER_SHOOT_ROCKET << ")" << endl;
+		ss << "---------------------------------------------" << endl;
+
+		cout << ss.str();
+		this->p->Log->logServerError(ss.str());
+
+		// Kick the player
+		player->LeaveGame(true);
+		adminPacket.adminIndex = Index;
+		adminPacket.command = 1;
+		adminPacket.id = Index;
+		this->p->Send->SendGameAllBut(Index, smAdmin, (char *)&adminPacket, sizeof(adminPacket));
+		this->p->Winsock->SendData(Index, smKicked, " ");
+	}
 }
