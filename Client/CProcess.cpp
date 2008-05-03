@@ -502,7 +502,7 @@ void CProcess::ProcessChatCommand(int Index, int message) {
 		}
 		switch(this->p->State) {
 			case STATE_GAME:
-				this->p->InGame->AppendInfo(&tmpString[0], COLOR_SYSTEM);
+				this->p->InGame->AppendChat(&tmpString[0], COLOR_SYSTEM);
 				break;
 			default:
 				break;
@@ -517,6 +517,7 @@ void CProcess::ProcessChatCommand(int Index, int message) {
  **************************************************************/
 void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	int me = this->p->Winsock->MyIndex;
+	string newbieTip;
 
 	this->p->Draw->resetPlayerOffset();
 	this->p->Player[me]->X = (float)game->x;
@@ -530,21 +531,26 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	this->p->Player[me]->isInGame = 1;
 	this->p->Player[me]->GenerateNameString();
 
-	if (this->p->Player[me]->isMayor) {
-		this->p->InGame->NewbieTip = "You are Mayor of ";
-		this->p->InGame->NewbieTip += CityList[this->p->Player[this->p->Winsock->MyIndex]->City];
-		this->p->InGame->NewbieTip += ".  Right-click anywhere on the screen to start building!";
-	}
-	else {
-		this->p->InGame->NewbieTip = "You have joined ";
-		this->p->InGame->NewbieTip += CityList[this->p->Player[this->p->Winsock->MyIndex]->City];
-		this->p->InGame->NewbieTip += ".  Press 'u' on top of an item to pick it up, and 'd' to drop it!";
+	this->p->InGame->AppendInfo("Press HELP for instructions, or visit: http://battlecity.looble.com/");
+
+	// If newbie tips are on,
+	if (this->p->Options->newbietips) {
+
+		newbieTip = "Newbie Tip: You joined ";
+		newbieTip += CityList[this->p->Player[this->p->Winsock->MyIndex]->City];
+
+		if (this->p->Player[me]->isMayor) {
+			newbieTip += " as the Mayor.  Right-click anywhere on the screen to start building!";
+		}
+		else {
+			newbieTip += " as a Commando.  Press Shift to shoot!";
+		}
+
+		this->p->InGame->AppendInfo(newbieTip);
 	}
 
-	this->p->InGame->AppendInfo("Full instructions at:", COLOR_SYSTEM);
-	this->p->InGame->AppendInfo("http://battlecity.looble.com/", COLOR_SYSTEM);
 	this->p->InGame->PrintWhoData();
-	this->p->InGame->AppendInfo(this->p->Player[me]->Name + " has just joined!", COLOR_SYSTEM);
+	this->p->InGame->AppendChat(this->p->Player[me]->Name + " has just joined!", COLOR_SYSTEM);
 
 	this->p->Dialog->StartDialog = 0;
 	
@@ -697,7 +703,7 @@ void CProcess::ProcessMayorHire(int Index) {
 			tmpString += this->p->Player[Index]->Town;
 			tmpString += + " is looking for a job";
 			this->p->Personnel->ApplicantWaiting = 1;
-			this->p->InGame->AppendInfo("Note:  Another player is applying for a position in your city.", COLOR_SYSTEM);
+			this->p->InGame->AppendInfo("Note:  Another player is applying for a position in your city.");
 			this->p->Personnel->AppendData(tmpString);
 			this->p->Sound->PlayWav(sBuzz,-1);
 		}
@@ -771,11 +777,13 @@ void CProcess::ProcessJoinData(sSMJoinData *join) {
 
 	if (this->p->Player[i]->Name.length() > 0 && this->p->State == STATE_GAME) {
 		tmpString = this->p->Player[i]->Name + " has just joined";
-		this->p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
+		this->p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 	}
 	if (this->p->Admin->IsOpen) {
 		this->p->Admin->DrawPlayerList();
 	}
+
+	this->p->InGame->PrintWhoData();
 }
 
 /***************************************************************
@@ -796,51 +804,51 @@ void CProcess::ProcessPickUp(sCMItem *item) {
 			switch (item2->Type) {
 
 				case ITEM_TYPE_CLOAK:
-					this->p->InGame->NewbieTip = "Cloaks remove you from enemy radar.  Press 'c' to use a Cloaking Device.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_CLOAK);
 					break;
 
 				case ITEM_TYPE_ROCKET:
-					this->p->InGame->NewbieTip = "Cougar Missles upgrade your tank's weapon, but only fire when your tank is not moving.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_ROCKET);
 					break;
 
 				case ITEM_TYPE_MEDKIT:
-					this->p->InGame->NewbieTip = "Medkits restore your tank to full health. Press 'h' to use a Medkit.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_MEDKIT);
 					break;
 
 				case ITEM_TYPE_BOMB:
-					this->p->InGame->NewbieTip = "Bombs destroy nearby enemy buildings. Press 'b' to drop an activated bomb.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_BOMB);
 					break;
 
 				case ITEM_TYPE_MINE:
-					this->p->InGame->NewbieTip = "Mines detonate enemy tanks, and cannot be seen by the enemy.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_MINE);
 					break;
 
 				case ITEM_TYPE_ORB:
-					this->p->InGame->NewbieTip = "The Orb destroys an enemy city when dropped on the opponent's 'Command Center.'";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_ORB);
 					break;
 
 				case ITEM_TYPE_WALKIE:
-					this->p->InGame->NewbieTip = "Walkies allow teammates to communicate outside of radar range.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_WALKIE);
 					break;
 
 				case ITEM_TYPE_DFG:
-					this->p->InGame->NewbieTip = "DFGs demobilize enemy tanks, and cannot be seen by the enemy.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_DFG);
 					break;
 
 				case ITEM_TYPE_WALL:
-					this->p->InGame->NewbieTip = "Walls serve as obstacles, and are often placed on the 'No Parking' area of a city's Command Center.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_WALL);
 					break;
 
 				case ITEM_TYPE_TURRET:
-					this->p->InGame->NewbieTip = "Turrets automatically fire at nearby enemy tanks.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_TURRET);
 					break;
 
 				case ITEM_TYPE_SLEEPER:
-					this->p->InGame->NewbieTip = "Sleeper Turrets automatically fire at nearby enemy tanks, and cannot be seen by the enemy.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_SLEEPER);
 					break;
 
 				case ITEM_TYPE_PLASMA:
-					this->p->InGame->NewbieTip = "Plasma Cannons automatically fire at enemy tanks, and do more damage than regular Turrets.";
+					this->p->InGame->AppendInfo(NEWBIE_TIP_PLASMA);
 					break;
 			}
 		}
@@ -966,7 +974,7 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
 	}
 
 	// Add the death message to the chat
-	this->p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
+	this->p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 }
 
 /***************************************************************
@@ -1116,7 +1124,7 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 		}
 		
 		// Show the orbed message
-		this->p->InGame->AppendInfo(msg.c_str(), COLOR_BLUE);
+		this->p->InGame->AppendChat(msg.c_str(), COLOR_BLUE);
 
 		if (orbed->OrberCity == playerMe->City) {
 			this->p->Engine->ThreadMessage(msg.c_str());
@@ -1310,14 +1318,14 @@ void CProcess::ProcessAdmin(sSMAdmin *admin) {
 		case 1:
 			playerTarget = this->p->Player[admin->id];
 
-			this->p->InGame->AppendInfo(playerTarget->Name + " has been kicked by " + player->Name, COLOR_SYSTEM);
+			this->p->InGame->AppendInfo(playerTarget->Name + " has been kicked by " + player->Name);
 			break;
 		
 		// Command: BAN
 		case 5:
 			playerTarget = this->p->Player[admin->id];
 
-			this->p->InGame->AppendInfo(playerTarget->Name + " has been banned by " + player->Name, COLOR_SYSTEM);
+			this->p->InGame->AppendInfo(playerTarget->Name + " has been banned by " + player->Name);
 			break;
 	}
 
@@ -1625,37 +1633,43 @@ void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit) {
  * @param clickplayer
  **************************************************************/
 void CProcess::ProcessClickPlayer(sSMClickPlayer *clickplayer) {
-	ostringstream ConvertPoints;
-	ostringstream ConvertOrbs;
-	ostringstream ConvertAssists;
-	ostringstream ConvertDeaths;
-	ostringstream ConvertPtsPerDeath;
-	int DeathsInt;
+	stringstream ss;
+	CPlayer* player = this->p->Player[clickplayer->Index];
+	int DeathsInt = clickplayer->Deaths;
 
-	ConvertPoints << this->p->Player[clickplayer->Index]->Points;
-	ConvertOrbs << clickplayer->Orbs;
-	ConvertAssists << clickplayer->Assists;
-	ConvertDeaths << clickplayer->Deaths;
-	DeathsInt = clickplayer->Deaths;
-	if(DeathsInt == 0)
-	{
+	if (DeathsInt == 0) {
 		DeathsInt = 1;
 	}
-	ConvertPtsPerDeath << ((this->p->Player[clickplayer->Index]->Points)/(DeathsInt));
 
 	this->p->Draw->ClearPanel();
 
-	this->p->Draw->PanelLine1 = this->p->Player[clickplayer->Index]->NameString;
-	this->p->Draw->PanelLine2 = "Points:  ";
-	this->p->Draw->PanelLine2 += ConvertPoints.str();
-	this->p->Draw->PanelLine3 = "Orbs:    ";
-	this->p->Draw->PanelLine3 += ConvertOrbs.str();
-	this->p->Draw->PanelLine4 = "Assists: ";
-	this->p->Draw->PanelLine4 += ConvertAssists.str();
-	this->p->Draw->PanelLine5 = "Deaths:  ";
-	this->p->Draw->PanelLine5 += ConvertDeaths.str();
-	this->p->Draw->PanelLine6 = "PPD:     ";
-	this->p->Draw->PanelLine6 += ConvertPtsPerDeath.str();
+	ss.str("");
+	ss << player->NameString;
+	this->p->Draw->PanelLine1 = ss.str();
+
+	ss.str("");
+	ss << "Points:  " << player->Points;
+	this->p->Draw->PanelLine2 = ss.str();
+
+	ss.str("");
+	ss << "Orbs:    " << clickplayer->Orbs;
+	this->p->Draw->PanelLine3 += ss.str();
+
+	ss.str("");
+	ss << "Assists: " << clickplayer->Assists;
+	this->p->Draw->PanelLine4 += ss.str();
+
+	ss.str("");
+	ss << "Deaths:  " << clickplayer->Deaths;
+	this->p->Draw->PanelLine5 += ss.str();
+
+	ss.str("");
+	ss << "Pts/Mon: " << player->MonthlyPoints;
+	this->p->Draw->PanelLine6 = ss.str();
+
+	ss.str("");
+	ss << "Pts/Death: " << ((player->Points)/(DeathsInt));
+	this->p->Draw->PanelLine7 += ss.str();
 
 	this->p->Engine->MsgQueue = 0;
 }
@@ -1726,7 +1740,7 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 
 	// If the request was denied,
 	if (response->isAllowed == false) {
-		this->p->InGame->AppendInfo("You cannot load a city template now!", COLOR_SYSTEM);
+		this->p->InGame->AppendInfo("You cannot load a city template now!");
 		return;
 	}
 
@@ -1739,7 +1753,7 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 	// If you can't open the file, exit
 	ifstream cityFileStream(fileName.c_str());
 	if (! cityFileStream.is_open()) {
-		this->p->InGame->AppendInfo("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
+		this->p->InGame->AppendInfo("Unable to open the file \"" + fileName + "\"!");
 		return;
 	}
 
