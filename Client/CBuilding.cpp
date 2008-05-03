@@ -60,6 +60,85 @@ bool CBuilding::isCC(int buildingType) {
 	return (buildingType / 100 == 0);
 }
 
+/***************************************************************
+ * Function:	isFactory
+ *
+ * @return Returns true if this building is a Factory
+ **************************************************************/
+bool CBuilding::isFactory() {
+	return this->isFactory(this->Type);
+}
+/***************************************************************
+ * Function:	isFactory
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a Factory
+ **************************************************************/
+bool CBuilding::isFactory(int buildingType) {
+	return ((buildingType / 100)==1);
+}
+
+/***************************************************************
+ * Function:	isHospital
+ *
+ * @return Returns true if this building is a Hospital
+ **************************************************************/
+bool CBuilding::isHospital() {
+	return this->isHospital(this->Type);
+}
+/***************************************************************
+ * Function:	isHospital
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a House
+ **************************************************************/
+bool CBuilding::isHospital(int buildingType) {
+	return ((buildingType / 100)==2);
+}
+
+/***************************************************************
+ * Function:	isHouse
+ *
+ * @return Returns true if this building is a House
+ **************************************************************/
+bool CBuilding::isHouse() {
+	return this->isHouse(this->Type);
+}
+/***************************************************************
+ * Function:	isHouse
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a House
+ **************************************************************/
+bool CBuilding::isHouse(int buildingType) {
+	return ((buildingType / 100)==3);
+}
+
+/***************************************************************
+ * Function:	isResearch
+ *
+ * @return Returns true if this building is a Research
+ **************************************************************/
+bool CBuilding::isResearch() {
+	return this->isResearch(this->Type);
+}
+/***************************************************************
+ * Function:	isResearch
+ *
+ * @param buildingType
+ * @return Returns true if the buildingType is a Research
+ **************************************************************/
+bool CBuilding::isResearch(int buildingType) {
+	return ((buildingType / 100)==4);
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -339,7 +418,7 @@ bool CBuildingList::inRange(bool withBuildingProximity) {
 	}
 
 	// If no building was found in range, return 0
-	p->InGame->NewbieTip = "You cannot build or drop defensive items this far away from your City Center!";
+	this->p->InGame->AppendInfo("You cannot build or drop defensive items this far away from your City Center!");
 
 	return 0;
 }

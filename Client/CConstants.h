@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.3"
+#define VERSION "3.5.2"
 
 static const int TCPPORT = 5643;
 //static const int TCPPORT = 6643;
@@ -50,6 +50,27 @@ static const int			ITEM_TYPE_WALL = 8;
 static const int			ITEM_TYPE_TURRET = 9;
 static const int			ITEM_TYPE_SLEEPER = 10;
 static const int			ITEM_TYPE_PLASMA = 11;
+
+
+
+// Newbie tips
+static const string			NEWBIE_TIP_CLOAK = "Newbie Tip: Cloaks remove you from enemy radar.  Press 'c' to use a Cloaking Device.";
+static const string			NEWBIE_TIP_ROCKET = "Newbie Tip: Cougar Missles upgrade your tank's weapon, but only fire when your tank is not moving.";
+static const string			NEWBIE_TIP_MEDKIT = "Newbie Tip: Medkits restore your tank to full health. Press 'h' to use a Medkit.";
+static const string			NEWBIE_TIP_BOMB = "Newbie Tip: Bombs destroy nearby enemy buildings. Press 'b' to drop an activated bomb.";
+static const string			NEWBIE_TIP_MINE = "Newbie Tip: Mines detonate enemy tanks, and cannot be seen by the enemy.";
+static const string			NEWBIE_TIP_ORB = "Newbie Tip: The Orb destroys an enemy city when dropped on the opponent's 'Command Center.'";
+static const string			NEWBIE_TIP_WALKIE = "Newbie Tip: Walkies allow teammates to communicate outside of radar range.";
+static const string			NEWBIE_TIP_DFG = "Newbie Tip: DFGs demobilize enemy tanks, and cannot be seen by the enemy.";
+static const string			NEWBIE_TIP_WALL = "Newbie Tip: Walls serve as obstacles, and are often placed on the 'No Parking' area of a city's Command Center.";
+static const string			NEWBIE_TIP_TURRET = "Newbie Tip: Turrets automatically fire at nearby enemy tanks.";
+static const string			NEWBIE_TIP_SLEEPER = "Newbie Tip: Sleeper Turrets automatically fire at nearby enemy tanks, and cannot be seen by the enemy.";
+static const string			NEWBIE_TIP_PLASMA = "Newbie Tip: Plasma Cannons automatically fire at enemy tanks, and do more damage than regular Turrets.";
+static const string			NEWBIE_TIP_CC = "Newbie Tip: The Command Center (CC) allows your city to function.  An enemy Orb on your CC will destroy your city!";
+static const string			NEWBIE_TIP_HOSPITAL = "Newbie Tip: Hospitals restore your health with you stand on them.";
+static const string			NEWBIE_TIP_HOUSE = "Newbie Tip: Houses provide enough workers to staff 2 other buildings.";
+static const string			NEWBIE_TIP_RESEARCH = "Newbie Tip: Researches let you build Factories, and more advanced Researches.";
+static const string			NEWBIE_TIP_FACTORY = "Newbie Tip: Factories produce Items.  Drive onto an Item and press 'U' to pick it up.";
 
 enum States {
 	Empty,
@@ -275,12 +296,12 @@ struct sKicked {
 static const COLORREF COLOR_BLUE = RGB(0,0,255);
 static const COLORREF COLOR_GRAY = RGB(135, 135, 135);
 static const COLORREF COLOR_GREEN = RGB(0,255,0);
+static const COLORREF COLOR_OFFWHITE = RGB(235,235,235);
 static const COLORREF COLOR_ORANGE = RGB(255, 165, 0);
 static const COLORREF COLOR_RED = RGB(255,0,0);
 static const COLORREF COLOR_TRANSPARENCY = RGB(255,0,255);
 static const COLORREF COLOR_YELLOW = RGB(255, 215, 0);
 static const COLORREF COLOR_WHITE = RGB(255,255,255);
-
 // Colors by function
 static const COLORREF COLOR_ADMIN_CHAT = COLOR_ORANGE;
 static const COLORREF COLOR_ADMIN_NAME = COLOR_YELLOW;
@@ -290,6 +311,8 @@ static const COLORREF COLOR_ENEMY_CHAT = COLOR_RED;
 static const COLORREF COLOR_ENEMY_NAME = COLOR_RED;
 static const COLORREF COLOR_LAGGING_NAME = COLOR_BLUE;
 static const COLORREF COLOR_GLOBAL_CHAT = COLOR_WHITE;
+static const COLORREF COLOR_PANEL_HEAD = COLOR_GREEN;
+static const COLORREF COLOR_PANEL_BODY = COLOR_OFFWHITE;
 static const COLORREF COLOR_TEAM_CHAT = COLOR_GREEN;
 static const COLORREF COLOR_TEAM_NAME = COLOR_GREEN;
 static const COLORREF COLOR_SYSTEM = COLOR_YELLOW;

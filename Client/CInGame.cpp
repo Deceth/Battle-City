@@ -20,14 +20,10 @@ CInGame::CInGame(CGame *game) {
 	this->chatLine8.clear();
 	this->ChatLine.clear();
 
-	this->infoLine1.clear();
-	this->infoLine2.clear();
-	this->infoLine3.clear();
-	this->infoLine4.clear();
-	this->infoLine5.clear();
-	this->infoLine6.clear();
-	this->infoLine7.clear();
-	this->infoLine8.clear();
+	this->playerInfoLine1.clear();
+	this->playerInfoLine2.clear();
+	this->playerInfoLine3.clear();
+	this->playerInfoLine4.clear();
 
 	this->IsChatting = 0;
 	this->ShowMap = 0;
@@ -206,32 +202,27 @@ string CInGame::ReturnRank(int Points) {
  *
  **************************************************************/
 void CInGame::PrintWhoData() {
-		string Players;
-		int PlayerCount = 0;
-		for (int i = 0; i < MAX_PLAYERS; i++)
-		{
-			if (p->Player[i]->Name.length() > 0)
-			{
-				PlayerCount++;
-				if (Players.length() == 0)
-					Players += p->Player[i]->Name;
-				else
-				{
-					Players += ", ";
-					Players += p->Player[i]->Name;
-				}
+	stringstream Converter;
+	string Players;
+	CPlayer* player;
+	int PlayerCount = 0;
 
+	// For each possible player,
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
+
+		// If the player is in game,
+		if (p->Player[i]->Name.length() > 0) {
+			PlayerCount++;
+			if (Players.length() != 0) {
+				Players += ", ";
 			}
+			Players += player->Name;
 		}
+	}
 
-		ostringstream Converter;
-		Converter << "There ";
-		Converter << (PlayerCount == 1 ? "is " : "are ");
-		Converter << PlayerCount;
-		Converter << (PlayerCount == 1 ? " player" : " players");
-		Converter << " currently online:  ";
-		Converter << Players;
-		this->AppendInfo(Converter.str(), COLOR_SYSTEM);
+	Converter << PlayerCount << " player" << (PlayerCount == 1 ? "" : "s") << " online: " << Players;
+	this->setPlayerInfo(Converter.str());
 }
 
 /***************************************************************
@@ -243,36 +234,20 @@ void CInGame::PrintWhoData() {
 void CInGame::AppendChat(string chatText, COLORREF color) {
 	unsigned int MessageLength = this->p->Draw->chatBarWidth;
 	while (chatText.length() > MessageLength) {
-		AppendLine(chatText.substr(0, MessageLength), color);
+		this->AppendChatLine(chatText.substr(0, MessageLength), color);
 		chatText = chatText.substr(MessageLength, chatText.length());
 	}
 
-	AppendLine(chatText, color);
+	this->AppendChatLine(chatText, color);
 }
 
 /***************************************************************
- * Function:	AppendInfo
+ * Function:	AppendChatLine
  *
  * @param chatText
  * @param color
  **************************************************************/
-void CInGame::AppendInfo(string chatText, COLORREF color) {
-	unsigned int MessageLength = this->p->Draw->chatBarWidth;
-	while (chatText.length() > MessageLength) {
-		AppendInfoLine(chatText.substr(0, MessageLength), color);
-		chatText = chatText.substr(MessageLength, chatText.length());
-	}
-
-	AppendInfoLine(chatText, color);
-}
-
-/***************************************************************
- * Function:	AppendLine
- *
- * @param chatText
- * @param color
- **************************************************************/
-void CInGame::AppendLine(string chatText, COLORREF color) {
+void CInGame::AppendChatLine(string chatText, COLORREF color) {
 	chatLine1 = chatLine2;
 	chatLine2 = chatLine3;
 	chatLine3 = chatLine4;
@@ -292,28 +267,61 @@ void CInGame::AppendLine(string chatText, COLORREF color) {
 }
 
 /***************************************************************
- * Function:	AppendInfoLine
+ * Function:	AppendInfo
  *
  * @param infoText
+ **************************************************************/
+void CInGame::AppendInfo(string infoText) {
+	this->AppendChat(infoText, COLOR_SYSTEM);
+}
+/***************************************************************
+ * Function:	setPlayerInfo
+ *
+ * @param infoText
+ **************************************************************/
+void CInGame::setPlayerInfo(string infoText) {
+	this->setPlayerInfo(infoText, 0);
+}
+/***************************************************************
+ * Function:	setPlayerInfo
+ *
+ * @param infoText
+ * @param lineIndex
+ **************************************************************/
+void CInGame::setPlayerInfo(string infoText, int lineIndex) {
+	unsigned int MessageLength = this->p->Draw->chatBarWidth;
+	while (infoText.length() > MessageLength) {
+		this->setPlayerInfoLine(infoText.substr(0, MessageLength), lineIndex, COLOR_SYSTEM);
+		infoText = infoText.substr(MessageLength, infoText.length());
+	}
+
+	this->setPlayerInfoLine(infoText, lineIndex, COLOR_SYSTEM);
+}
+
+/***************************************************************
+ * Function:	setPlayerInfoLine
+ *
+ * @param playerInfoText
+ * @param lineIndex
  * @param color
  **************************************************************/
-void CInGame::AppendInfoLine(string infoText, COLORREF color) {
-	infoLine1 = infoLine2;
-	infoLine2 = infoLine3;
-	infoLine3 = infoLine4;
-	infoLine4 = infoLine5;
-	infoLine5 = infoLine6;
-	infoLine6 = infoLine7;
-	infoLine7 = infoLine8;
-	infoLine8 = infoText;
-	infoColor1 = infoColor2;
-	infoColor2 = infoColor3;
-	infoColor3 = infoColor4;
-	infoColor4 = infoColor5;
-	infoColor5 = infoColor6;
-	infoColor6 = infoColor7;	
-	infoColor7 = infoColor8;
-	infoColor8 = color;	
+void CInGame::setPlayerInfoLine(string playerInfoText, int lineIndex, COLORREF color) {
+	if (lineIndex==0) {
+		playerInfoLine1 = playerInfoText;
+		playerInfoColor1 = color;	
+	}
+	else if (lineIndex==1) {
+		playerInfoLine2 = playerInfoText;
+		playerInfoColor2 = color;	
+	}
+	else if (lineIndex==2) {
+		playerInfoLine3 = playerInfoText;
+		playerInfoColor3 = color;	
+	}
+	else if (lineIndex==3) {
+		playerInfoLine4 = playerInfoText;
+		playerInfoColor4 = color;	
+	}
 }
 
 /***************************************************************
@@ -666,19 +674,19 @@ void CInGame::PrintFinanceReport() {
 	p->Draw->PanelMode = modeFinance;
 	p->Draw->PanelLine1 = "City Finance Report:";
 	
-	p->Draw->PanelLine2 = "Income: ";
+	p->Draw->PanelLine2 = "Income:    ";
 	p->Draw->PanelLine2 += p->Draw->CashFormat(p->InGame->Income);
 
-	p->Draw->PanelLine3 = "Research: -";
+	p->Draw->PanelLine3 = "Research:  -";
 	p->Draw->PanelLine3 += p->Draw->CashFormat(p->InGame->Research);
 
-	p->Draw->PanelLine4 = "Items: -";
+	p->Draw->PanelLine4 = "Items:     -";
 	p->Draw->PanelLine4 += p->Draw->CashFormat(p->InGame->Items);
 
 	p->Draw->PanelLine5 = "Hospitals: -";
 	p->Draw->PanelLine5 += p->Draw->CashFormat(p->InGame->Hospital);
 
-	p->Draw->PanelLine6 = "Total: ";
+	p->Draw->PanelLine6 = "Total:     ";
 	if (netIncome < 0) {
 		p->Draw->PanelLine6 += "-";
 	}
@@ -727,19 +735,19 @@ void CInGame::requestAutoBuild(string chatLine) {
 	
 	// If there is no filename, return
 	if (fileName.length() == 0) {
-		this->AppendInfo("Please specify a city design name!", COLOR_SYSTEM);
+		this->AppendInfo("Please specify a city design name!");
 		return;
 	}
 
 	// If the player is dead, return
 	if (player->isDead) {
-		this->AppendInfo("You must be alive to load a city design!", COLOR_SYSTEM);
+		this->AppendInfo("You must be alive to load a city design!");
 		return;
 	}
 
 	// If the player is not mayor, return
 	if (player->isMayor == false) {
-		this->AppendInfo("You must be mayor to load a city design!", COLOR_SYSTEM);
+		this->AppendInfo("You must be mayor to load a city design!");
 		return;
 	}
 
@@ -764,13 +772,13 @@ void CInGame::saveCity(string chatLine) {
 
 	// If not mayor, return
 	if (player->isMayor == false) {
-		this->AppendInfo("You must be mayor to save the city design!", COLOR_SYSTEM);
+		this->AppendInfo("You must be mayor to save the city design!");
 		return;
 	}
 	
 	// If there is no filename, return
 	if (fileName.length() == 0) {
-		this->AppendInfo("Please specify a city design name!", COLOR_SYSTEM);
+		this->AppendInfo("Please specify a city design name!");
 		return;
 	}
 
@@ -788,7 +796,7 @@ void CInGame::saveCity(string chatLine) {
 
 	// If the file couldn't be opened, error
 	if (!cityFile) {
-		this->AppendInfo("Unable to open the file \"" + fileName + "\"!", COLOR_SYSTEM);
+		this->AppendInfo("Unable to open the file \"" + fileName + "\"!");
 		return;
 	}
 
@@ -810,7 +818,7 @@ void CInGame::saveCity(string chatLine) {
 
 	// Close the file
 	fclose(cityFile);
-	this->AppendInfo("Saved as: \"" + fileName + "\"!", COLOR_SYSTEM);
+	this->AppendInfo("Saved as: \"" + fileName + "\"!");
 }
 
 /***************************************************************

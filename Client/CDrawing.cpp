@@ -80,8 +80,8 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 25;
 		this->clickOffsetX = 9;
 		this->clickOffsetY = 9;
-		//this->chatBarWidth = 103;
-		this->chatBarWidth = 51;
+		this->chatBarWidth = 103;
+		//this->chatBarWidth = 51;
 	}
 	// 800
 	else {
@@ -97,8 +97,8 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 7;
 		this->clickOffsetX = 7;
 		this->clickOffsetY = 7;
-		//this->chatBarWidth = 75;
-		this->chatBarWidth = 37;
+		this->chatBarWidth = 75;
+		//this->chatBarWidth = 37;
 	}
 
 	arrowTick = 0;
@@ -221,13 +221,13 @@ void CDrawing::DrawPanel() {
 	}
 
 	// Display Panel-Text lines 1 through 7
-	p->DDraw->DTextOut(MaxMapX + 12, 465, PanelLine1, COLOR_WHITE);
-	p->DDraw->DTextOut(MaxMapX + 12, 480, PanelLine2, COLOR_WHITE);
-	p->DDraw->DTextOut(MaxMapX + 12, 495, PanelLine3, COLOR_WHITE);
-	p->DDraw->DTextOut(MaxMapX + 12, 510, PanelLine4, COLOR_WHITE);
-	p->DDraw->DTextOut(MaxMapX + 12, 525, PanelLine5, COLOR_WHITE);
-	p->DDraw->DTextOut(MaxMapX + 12, 540, PanelLine6, COLOR_WHITE);
-	p->DDraw->DTextOut(MaxMapX + 12, 555, PanelLine7, COLOR_WHITE);
+	p->DDraw->DTextOut(MaxMapX + 12, 465, PanelLine1, COLOR_PANEL_HEAD);
+	p->DDraw->DTextOut(MaxMapX + 12, 480, PanelLine2, COLOR_PANEL_BODY);
+	p->DDraw->DTextOut(MaxMapX + 12, 495, PanelLine3, COLOR_PANEL_BODY);
+	p->DDraw->DTextOut(MaxMapX + 12, 510, PanelLine4, COLOR_PANEL_BODY);
+	p->DDraw->DTextOut(MaxMapX + 12, 525, PanelLine5, COLOR_PANEL_BODY);
+	p->DDraw->DTextOut(MaxMapX + 12, 540, PanelLine6, COLOR_PANEL_BODY);
+	p->DDraw->DTextOut(MaxMapX + 12, 555, PanelLine7, COLOR_PANEL_BODY);
 }
 
 /***************************************************************
@@ -734,59 +734,46 @@ void CDrawing::DrawItems() {
  *
  **************************************************************/
 void CDrawing::DrawChat() {
-	int X = MaxMapX / 2;
-	int Y = MaxMapY - 126;
+	int Y;
+
+	// Draw info lines
+	Y = 0;
+	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine1, p->InGame->playerInfoColor1);
+	Y += 14;
+	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine2, p->InGame->playerInfoColor2);
+	Y += 14;
+	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine3, p->InGame->playerInfoColor3);
+	Y += 14;
+	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine4, p->InGame->playerInfoColor4);
 
 	// If mouse is over chat,
-	if (p->Input->MouseOverChat || p->Input->MouseOverInfo) {
-		
-		// Draw 1px black line
-		p->DDraw->DFillRect(0, Y-1, MaxMapX, 1);
-
-		// Fill text area with imgLoading
-		for (int i=0; i<MaxMapX; i=i+48) {
-			for (int j=Y; j<MaxMapY; j=j+48) {
-				p->DDraw->Draw(p->DDraw->imgLoading, i, j, 48, 48, 0, 0, MaxMapX, MaxMapY);
-			}
-		}
-		//p->DDraw->DFillRect(0, Y, X, 126);
+	Y = MaxMapY - 126;
+	if (p->Input->MouseOverChat) {
+		p->DDraw->DFillRect(0, Y, MaxMapX, 126);
 	}
 
+	// Draw chat lines
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine1, p->InGame->chatColor1);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine1, p->InGame->infoColor1);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine2, p->InGame->chatColor2);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine2, p->InGame->infoColor2);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine3, p->InGame->chatColor3);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine3, p->InGame->infoColor3);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine4, p->InGame->chatColor4);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine4, p->InGame->infoColor4);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine5, p->InGame->chatColor5);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine5, p->InGame->infoColor5);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine6, p->InGame->chatColor6);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine6, p->InGame->infoColor6);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine7, p->InGame->chatColor7);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine7, p->InGame->infoColor7);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine8, p->InGame->chatColor8);
-	p->DDraw->DTextOut(X, Y, p->InGame->infoLine8, p->InGame->infoColor8);
 	Y += 14;
 
 	// If chatting, fill just the chat bar with black
 	if (p->InGame->IsChatting == 1) {
 		p->DDraw->DFillRect(0, Y, MaxMapX, 14);
 		p->DDraw->DTextOut(0, Y, p->InGame->ChatLine, COLOR_YELLOW);
-	}
-
-	// If newbie tips are on, fill the top of the screen with black
-	if (p->Options->newbietips == 1) {
-		p->DDraw->DFillRect(0, 0, MaxMapX, 15);
-		p->DDraw->DTextOut(0, 0, p->InGame->NewbieTip, COLOR_YELLOW);
 	}
 }
 

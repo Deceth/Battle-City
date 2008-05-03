@@ -156,17 +156,17 @@ void CSend::SendWhisper() {
 	// Else if the recipient name was too long,
 	else if (recipientTooLong) {
 		tmpString = "Player not found: try adding more letters to the name!";
-		p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
+		p->InGame->AppendInfo(tmpString);
 	}
 	// Else if the message was too long, (note that this is impossible because the client cuts messages shorter than this)
 	else if (messageTooLong) {
 		tmpString = "tl;dr";
-		p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
+		p->InGame->AppendInfo(tmpString);
 	}
 	// Else, recipient wasn't found,
 	else {
 		tmpString = "Player not found: " + recipientName;
-		p->InGame->AppendInfo(tmpString, COLOR_SYSTEM);
+		p->InGame->AppendInfo(tmpString);
 	}
 }
 

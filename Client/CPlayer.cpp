@@ -151,7 +151,7 @@ void CPlayer::Cycle() {
 			if (isMoving && (p->InGame->HasSector[HasSectorX][HasSectorY] == 1 || id != p->Winsock->MyIndex)) {
 
 				// Reverse order since trig goes counter-clockwise and bc isTurning goes clockwise
-				fDir = (float)-Direction + 32; 
+				fDir = (float)-this->Direction + 32; 
 				
 				// Update the player's X position
 				velX = (float)((sin((float)(fDir)/16*3.14)*isMoving)) * (p->TimePassed * MoveFactor); //calculate their speed
@@ -285,7 +285,7 @@ void CPlayer::Cycle() {
 					// Collision: BLOCKING
 					case 2:
 						// Relocate the player up to 1000 times
-						p->Player[id]->RelocatePlayer();
+						this->p->Player[id]->RelocatePlayer();
 						break;
 				}
 			}

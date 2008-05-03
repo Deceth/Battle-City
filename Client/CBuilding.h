@@ -28,9 +28,17 @@ class CBuilding {
 
 		CBuilding(unsigned short X, unsigned short Y, int Type, unsigned char City, unsigned short id, CGame *Game);
 		~CBuilding();
+
 		bool isCC();
 		static bool isCC(int buildingType);
-
+		bool isFactory();
+		static bool isFactory(int buildingType);
+		bool isHospital();
+		static bool isHospital(int buildingType);
+		bool isHouse();
+		static bool isHouse(int buildingType);
+		bool isResearch();
+		static bool isResearch(int buildingType);
 };
 
 class CBuildingList {

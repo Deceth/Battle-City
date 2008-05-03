@@ -72,22 +72,14 @@ class CInGame {
 		COLORREF chatColor7;
 		COLORREF chatColor8;
 
-		string infoLine1;
-		string infoLine2;
-		string infoLine3;
-		string infoLine4;
-		string infoLine5;
-		string infoLine6;
-		string infoLine7;
-		string infoLine8;
-		COLORREF infoColor1;
-		COLORREF infoColor2;
-		COLORREF infoColor3;
-		COLORREF infoColor4;
-		COLORREF infoColor5;
-		COLORREF infoColor6;
-		COLORREF infoColor7;
-		COLORREF infoColor8;
+		string playerInfoLine1;
+		string playerInfoLine2;
+		string playerInfoLine3;
+		string playerInfoLine4;
+		COLORREF playerInfoColor1;
+		COLORREF playerInfoColor2;
+		COLORREF playerInfoColor3;
+		COLORREF playerInfoColor4;
 
 		string NewbieTip;
 
@@ -96,9 +88,13 @@ class CInGame {
 
 		string ReturnRank(int Points);
 		void AppendChat(string ChatText, COLORREF Color);
-		void AppendLine(string ChatText, COLORREF Color);
-		void AppendInfo(string infoText, COLORREF color);
-		void AppendInfoLine(string infoText, COLORREF color);
+		void AppendChatLine(string ChatText, COLORREF Color);
+		void AppendInfo(string infoText);
+
+		void setPlayerInfo(string infoText);
+		void setPlayerInfo(string infoText, int lineIndex);
+		void setPlayerInfoLine(string infoText, int lineIndex, COLORREF color);
+
 		void RefreshArea();
 		void ClearSector(int SectorX, int SectorY);
 		void PrintWhoData();

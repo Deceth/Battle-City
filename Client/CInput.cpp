@@ -335,7 +335,7 @@ void CInput::ProcessKeys(char buffer[256]) {
 				/* Commented out while testing ability to always have laser
 				// Weapon: NONE (and Newbie Tips are on)
 				else if (p->Options->newbietips == 1) {
-					p->InGame->NewbieTip = "You cannot fire until you pick up a Laser or Cougar Missle.";
+					this->p->InGame->AppendInfo("Newbie Tip: You cannot fire until you pick up a Laser or Cougar Missle.");
 				}*/
 			}
 		}
@@ -351,8 +351,9 @@ void CInput::ProcessKeys(char buffer[256]) {
  * @param buffer
  **************************************************************/
 void CInput::MouseMove(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256]) {
-	int halfScreen = this->p->Draw->MaxMapX / 2;
+	int a = this->p->Draw->MaxMapX;
 	int chatTop = this->p->Draw->MaxMapY - 126;
+	int infoBottom = 56;
 
 	X -= this->p->DDraw->XOff;
 	Y -= this->p->DDraw->YOff;
@@ -366,14 +367,14 @@ void CInput::MouseMove(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 		this->LastMouseY = 0;
 	}
 
-	if ((X < halfScreen) && (Y > chatTop)) {
+	if ((X < this->p->Draw->MaxMapX) && (Y > chatTop)) {
 		this->MouseOverChat = 1;
 	}
 	else {
 		this->MouseOverChat = 0;
 	}
 
-	if ((X > halfScreen) && (X < this->p->Draw->MaxMapX) && (Y > chatTop)) {
+	if ((X < this->p->Draw->MaxMapX) && (Y < infoBottom)) {
 		this->MouseOverInfo = 1;
 	}
 	else {
@@ -513,26 +514,6 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 
 							// Set IsBuilding to the type of building the player clicked
 							p->InGame->IsBuilding = j+1;
-
-							// If newbie tips are on,
-							if (p->Options->newbietips == 1) {
-								// Building: HOSPITAL
-								if (p->InGame->IsBuilding == 1) {
-									p->InGame->NewbieTip = "Stand on a hospital to restore your health! Hospitals are expensive to maintain so if you are running low on money, demolish it.";
-								}
-								// Building: HOUSE
-								else if (p->InGame->IsBuilding == 2) {
-									p->InGame->NewbieTip = "Houses are required for your city population. For every 2 non-housing buildings you construct, you will need 1 house.";
-								}
-								// Building: RESEARCH
-								else if (p->InGame->IsBuilding % 2) {
-									 p->InGame->NewbieTip = "After research is complete, you will be able to build a factory which will produce that item.";
-								}
-								// Building: FACTORY
-								else {
-									 p->InGame->NewbieTip = "Factories produce items. Press 'u' while on top of the item to pick it up. Press 'd' to drop the item.";
-								}
-							}
 
 							// Save the mouse state and return
 							this->endMouseDown(mouse_state);
@@ -770,7 +751,26 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 
 					// If there is a building under the cursor,
 					if (TestBuilding) {
-						
+
+						// If newbie tips are on, show a tip for the building
+						if (this->p->Options->newbietips) {
+							if (TestBuilding->isCC()) {
+								this->p->InGame->AppendInfo(NEWBIE_TIP_CC);
+							}
+							else if (TestBuilding->isHouse()) {
+								this->p->InGame->AppendInfo(NEWBIE_TIP_HOUSE);
+							}
+							else if (TestBuilding->isResearch()) {
+								this->p->InGame->AppendInfo(NEWBIE_TIP_RESEARCH);
+							}
+							else if (TestBuilding->isFactory()) {
+								this->p->InGame->AppendInfo(NEWBIE_TIP_FACTORY);
+							}
+							else if (TestBuilding->isHospital()) {
+								this->p->InGame->AppendInfo(NEWBIE_TIP_HOSPITAL);
+							}
+						}
+
 						// Ask the server for the building's city's data
 						char packet[2];
 						packet[0] = TestBuilding->City;
@@ -936,28 +936,10 @@ void CInput::InfoButton() {
  *
  **************************************************************/
 void CInput::PointsButton() {
-	std::string PointString;
-	std::ostringstream thing;
-	PointString = "Points: ";
-	thing << p->Player[p->Winsock->MyIndex]->Points;
-	PointString += thing.str();
-	thing.str("");
-	PointString += "   Orbs: ";
-	thing << p->Player[p->Winsock->MyIndex]->Orbs;
-	PointString += thing.str();
-	thing.str("");
-	PointString += "   Assists: ";
-	thing << p->Player[p->Winsock->MyIndex]->Assists;
-	PointString += thing.str();
-	thing.str("");
-	PointString += "   Deaths: ";
-	thing << p->Player[p->Winsock->MyIndex]->Deaths;
-	PointString += thing.str();
-	thing.str("");
-	PointString += "   Points this month: ";
-	thing << p->Player[p->Winsock->MyIndex]->MonthlyPoints;
-	PointString += thing.str();
-	this->p->InGame->AppendInfo(PointString.c_str(), COLOR_SYSTEM);
+	char packet[2];
+	packet[0] = this->p->Winsock->MyIndex;
+	packet[1] = 0;
+	this->p->Winsock->SendData(cmClickPlayer, packet, 1);
 }
 
 /***************************************************************
