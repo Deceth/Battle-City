@@ -37,7 +37,7 @@ CGame::CGame() {
 	Timer = new CTime();
 
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		Player[i] = new CPlayer(this, i);
+		this->Player[i] = new CPlayer(this, i);
 	}
 
 	timeBeginPeriod(1);

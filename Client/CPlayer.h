@@ -78,7 +78,7 @@ class CPlayer {
 		int getTileX();
 		int getTileY();
 
-		CPlayer(CGame *game, int initid);
+		CPlayer(CGame *game, int id);
 		virtual ~CPlayer();
 
 	private:

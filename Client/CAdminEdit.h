@@ -43,7 +43,8 @@ public:
 	unsigned char red;
 	unsigned char green;
 	unsigned char blue;
-	char rentalcity;
+	int rentalcity;
+
 private:
 	CGame *p;
 protected:

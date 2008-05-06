@@ -335,6 +335,11 @@ int CProcess::ProcessData(char *TheData) {
 			this->ProcessAutoBuild((sSMAutoBuild*)&TheData[1]);
 			break;
 
+		// Packet: smNowOrbable
+		case smNowOrbable:
+			this->ProcessNowOrbable();
+			break;
+
 		// Packet: unknown!
 		default:
 			std::ostringstream thing;
@@ -355,11 +360,14 @@ int CProcess::ProcessData(char *TheData) {
  * @param playerType
  **************************************************************/
 void CProcess::ProcessLogin(unsigned char Index, unsigned char playerType) {
-	this->p->Player[Index]->ClearPlayer();
+	CPlayer* player = this->p->Player[Index];
+
 	this->p->Winsock->MyIndex = Index;
-	this->p->Player[Index]->playerType = playerType;
-	this->p->Player[Index]->Name.clear();
-	this->p->Player[Index]->Name = this->p->Login->user;
+
+	player->ClearPlayer();
+	player->playerType = playerType;
+	player->Name.clear();
+	player->Name = this->p->Login->user;
 	this->p->Meeting->ShowMeetingDlg();
 }
 
@@ -373,6 +381,7 @@ void CProcess::ProcessClearPlayer(unsigned char Index) {
 	if (this->p->Admin->IsOpen) {
 		this->p->Admin->DrawPlayerList();
 	}
+	this->p->InGame->PrintWhoData();
 }
 
 /***************************************************************
@@ -492,13 +501,23 @@ void CProcess::ProcessChatCommand(int Index, int message) {
 		tmpString = this->p->Player[Index]->Name;
 		switch(message) {
 			case 65: //Message A
-				{this->p->Meeting->AddPlayer(Index); break;}
+				this->p->Meeting->AddPlayer(Index);
+				this->p->InGame->PrintWhoData();
+				break;
 			case 66: //Message B
 			case 67: //Message C 
 			case 68: //Message D
-				{this->p->Meeting->ClearPlayer(Index); break;}
+				this->p->Meeting->ClearPlayer(Index);
+				this->p->InGame->PrintWhoData();
+				break;
 			case 69: //Message E
-				{tmpString.append(" has left"); this->p->Player[Index]->InGameClear(); if (this->p->Admin->IsOpen) this->p->Admin->DrawPlayerList(); break;}
+				tmpString.append(" has left");
+				this->p->Player[Index]->InGameClear();
+				this->p->InGame->PrintWhoData();
+				if (this->p->Admin->IsOpen) {
+					this->p->Admin->DrawPlayerList();
+				}
+				break;
 		}
 		switch(this->p->State) {
 			case STATE_GAME:
@@ -592,13 +611,15 @@ void CProcess::ProcessNewBuilding(sSMBuild *data, int sound) {
  * @param data
  **************************************************************/
 void CProcess::ProcessUpdate(sSMUpdate *data) {
-	this->p->Player[data->id]->isDead = false;
-	this->p->Player[data->id]->Y = data->y;
-	this->p->Player[data->id]->X = data->x;
-	this->p->Player[data->id]->isMoving = data->move - 1;
-	this->p->Player[data->id]->isTurning = data->turn - 1;
-	this->p->Player[data->id]->Direction = data->dir;
-	this->p->Player[data->id]->lastUpdate = this->p->Tick;
+	CPlayer* player = this->p->Player[data->id];
+
+	player->isDead = false;
+	player->Y = data->y;
+	player->X = data->x;
+	player->isMoving = data->move - 1;
+	player->isTurning = data->turn - 1;
+	player->Direction = data->dir;
+	player->lastUpdate = this->p->Tick;
 }
 
 /***************************************************************
@@ -606,22 +627,23 @@ void CProcess::ProcessUpdate(sSMUpdate *data) {
  *
  * @param player
  **************************************************************/
-void CProcess::ProcessPlayerData(sSMPlayer *player) {
-	int i = player->Index;
-	this->p->Player[i]->playerType = player->playerType;
-	this->p->Player[i]->Red = player->Red;
-	this->p->Player[i]->Green = player->Green;
-	this->p->Player[i]->Blue = player->Blue;
-	this->p->Player[i]->Member = player->Member;
-	this->p->Player[i]->Tank = player->Tank;
+void CProcess::ProcessPlayerData(sSMPlayer *playerPacket) {
+	CPlayer* player = this->p->Player[playerPacket->Index];
 
-	if (player->Red == 255 && player->Green == 255 && player->Blue == 255) {
-		this->p->Player[i]->RainbowName = true;
+	player->playerType = playerPacket->playerType;
+	player->Red = playerPacket->Red;
+	player->Green = playerPacket->Green;
+	player->Blue = playerPacket->Blue;
+	player->Member = playerPacket->Member;
+	player->Tank = playerPacket->Tank;
+
+	if (playerPacket->Red == 255 && playerPacket->Green == 255 && playerPacket->Blue == 255) {
+		player->RainbowName = true;
 	}
 	
-	this->p->Player[i]->Name = player->Name;
-	this->p->Player[i]->Town = player->Town;
-	this->p->Player[i]->GenerateNameString();
+	player->Name = playerPacket->Name;
+	player->Town = playerPacket->Town;
+	player->GenerateNameString();
 }
 
 /***************************************************************
@@ -767,18 +789,20 @@ void CProcess::ProcessItemCount(sSMItemCount *count) {
  **************************************************************/
 void CProcess::ProcessJoinData(sSMJoinData *join) {
 	string tmpString;
-	int i = join->id;
-	this->p->Player[i]->City = join->City;
-	this->p->Player[i]->isInGame = 1;
-	this->p->Player[i]->X = 0;
-	this->p->Player[i]->Y = 0;
-	this->p->Player[i]->setMayor(join->Mayor != 0);
-	this->p->Player[i]->GenerateNameString();
+	CPlayer* player = this->p->Player[join->id];
 
-	if (this->p->Player[i]->Name.length() > 0 && this->p->State == STATE_GAME) {
-		tmpString = this->p->Player[i]->Name + " has just joined";
+	player->City = join->City;
+	player->isInGame = 1;
+	player->X = 0;
+	player->Y = 0;
+	player->setMayor(join->Mayor != 0);
+	player->GenerateNameString();
+
+	if (player->Name.length() > 0 && this->p->State == STATE_GAME) {
+		tmpString = player->Name + " has just joined";
 		this->p->InGame->AppendChat(tmpString, COLOR_SYSTEM);
 	}
+
 	if (this->p->Admin->IsOpen) {
 		this->p->Admin->DrawPlayerList();
 	}
@@ -1768,5 +1792,16 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 			// Create the building
 			this->p->InGame->createBuilding(buildingInfo[0], buildingInfo[1], buildingInfo[2], true);
 		}
+	}
+}
+
+/***************************************************************
+ * Function:	ProcessNowOrbable
+ *
+ **************************************************************/
+void CProcess::ProcessNowOrbable() {
+	
+	if (this->p->Options->newbietips) {
+		this->p->InGame->AppendInfo(NEWBIE_TIP_ORBABLE);
 	}
 }

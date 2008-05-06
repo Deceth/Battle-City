@@ -1,15 +1,29 @@
 #include "CPlayer.h"
 
-CPlayer::CPlayer(CGame *game, int initid) {
+/***************************************************************
+ * Constructor:	CPlayer
+ *
+ **************************************************************/
+CPlayer::CPlayer(CGame *game, int id) {
 	this->p = game;
-	this->id = initid;
+
 	this->ClearPlayer();
+
+	this->id = id;
 }
 
+/***************************************************************
+ * Destructor:	CPlayer
+ *
+ **************************************************************/
 CPlayer::~CPlayer() {
 
 }
 
+/***************************************************************
+ * Function:	ClearPlayer
+ *
+ **************************************************************/
 void CPlayer::ClearPlayer() {
 	this->playerType = 1;
 	this->Points = 0;
@@ -26,6 +40,10 @@ void CPlayer::ClearPlayer() {
 	this->InGameClear();
 }
 
+/***************************************************************
+ * Function:	InGameClear
+ *
+ **************************************************************/
 void CPlayer::InGameClear() {
 	this->isMoving = 0;
 	this->isDead = false;
@@ -53,6 +71,10 @@ void CPlayer::InGameClear() {
 	this->lastUpdate = 0;
 }
 
+/***************************************************************
+ * Function:	Cycle
+ *
+ **************************************************************/
 void CPlayer::Cycle() {
 	float MoveFactor;
 	int me = p->Winsock->MyIndex;
@@ -302,6 +324,10 @@ void CPlayer::Cycle() {
 	}
 }
 
+/***************************************************************
+ * Function:	RelocatePlayer
+ *
+ **************************************************************/
 void CPlayer::RelocatePlayer() {
 	float fDir = 0;
 	int tempdir = 0;
@@ -462,12 +488,20 @@ void CPlayer::RelocatePlayer() {
 	}
 }
 
+/***************************************************************
+ * Function:	SetHP
+ *
+ **************************************************************/
 void CPlayer::SetHP(int HP) {
 	this->HP = HP;
 	this->refHP1 = (HP^2-31)*2;
 	this->refHP2 = -(HP);
 }
 
+/***************************************************************
+ * Function:	HitMine
+ *
+ **************************************************************/
 void CPlayer::HitMine() {
 	CItem *item;
 	sCMItem itemPacket;
@@ -524,6 +558,10 @@ void CPlayer::HitMine() {
 	}
 }
 
+/***************************************************************
+ * Function:	HitDFG
+ *
+ **************************************************************/
 void CPlayer::HitDFG() {
 	CItem *item;
 
