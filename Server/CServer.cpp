@@ -26,12 +26,12 @@ CServer::CServer() {
 
 	// For each possible player, create player objects
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		Player[i] = new CPlayer(this);
+		this->Player[i] = new CPlayer(this, i);
 	}
 
 	// For each possible city, create city objects
 	for (int i = 0; i < MAX_CITIES; i++) {
-		City[i] = new CCity(this);
+		this->City[i] = new CCity(this, i);
 	}
 }
 
@@ -114,7 +114,7 @@ void CServer::Init() {
 int CServer::FreePlayer() {
 
 	// For each possible player,
-	for (int i = 1; i < MAX_PLAYERS; i++) {
+	for (int i = 0; i < MAX_PLAYERS; i++) {
 
 		// If no player is connected in that slot,
 		if (Player[i]->State == State_Disconnected) {
@@ -277,33 +277,84 @@ void CServer::ChangeNews(string NewNews) {
 void CServer::respawnPlayers() {
 	sSMStateGame game;
 	char respawnPacket[2];
+	CPlayer* player;
+	CCity* city;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->Player[i];
 
 		// If the player is in game,
-		if (this->Player[i]->isInGame()) {
+		if (player->isInGame()) {
 
 			// If the player is dead, and the Respawn timer is up,
-			if ((this->Player[i]->isDead == true) && ((this->Tick - this->Player[i]->timeDeath) > TIMER_RESPAWN)) {
+			if ((player->isDead == true) && ((this->Tick - player->timeDeath) > TIMER_RESPAWN)) {
+				city = this->City[player->City];
 
 				// Move the player
-				this->Player[i]->lastMove = this->Tick;
-				this->Player[i]->X = (float)this->City[this->Player[i]->City]->x;
-				this->Player[i]->Y = (float)this->City[this->Player[i]->City]->y;
+				player->lastMove = this->Tick;
+				player->X = (float)city->x;
+				player->Y = (float)city->y;
 
 				// Tell everyone the player moved
-				game.City = this->Player[i]->City;
-				game.x = (unsigned short)this->City[this->Player[i]->City]->x;
-				game.y = (unsigned short)this->City[this->Player[i]->City]->y;
+				game.City = player->City;
+				game.x = (unsigned short)city->x;
+				game.y = (unsigned short)city->y;
 				this->Winsock->SendData(i, smWarp,(char *)&game,sizeof(game));
 
 				// Respawn the player
-				this->Player[i]->isDead = false;
+				player->isDead = false;
 				respawnPacket[0] = i;
 				respawnPacket[1] = 0;
 				this->Send->SendAllBut(-1, smRespawn, respawnPacket, 1);
 			}
 		}
+	}
+}
+
+/***************************************************************
+ * Function:	reset
+ *
+ **************************************************************/
+void CServer::reset() {
+
+	// If any player is connected, return
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		if (this->Player[i]->isConnected()) {
+			return;
+		}
+	}
+
+	cout << "CServer::reset()" << endl;
+
+	// Restart the timer
+	cout << " - Restarting Timer" << endl;
+	this->Timer->Initialize();
+
+	// Rebuild the Build list
+	cout << " - Rebuilding building list" << endl;
+	delete this->Build;
+	this->Build = new CBuildingList(this);
+
+	// Rebuild the Item list
+	cout << " - Rebuilding item list" << endl;
+	delete this->Item;
+	Item = new CItemList(this);
+
+	// Rebuild the Bullet list
+	cout << " - Rebuilding bullet list" << endl;
+	delete this->Bullet;
+	Bullet = new CBulletList(this);
+
+	// Reset each possible city (must happen after destroying buildings list)
+	cout << " - Clearing cities" << endl;
+	for (int i = 0; i < MAX_CITIES; i++) {
+		this->City[i]->resetToDefault();
+	}
+
+	// Reset each possible player
+	cout << " - Clearing players" << endl;
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		this->Player[i]->Clear(false);
 	}
 }

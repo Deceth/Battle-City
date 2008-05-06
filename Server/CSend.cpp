@@ -149,15 +149,18 @@ void CSend::SendMeetingRoom(unsigned char Index) {
  * @param len
  **************************************************************/
 void CSend::SendRadarAndTeam(int Index, unsigned char PacketID, char *TheData, int len) {
+	CPlayer* playerMe = this->p->Player[Index];
+	CPlayer* playerToCompare;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		playerToCompare = this->p->Player[i];
 
 		// If the player is in game, and not the sender,
-		if (p->Player[i]->isInGame() && (i != Index)) {
+		if (playerToCompare->isInGame() && (i != Index)) {
 
 			// If the player is on the radar, or on the sender's team,
-			if (((abs(int(p->Player[i]->X - p->Player[Index]->X)) < RadarSize) && (abs(int(p->Player[i]->Y - p->Player[Index]->Y)) < RadarSize)) || p->Player[i]->City == p->Player[Index]->City) {
+			if (((abs(int(playerToCompare->X - playerMe->X)) < RadarSize) && (abs(int(playerToCompare->Y - playerMe->Y)) < RadarSize)) || playerToCompare->City == playerMe->City) {
 
 				// Send the data
 				p->Winsock->SendData(i, PacketID, TheData, len);
@@ -176,15 +179,17 @@ void CSend::SendRadarAndTeam(int Index, unsigned char PacketID, char *TheData, i
  * @param len
  **************************************************************/
 void CSend::SendRadar(int x, int y, unsigned char PacketID, char *TheData, int len) {
+	CPlayer* player;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If the player is in game, 
-		if (p->Player[i]->State == State_Game) {
+		if (player->State == State_Game) {
 
 			// If the player is on the radar, or on the sender's team,
-			if ((abs(int(p->Player[i]->X - x)) < RadarSize) && (abs(int(p->Player[i]->Y - y)) < RadarSize)) {
+			if ((abs(int(player->X - x)) < RadarSize) && (abs(int(player->Y - y)) < RadarSize)) {
 
 				// Send the data
 				p->Winsock->SendData(i, PacketID, TheData, len);
@@ -202,12 +207,14 @@ void CSend::SendRadar(int x, int y, unsigned char PacketID, char *TheData, int l
  * @param len
  **************************************************************/
 void CSend::SendTeam(int city, unsigned char PacketID, char *TheData, int len) {
+	CPlayer* player;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If the player is in game, and is in the target city,
-		if (p->Player[i]->isInGame() && (p->Player[i]->City == city)) {
+		if (player->isInGame() && (player->City == city)) {
 
 			// Send the data
 			p->Winsock->SendData(i, PacketID, TheData, len);
@@ -222,15 +229,18 @@ void CSend::SendTeam(int city, unsigned char PacketID, char *TheData, int len) {
  **************************************************************/
 void CSend::SendCityList(int Index) {
 	char packet[3];
+	CPlayer* player = this->p->Player[Index];
+	CCity* rentalCity;
 	
 	// If the player has a rental city,
-	if (this->p->Player[Index]->RentalCity > 0) {
-
+	if (player->RentalCity > -1) {
+		rentalCity = this->p->City[player->RentalCity];
+	
 		// Send the rental city
 		memset(packet, 0, 3);
-		packet[0] = this->p->Player[Index]->RentalCity;
-		packet[1] = this->p->City[p->Player[Index]->RentalCity]->Mayor;
-		packet[2] = this->p->City[p->Player[Index]->RentalCity]->PlayerCount();
+		packet[0] = player->RentalCity;
+		packet[1] = rentalCity->Mayor;
+		packet[2] = rentalCity->PlayerCount();
 		this->p->Winsock->SendData(Index,smAddRemCity,packet,2);
 	}
 
@@ -345,34 +355,36 @@ void CSend::SendToChat(char PacketID, char *TheData, int len) {
  * @param Index
  **************************************************************/
 void CSend::SendCurrentPlayers(int Index) {
-	sSMPlayer player;
+	sSMPlayer playerPacket;
 	sSMPoints points;
+	CPlayer* player;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If the player is in game, apply, or chat,
-		if (p->Player[i]->isInGameApplyOrChat()) {	
+		if (player->isInGameApplyOrChat()) {	
 
 			// Send the player data
-			strcpy(player.Name, p->Player[i]->Name.c_str());
-			strcpy(player.Town, p->Player[i]->Town.c_str());
-			player.Index = i;
-			player.playerType = p->Player[i]->playerType;
-			player.Red = p->Player[i]->Red;
-			player.Green = p->Player[i]->Green;
-			player.Blue = p->Player[i]->Blue;
-			player.Member = p->Player[i]->Member;
-			player.Tank = p->Player[i]->displayTank;
-			p->Winsock->SendData(Index, smPlayerData, (char *)&player, sizeof(player));
+			strcpy(playerPacket.Name, player->Name.c_str());
+			strcpy(playerPacket.Town, player->Town.c_str());
+			playerPacket.Index = i;
+			playerPacket.playerType = player->playerType;
+			playerPacket.Red = player->Red;
+			playerPacket.Green = player->Green;
+			playerPacket.Blue = player->Blue;
+			playerPacket.Member = player->Member;
+			playerPacket.Tank = player->displayTank;
+			p->Winsock->SendData(Index, smPlayerData, (char *)&playerPacket, sizeof(playerPacket));
 
 			// Send the points data
 			points.Index = i;
-			points.Points = p->Player[i]->Points;
-			points.Deaths = p->Player[i]->Deaths;
-			points.Assists = p->Player[i]->Assists;
-			points.Orbs = p->Player[i]->Orbs;
-			points.MonthlyPoints = p->Player[i]->MonthlyPoints;
+			points.Points = player->Points;
+			points.Deaths = player->Deaths;
+			points.Assists = player->Assists;
+			points.Orbs = player->Orbs;
+			points.MonthlyPoints = player->MonthlyPoints;
 			p->Winsock->SendData(Index, smPointsUpdate, (char *)&points, sizeof(points));
 		}
 	}	
@@ -434,20 +446,22 @@ void CSend::SendAdminNews(int Index) {
  **************************************************************/
 void CSend::SendGameData(int Index) {
 	sSMJoinData data;
+	CPlayer* player;
 
 	// ???
 	p->Winsock->SendData(Index, smNextStep, "A");
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If the player is in game, and isn't the sender,
-		if (p->Player[i]->isInGame() && (i != Index)) {	
+		if (player->isInGame() && (i != Index)) {	
 
 			// Send the data to the player
 			data.id = i;
-			data.Mayor = p->Player[i]->Mayor;
-			data.City = p->Player[i]->City;
+			data.Mayor = player->Mayor;
+			data.City = player->City;
 			p->Winsock->SendData(Index, smJoinData, (char *)&data, sizeof(data));
 		}
 	}
@@ -460,26 +474,32 @@ void CSend::SendGameData(int Index) {
  **************************************************************/
 void CSend::SendCommandos(int Index) {
 	char packet[4];
+	CCity* city;
+	int playerCount;
 	memset(packet, 0, 4);
 
 	// For each possible city,
 	for (int j = 0; j < MAX_CITIES; j++) {
+		city = this->p->City[j];
+		playerCount = city->PlayerCount();
 
-		// If the city is hiring, is active, isn't full, and has a mayor,
+		// If the city is hiring, is active, isn't full, isn't empty, and has a mayor,
 		if (
-				(p->City[j]->notHiring == 0)
+				(city->notHiring == 0)
 				&& 
-				(p->City[j]->active)
+				(city->active)
 				&&
-				(p->City[j]->PlayerCount() < MAX_PLAYERS_PER_CITY)
+				(playerCount < MAX_PLAYERS_PER_CITY)
 				&&
-				(p->City[j]->Mayor > -1)
+				(playerCount > 0)
+				&&
+				(city->Mayor > -1)
 			) {
 
 			// Send the city info
 			packet[0] = j;
-			packet[1] = p->City[j]->Mayor;
-			packet[2] = p->City[j]->PlayerCount();
+			packet[1] = city->Mayor;
+			packet[2] = playerCount;
 			p->Winsock->SendData(Index,smAddRemCity,packet,3);
 		}
 	}
@@ -635,15 +655,17 @@ void CSend::SendSector(int Index, int XSector, int YSector) {
 void CSend::SendSectorArea(int x, int y, unsigned char PacketID, char *TheData, int len) {
 	unsigned char SectorX = ((x / 48) / SectorSize);
 	unsigned char SectorY = ((y / 48) / SectorSize);
+	CPlayer* player;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If the player is in game,
-		if (p->Player[i]->isInGame()) {
+		if (player->isInGame()) {
 
 			// If the player is in the sector,
-			if (((int)abs(((p->Player[i]->X / 48) / SectorSize) - SectorX) <= 1) & ((int)abs(((p->Player[i]->Y / 48) / SectorSize) - SectorY) <= 1)) {
+			if (((int)abs(((player->X / 48) / SectorSize) - SectorX) <= 1) & ((int)abs(((player->Y / 48) / SectorSize) - SectorY) <= 1)) {
 
 				// Send the data
 				p->Winsock->SendData(i, PacketID, TheData, len);
@@ -797,7 +819,7 @@ void CSend::SendTheCities(int Index) {
 			}
 
 			// If the targetCity is a valid index and didn't edgewrap,
-			if( (targetCity>0) && (targetCity<MAX_CITIES) && isNeighbor ) {
+			if( (targetCity>-1) && (targetCity<MAX_CITIES) && isNeighbor ) {
 
 				// Open the city at targetCity index
 				if (p->City[targetCity]->Mayor == -1) {

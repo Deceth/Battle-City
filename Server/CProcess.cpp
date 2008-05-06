@@ -283,7 +283,7 @@ void CProcess::ProcessData(char *TheData, int Index) {
 			this->ProcessAutoBuild(Index, (sCMAutoBuild *)&TheData[1]);
 			break;
 
-		// Packet: cmAutoBuild
+		// Packet: cmCheatCheck
 		case cmCheatCheck:
 			this->ProcessCheatCheck(Index, (sCMCheatCheck *)&TheData[1]);
 			break;
@@ -395,8 +395,8 @@ void CProcess::ProcessJobApp(char *TheData, int Index) {
 
 			// Add the player to the city as mayor
 			player->City = (unsigned char)TheData[0];
-			player->setMayor(true);
 			player->StartJoin(); 
+			player->setMayor(true);
 			packet[0] = Index;
 			packet[1] = 68;
 			p->Send->SendToChat(smChatCommand, packet, 2); 
@@ -696,7 +696,6 @@ void CProcess::ProcessVersion(sCMVersion *vers, int Index) {
 		else  {
 			player->UniqID = vers->UniqID;
 			player->State = State_Verified;
-			player->id = Index;
 		}
 	}
 }
@@ -1626,12 +1625,6 @@ void CProcess::ProcessRequestInfo(int Index) {
 
 			// If the city is orbable,
 			if (city->isOrbable()) {
-
-				// ??
-				if (city->x == 0 || city->y == 0) {
-					city->x = (unsigned short)(512*48)-(32+(i % 8*MAX_CITIES)) * 48;
-					city->y = (unsigned short)(512*48)-(32+(i / 8*MAX_CITIES)) * 48; 
-				}
 
 				// Get the city's orb value and distance from the player's city
 				orbValue = city->getOrbValue();

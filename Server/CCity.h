@@ -9,10 +9,12 @@ class CBuildingList;
 class CCity {
 
 	public:
-		CCity(CServer *Server);
+		CCity(CServer *Server, int id);
 		~CCity();
 
 		float DestructTimer;
+		float moneyTick;
+		float cityVerificationTick;
 
 		int Mayor;
 		int Successor;
@@ -32,8 +34,6 @@ class CCity {
 		long itemproduction;
 		long hospital;
 		long income;
-
-		float moneyCycle;
 		int itemC[12];
 
 		float research[20]; // -1 == complete, 0 == unbuilt, > 0 == tick research will complete
@@ -43,6 +43,8 @@ class CCity {
 		int y;
 
 		void cycle();
+		void resetTimers();
+
 		void setCanBuild(int i, int can, bool allowReset);
 		void resetToDefault();
 		void destroy();

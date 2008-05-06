@@ -76,8 +76,9 @@ void CMap::CalculateTiles() {
 			if (this->map[i][j] == 3) {
 
 				// Place the CC
-				p->City[citIndex]->x = i * 48;
-				p->City[citIndex]->y = j * 48;
+				p->City[citIndex]->x = ((512*48) - (32+(citIndex % 8*64) + 1) * 48);
+				p->City[citIndex]->y = ((512*48) - (32+(citIndex / 8*64) + 1) * 48); 
+
 				p->Build->newBuilding(i, j, 0, -1, 0);
 				citIndex--;
 			}

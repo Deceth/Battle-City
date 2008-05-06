@@ -43,7 +43,6 @@ class CBuilding {
 		static bool isHouse(int buildingType);
 		bool isResearch();
 		static bool isResearch(int buildingType);
-
 };
 
 class CBuildingList {

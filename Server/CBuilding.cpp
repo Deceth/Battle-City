@@ -166,7 +166,6 @@ bool CBuilding::isResearch(int buildingType) {
 
 
 
-
 /***************************************************************
  * Constructor:	CBuildingList
  *

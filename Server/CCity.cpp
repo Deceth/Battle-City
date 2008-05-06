@@ -4,8 +4,9 @@
  * Constructor
  *
  **************************************************************/
-CCity::CCity(CServer *Server) {
+CCity::CCity(CServer *Server, int id) {
 	this->p = Server;
+	this->id = id;
 
 	this->resetToDefault();
 }
@@ -27,17 +28,13 @@ void CCity::resetToDefault() {
 	// Reset active to 1
 	this->active = 1;
 
-	// Remove all the buildings
-	this->p->Build->deleteBuildingsByCity(this->id);
-
 	// Reset the mayor, stats, hiring info, etc.  
 	// Note that maxBuildingCount starts at 1 for CC.
 	this->Mayor = -1;
 	this->Successor = -1;
 	this->Orbs = 0;
 	this->currentBuildingCount = 1;
-	this->startTime= 0;
-	this->hiring = -1;
+	this->startTime = 0;
 	this->notHiring = 0;
 	this->maxBuildingCount = 1;
 	this->hadBombFactory = false;
@@ -47,6 +44,7 @@ void CCity::resetToDefault() {
 	if (hiring > -1) {
 		p->Winsock->SendData(hiring, smMayorChanged, " ");
 	}
+	this->hiring = -1;
 
 	// Reset the build tree
 	for (int i = 0; i <= 26; i++) {
@@ -68,11 +66,16 @@ void CCity::resetToDefault() {
 	this->cashresearch = 0;
 	this->hospital = 0;
 
-	// Reset the destruct timer to 0
+	// Reset timers to 0
 	this->DestructTimer = 0;
+	this->moneyTick = 0;
+	this->cityVerificationTick = 0;
 
 	// Destroy all the city's items
 	this->p->Item->deleteItemsByCity(this->id);
+
+	// Destroy all the city's buildings
+	this->p->Build->deleteBuildingsByCity(this->id);
 
 	// Reset all research to not-finished
 	for (int i = 0; i < 20; i++) {
@@ -153,7 +156,7 @@ void CCity::setCanBuild(int i, int can, bool allowReset) {
 void CCity::cycle() {
 	int random_int;
 	sSMFinance finance;
-
+	
 	// If the city has no mayor,
 	if (this->Mayor == -1) {
 		
@@ -165,19 +168,18 @@ void CCity::cycle() {
 				this->destroy();
 			}
 		}
+		
+		// If the destruct timer is set,
+		else {
+			
+		}
 
 		// If no mayor, return
 		return;
 	}
 
-	// ???
-	if (this->x == 0 || this->y == 0) {
-		this->x = (unsigned short)(512*48)-(32+(id % 8*MAX_CITIES)) * 48;
-		this->y = (unsigned short)(512*48)-(32+(id / 8*MAX_CITIES)) * 48; 
-	}
-	
 	// if the Money timer is up,
-	if (this->p->Tick > this->moneyCycle) {
+	if (this->p->Tick > this->moneyTick) {
 
 		// Cap money at MONEY_MAX_VALUE
 		if (this->cash > MONEY_MAX_VALUE) {
@@ -195,7 +197,7 @@ void CCity::cycle() {
 		}
 
 		// Reset the money timer
-		this->moneyCycle = this->p->Tick + 7000;
+		this->moneyTick = this->p->Tick + 7000;
 		
 		finance.Cash = this->cash;
 		finance.Income = this->income;
@@ -208,6 +210,29 @@ void CCity::cycle() {
 		this->itemproduction = 0;
 		this->cashresearch = 0;
 		this->hospital = 0;
+	}
+
+	// if the City Verification timer is up,
+	if (this->p->Tick > this->cityVerificationTick) {
+		
+		if (this->p->Player[this->Mayor]->isInGame() == false) {
+			stringstream ss;
+
+			ss << "------------------------------------" << endl;
+			ss << "City has a mayor who is not in game!" << endl;
+			ss << "------------------------------------" << endl;
+			ss << "City: " << this->id << endl;
+			ss << "Mayor: " << this->Mayor << endl;
+			ss << "Successor: " << this->Successor << endl;
+			ss << "------------------------------------" << endl;
+
+			this->p->Log->logServerError(ss.str());
+
+			this->Mayor = -1;
+		}
+
+		// Reset the timer
+		this->cityVerificationTick = this->p->Tick + 10000;
 	}
 }
 
@@ -336,6 +361,9 @@ void CCity::addBuilding(int type) {
 		if (p) {
 			this->startTime = this->p->Tick;
 		}
+
+		// Tell the city it is now orbable
+		this->p->Send->SendTeam(this->id, smNowOrbable, " ", 1);
 	}
 }
 
@@ -345,7 +373,9 @@ void CCity::addBuilding(int type) {
 void CCity::subtractBuilding(int type) {
 
 	// Decrement the current building count
-	this->currentBuildingCount--;
+	if (this->currentBuildingCount > 1) {
+		this->currentBuildingCount--;
+	}
 }
 
 /***************************************************************
@@ -421,4 +451,3 @@ int CCity::getUptimeInSeconds() {
 int CCity::getUptimeInMinutes() {
 	return this->getUptimeInSeconds() / 60;
 }
-

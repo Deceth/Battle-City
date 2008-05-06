@@ -94,6 +94,7 @@ class CServer {
 		void LoadNews();
 		void ChangeNews(string NewNews);
 		void respawnPlayers();
+		void reset();
 
 		int running;
 		

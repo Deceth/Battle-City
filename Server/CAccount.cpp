@@ -785,9 +785,11 @@ int CAccount::RecoverAccount(int Index, string Email) {
  * @param Index
  **************************************************************/
 void CAccount::GetLoginData(int Index) {
+	CPlayer* player = this->p->Player[Index];
+
 	try {
 		// Select the account from the database, matching by account name
-		string QueryString= "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + p->Player[Index]->Name + "');";
+		string QueryString= "SELECT * FROM tAccounts WHERE lower(Account) = lower('" + player->Name + "');";
 		p->Database->Query = p->Database->Database.execQuery(QueryString.c_str());
 		
 		// If no account was found, return
@@ -799,26 +801,34 @@ void CAccount::GetLoginData(int Index) {
 		// Else (account was found),
 		else {
 			// Set the login data on the player, then return
-			p->Player[Index]->playerType = p->Database->Query.getIntField("IsAdmin");
-			p->Player[Index]->Town = p->Database->Query.getStringField("Town");
-			p->Player[Index]->Tank = p->Database->Query.getIntField("Tank");
-			p->Player[Index]->Tank2 = p->Database->Query.getIntField("Tank2");
-			p->Player[Index]->Tank3 = p->Database->Query.getIntField("Tank3");
-			p->Player[Index]->Tank4 = p->Database->Query.getIntField("Tank4");
-			p->Player[Index]->Tank5 = p->Database->Query.getIntField("Tank5");
-			p->Player[Index]->Tank6 = p->Database->Query.getIntField("Tank6");
-			p->Player[Index]->Tank7 = p->Database->Query.getIntField("Tank7");
-			p->Player[Index]->Tank8 = p->Database->Query.getIntField("Tank8");
-			p->Player[Index]->Tank9 = p->Database->Query.getIntField("Tank9");
-			p->Player[Index]->Red = p->Database->Query.getIntField("Red");
-			p->Player[Index]->Green = p->Database->Query.getIntField("Green");
-			p->Player[Index]->Blue = p->Database->Query.getIntField("Blue");
-			p->Player[Index]->Member = p->Database->Query.getIntField("Member");
-			p->Player[Index]->RentalCity = p->Database->Query.getIntField("RentalCity");
+			player->playerType = p->Database->Query.getIntField("IsAdmin");
+			player->Town = p->Database->Query.getStringField("Town");
+			player->Tank = p->Database->Query.getIntField("Tank");
+			player->Tank2 = p->Database->Query.getIntField("Tank2");
+			player->Tank3 = p->Database->Query.getIntField("Tank3");
+			player->Tank4 = p->Database->Query.getIntField("Tank4");
+			player->Tank5 = p->Database->Query.getIntField("Tank5");
+			player->Tank6 = p->Database->Query.getIntField("Tank6");
+			player->Tank7 = p->Database->Query.getIntField("Tank7");
+			player->Tank8 = p->Database->Query.getIntField("Tank8");
+			player->Tank9 = p->Database->Query.getIntField("Tank9");
+			player->Red = p->Database->Query.getIntField("Red");
+			player->Green = p->Database->Query.getIntField("Green");
+			player->Blue = p->Database->Query.getIntField("Blue");
+			player->Member = p->Database->Query.getIntField("Member");
+			player->RentalCity = p->Database->Query.getIntField("RentalCity");
 			p->Database->Query.finalize();
 
 			// Set displayTank to Tank
-			p->Player[Index]->displayTank = p->Player[Index]->Tank;
+			player->displayTank = player->Tank;
+
+			// HACK:
+			// If the player's rental city is 0, set it to -1
+			// This is done because players default to RentalCity 0, which is Balkh
+			// The long-term fix should be update tAccounts set RentalCity = -1 where RentalCity = 0
+			if (player->RentalCity == 0) {
+				player->RentalCity = -1;
+			}
 			return;
 		}
 	}

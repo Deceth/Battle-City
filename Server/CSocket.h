@@ -11,6 +11,7 @@
 #endif
 
 class CServer;
+class CPlayer;
 
 class CSocket {
 
@@ -24,7 +25,7 @@ class CSocket {
 		void SendRaw(int i, char *TheData, int len);
 		int SendAll(int Socket, char *SendString, int SendLength);
 		void ProcessData();
-		void ProcessBuffer(int i);
+		void ProcessBuffer(CPlayer* player);
 		bool hasData(int sock);
 
 	private:

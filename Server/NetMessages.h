@@ -65,7 +65,8 @@ enum ServerMessages {
 	smWhisper,
 	smCount,
 	smCloak,
-	smAutoBuild
+	smAutoBuild,
+	smNowOrbable
 };
 
 struct sSMUpdate
@@ -398,7 +399,7 @@ struct sCMAdminEdit
 	unsigned char Tank7;
 	unsigned char Tank8;
 	unsigned char Tank9;
-	unsigned char RentalCity;
+	int RentalCity;
 };
 
 struct sCMWhisper

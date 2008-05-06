@@ -33,7 +33,7 @@ class CPlayer {
 		unsigned char Green;
 		unsigned char Blue;
 		unsigned char Member;
-		unsigned char RentalCity;
+		int RentalCity;
 
 		int Points;
 		int Orbs;
@@ -62,6 +62,7 @@ class CPlayer {
 		void LoggedIn(string User);
 		void Death(int killer);
 		void Clear();
+		void Clear(bool triggerServerReset);
 		void setCloak(bool isCloaked);
 		void setMayor(bool isMayor);
 		int FindApplyMayor();
@@ -75,7 +76,7 @@ class CPlayer {
 		int getTileX();
 		int getTileY();
 
-		CPlayer(CServer *Server);
+		CPlayer(CServer *Server, int id);
 		~CPlayer();
 
 	private:

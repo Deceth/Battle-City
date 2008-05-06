@@ -154,6 +154,7 @@ void CSocket::Cycle() {
 void CSocket::TCPCycle() {
 	int freeplayer;
 	int nBytes = 0;
+	CPlayer* player;
 
     read_fds = master;
 
@@ -181,47 +182,49 @@ void CSocket::TCPCycle() {
 		else  {
 
 			// Add the user to the next open slot
-			freeplayer = p->FreePlayer();
-			p->Player[freeplayer]->Socket = newfd;
-			p->Player[freeplayer]->IPAddress = inet_ntoa(remoteaddr.sin_addr);
-			p->Player[freeplayer]->State = State_Connected;
+			freeplayer = this->p->FreePlayer();
+			player = this->p->Player[freeplayer];
+			player->Socket = newfd;
+			player->IPAddress = inet_ntoa(remoteaddr.sin_addr);
+			player->State = State_Connected;
             u_long nNoBlock = 1;
             ioctlsocket(newfd, FIONBIO, &nNoBlock);
-			cout << "Connect::" << p->Player[freeplayer]->IPAddress << " " << "Index: " << freeplayer << endl;
+			cout << "Connect::" << player->IPAddress << " " << "Index: " << freeplayer << endl;
         }
     }
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If the player is connected,
-		if (p->Player[i]->isConnected()) {
+		if (player->isConnected()) {
 
 			// If we have data on the player's socket,
-			if (p->Winsock->hasData(p->Player[i]->Socket)) {
+			if (p->Winsock->hasData(player->Socket)) {
 
 				// Receive the data.  If nBytes <= 0,
-				if ((nBytes = recv(p->Player[i]->Socket, p->Player[i]->Buffer + p->Player[i]->BufferLength, 2048 - p->Player[i]->BufferLength, 0)) <= 0) {
+				if ((nBytes = recv(player->Socket, player->Buffer + player->BufferLength, 2048 - player->BufferLength, 0)) <= 0) {
 
 					// If nByes = 0, close the socket.
 					if (nBytes == 0) {
-						cout << "Close::" << p->Player[i]->IPAddress << endl;
-						p->Player[i]->Clear();
+						cout << "Close::" << player->IPAddress << endl;
+						player->Clear();
 					} 
 
 					// Else (nbytes < 0), log packet error and close the socket.
 					else {
 						#ifndef WIN32
 							perror("Recv");
-							cout << "Close::" << p->Player[it->Index]->IPAddress << endl;
-							p->Player[i]->Clear();
+							cout << "Close::" << player->IPAddress << endl;
+							player->Clear();
 						#else
 							int TheError = WSAGetLastError();
 							// WSAEWOULDBLOCK
 							if (TheError != 10035)  {
 								cerr << "Recv Error: " << TheError << endl;
-								cout << "Close::" << p->Player[i]->IPAddress << endl;
-								p->Player[i]->Clear();
+								cout << "Close::" << player->IPAddress << endl;
+								player->Clear();
 							}
 						#endif
 					}
@@ -230,7 +233,7 @@ void CSocket::TCPCycle() {
 				// Else (nBytes > 0),
 				else  {
 					// Increase the size of the player's buffer
-					p->Player[i]->BufferLength += nBytes;
+					player->BufferLength += nBytes;
 				}
 			}
 		}
@@ -242,15 +245,17 @@ void CSocket::TCPCycle() {
  *
  **************************************************************/
 void CSocket::ProcessData() {
+	CPlayer* player;
 
 	// For each possible player,
 	for (int i = 0; i < MAX_PLAYERS; i++) {
+		player = this->p->Player[i];
 
 		// If there is data in the player's buffer,
-		if (this->p->Player[i]->BufferLength > 0) {
+		if (player->BufferLength > 0) {
 
 			// Process the data
-			this->ProcessBuffer(i);
+			this->ProcessBuffer(player);
 		}
 	}
 }
@@ -260,39 +265,39 @@ void CSocket::ProcessData() {
  *
  * @param i
  **************************************************************/
-void CSocket::ProcessBuffer(int i) {
+void CSocket::ProcessBuffer(CPlayer* player) {
 	int packetlength;
 	char ValidPacket[256];
 	int checksum;
 	int checksum2;
 
 	// While there is data left to process,
-	while (p->Player[i]->BufferLength > 0) {
-		packetlength = (unsigned char)p->Player[i]->Buffer[0] + 1;
+	while (player->BufferLength > 0) {
+		packetlength = (unsigned char)player->Buffer[0] + 1;
 
 		// If there is too much or too little data to process, break
-		if ((packetlength > p->Player[i]->BufferLength) || (packetlength < 3)) {
+		if ((packetlength >player->BufferLength) || (packetlength < 3)) {
 			break;
 		}
 
 		// Clear the packet, load the packet
 		memset(ValidPacket, 0, 256);
-		memcpy(ValidPacket, p->Player[i]->Buffer, packetlength);
+		memcpy(ValidPacket,player->Buffer, packetlength);
 
 		// If the packet comprises the full buffer,
-		if (p->Player[i]->BufferLength == packetlength)  {
+		if (player->BufferLength == packetlength)  {
 			
 			// Clear the buffer
-			memset(p->Player[i]->Buffer, 0, 2048);
-			p->Player[i]->BufferLength = 0;
+			memset(player->Buffer, 0, 2048);
+			player->BufferLength = 0;
 		}
 
 		// Else (more data in buffer),
 		else {
 
 			// Clear the packet data from the buffer, leave the rest
-			memcpy(p->Player[i]->Buffer, &p->Player[i]->Buffer[packetlength], p->Player[i]->BufferLength - packetlength);
-			p->Player[i]->BufferLength -= packetlength;
+			memcpy(player->Buffer, &player->Buffer[packetlength],player->BufferLength - packetlength);
+			player->BufferLength -= packetlength;
 		}
 		
 		// Handle the checksum for the packet
@@ -305,10 +310,10 @@ void CSocket::ProcessBuffer(int i) {
 		checksum2 += 3412;
 		checksum2 = checksum2 % 71;
 		if (checksum == checksum2) {
-			p->Process->ProcessData(&ValidPacket[2], i);
+			p->Process->ProcessData(&ValidPacket[2], player->id);
 		}
 		else {
-			p->Log->logClientError("Packet Dropped TCP - Invalid Checksum", i);
+			p->Log->logClientError("Packet Dropped TCP - Invalid Checksum", player->id);
 		}
 	}
 }

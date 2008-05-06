@@ -47,6 +47,7 @@ class CItemList {
 		~CItemList();
 
 		void cycle();
+
 		CServer *p;
 };
 

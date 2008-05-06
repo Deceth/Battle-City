@@ -39,6 +39,7 @@ class CBulletList {
 		~CBulletList();
 
 		void cycle();
+
 		CServer *p;
 };
 

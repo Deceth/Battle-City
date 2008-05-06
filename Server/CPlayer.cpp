@@ -5,11 +5,13 @@
  *
  * @param Server
  **************************************************************/
-CPlayer::CPlayer(CServer *Server) {
+CPlayer::CPlayer(CServer *Server, int id) {
 	this->p = Server;
 
 	// Reset the player stats
 	this->ResetPlayer();
+
+	this->id = id;
 }
 
 /***************************************************************
@@ -27,61 +29,63 @@ CPlayer::~CPlayer() {
 void CPlayer::setMayor(bool isMayor) {
 	sSMFinance finance;
 	sSMMayorUpdate Mayorupdate;
-
-	// Store whether the player is in-game or not
+	CCity* city;
+	
+	// Store whether the player is mayor or not
 	this->Mayor = isMayor;
 
-	// Set the player to in-game
-	// ???
-	this->State = State_Game;
+	// If the player is in game,
+	if (this->isInGame()) {
+		city = this->p->City[this->City];
+	
+		// If the player is now mayor,
+		if (isMayor) {
 
-	// If the player is now mayor,
-	if (isMayor) {
+			// ???
+			city->id = this->City;
 
-		// ???
-		this->p->City[this->City]->id = this->City;
+			// Store this player as mayor of this city,
+			city->Mayor = this->id;
 
-		// Store this player as mayor of this city,
-		this->p->City[this->City]->Mayor = this->id;
+			// If the player is hiring, send out MayorChanged messages
+			if (city->hiring > -1) {
+				this->p->Winsock->SendData(city->hiring,smMayorChanged," ");
+			}
 
-		// If the player is hiring, send out MayorChanged messages
-		if (this->p->City[this->City]->hiring > -1) {
-			this->p->Winsock->SendData(this->p->City[this->City]->hiring,smMayorChanged," ");
+			// Reset the mayor options
+			city->Successor = -1;
+			city->notHiring = 0;
+			city->hiring = -1;
+
+			// For each item,
+			for (int j = 0; j <= 26; j++) {
+
+				// Set the build tree for this city
+				city->setCanBuild(j,city->canBuild[j], false);
+			}
+
+			// Request the city's finance report
+			finance.Cash = city->cash;
+			finance.Income = city->income;
+			finance.Items = city->itemproduction;
+			finance.Hospital = city->hospital;
+			finance.Research = city->cashresearch;
+			p->Winsock->SendData(id,smFinance,(char *)&finance,sizeof(finance));
+
+			// Set isMayor = 1 on the packet
+			Mayorupdate.IsMayor = 1;
 		}
 
-		// Reset the mayor options
-		this->p->City[this->City]->Successor = -1;
-		this->p->City[this->City]->notHiring = 0;
-		this->p->City[this->City]->hiring = -1;
-
-		// For each item,
-		for (int j = 0; j <= 26; j++) {
-
-			// Set the build tree for this city
-			this->p->City[this->City]->setCanBuild(j,this->p->City[City]->canBuild[j], false);
+		// Else (player is now not mayor),
+		else {
+			// Set isMayor = 0 on the packet
+			Mayorupdate.IsMayor = 0;
 		}
 
-		// Request the city's finance report
-		finance.Cash = p->City[this->City]->cash;
-		finance.Income = p->City[this->City]->income;
-		finance.Items = p->City[this->City]->itemproduction;
-		finance.Hospital = p->City[this->City]->hospital;
-		finance.Research = p->City[this->City]->cashresearch;
-		p->Winsock->SendData(id,smFinance,(char *)&finance,sizeof(finance));
-
-		// Set isMayor = 1 on the packet
-		Mayorupdate.IsMayor = 1;
+		// Tell everyone the mayor changed
+		Mayorupdate.Index = id;
+		p->Send->SendGameAllBut(-1, smMayorUpdate, (char *)&Mayorupdate, sizeof(Mayorupdate));
 	}
-
-	// Else (player is now not mayor),
-	else {
-		// Set isMayor = 0 on the packet
-		Mayorupdate.IsMayor = 0;
-	}
-
-	// Tell everyone the mayor changed
-	Mayorupdate.Index = id;
-	p->Send->SendGameAllBut(-1, smMayorUpdate, (char *)&Mayorupdate, sizeof(Mayorupdate));
 }
 
 /***************************************************************
@@ -89,6 +93,13 @@ void CPlayer::setMayor(bool isMayor) {
  *
  **************************************************************/
 void CPlayer::Clear() {
+	this->Clear(true);
+}
+/***************************************************************
+ * Function:	Clear
+ *
+ **************************************************************/
+void CPlayer::Clear(bool triggerServerReset) {
 	char packet[1];
 
 	// If the player is in game, boot the player
@@ -102,6 +113,11 @@ void CPlayer::Clear() {
 
 	// Reset the player stats
 	this->ResetPlayer();
+
+	// If triggerServerReset, tell the server to try to reset
+	if (triggerServerReset) {
+		this->p->reset();
+	}
 }
 
 /***************************************************************
@@ -111,9 +127,10 @@ void CPlayer::Clear() {
 void CPlayer::ResetPlayer() {
 
 	// Reset the player stats
+	this->City = -1;
+
 	this->X = 0;
 	this->Y = 0;
-	this->City = 0;
 	this->Name.clear();
 	this->Town.clear();
 	this->UniqID.clear();
@@ -144,9 +161,9 @@ void CPlayer::ResetPlayer() {
 	this->Green = 0;
 	this->Blue = 0;
 	this->Member = 0;
-	this->RentalCity = 0;
+	this->RentalCity = -1;
 
-	this->id = 0;
+	//this->id = 0;
 	this->lastMove = 0;
 	this->lastShot = 0;
 	this->isDead = false;
@@ -215,7 +232,10 @@ bool CPlayer::isConnected() {
  * Returns true if the player's state is Game
  **************************************************************/
 bool CPlayer::isInGame() {
-	return (this->State == State_Game);
+	return 
+		(this->City > -1)
+		&&
+		(this->State == State_Game);
 }
 
 /***************************************************************
@@ -242,17 +262,15 @@ bool CPlayer::isInGameApplyOrChat() {
 void CPlayer::JoinGame() {
 	sSMStateGame stategame;
 	sSMJoinData join;
+	CCity* city = this->p->City[this->City];
 
-	// Get the location of the CC
-	this->p->City[City]->y = (int)(512*48)-(34+(City / 8*MAX_CITIES)) * 48; 
-	this->p->City[City]->x = (int)(512*48)-(33+(City % 8*MAX_CITIES)) * 48;
 	stategame.City = this->City;
-	stategame.x = this->p->City[this->City]->x;
-	stategame.y = this->p->City[this->City]->y;
+	stategame.x = city->x;
+	stategame.y = city->y;
 	
 	// Set the player on the CC
-	this->p->Player[this->id]->X = stategame.x;
-	this->p->Player[this->id]->Y = stategame.y;
+	this->X = stategame.x;
+	this->Y = stategame.y;
 
 	// Set the player's stats
 	this->p->Account->GetStats(this->id);
@@ -266,7 +284,7 @@ void CPlayer::JoinGame() {
 	join.Mayor = this->Mayor;
 	join.City = this->City;
 	this->p->Send->SendGameAllBut(this->id,smJoinData,(char *)&join,sizeof(join));
-	this->p->Player[this->id]->lastMove = this->p->Tick;
+	this->lastMove = this->p->Tick;
 	cout << "Join::" << Name.c_str() << endl;
 }
 
@@ -296,8 +314,10 @@ void CPlayer::LeaveGame(bool showMessage) {
  * @param transferMayor
  **************************************************************/
 void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
-	int failed = 0;
 	char packet[2];
+	bool foundSuccessor = false;
+	CCity* city = this->p->City[this->City];
+	CPlayer* playerSuccessor;
 
 	// Delete the items the player is holding
 	this->p->Item->deleteItemsByPlayer(this->id);
@@ -311,72 +331,65 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 		if (this->Mayor) {
 
 			// If there is a successor,
-			if (this->p->City[this->City]->Successor > -1) {
+			if (city->Successor > -1) {
+				playerSuccessor = this->p->Player[city->Successor];
 
 				// If that successor is in game, in this city, and not the mayor
 				if (	
-					(this->p->Player[this->p->City[this->City]->Successor]->isInGame())
+					(playerSuccessor->isInGame())
 					&&
-					(this->p->Player[this->p->City[this->City]->Successor]->City == this->City)
+					(playerSuccessor->City == this->City)
 					&&
-					(this->p->City[this->City]->Successor != this->id)
+					(playerSuccessor->id != this->id)
 					) {
 
 					// Set the successor to mayor
-					this->p->Player[this->p->City[this->City]->Successor]->setMayor(true);
+					playerSuccessor->setMayor(true);
+					foundSuccessor = true;
 				}
-
-				// Else (successor not in game), set failed = 1
-				else {
-					failed = 1;
-				}
-			}
-
-			// Else (no successor), set failed = 1
-			else {
-				failed = 1;
 			}
 
 			// If we failed to find a successor,
-			if (failed == 1) {
+			if (! foundSuccessor) {
 
 				// For each possible player,
 				for (int j = 0; j < MAX_PLAYERS; j++) {
+					playerSuccessor = this->p->Player[j];
 
 					// If that player is in game, in this city, and not the mayor
-					if ( (this->p->Player[j]->isInGame()) && (this->p->Player[j]->City == this->City) && (this->id != j) ) {
+					if (	
+						(playerSuccessor->isInGame())
+						&&
+						(playerSuccessor->City == this->City)
+						&&
+						(playerSuccessor->id != this->id)
+						) {
 
-						// Make the player the new mayor
-						this->p->Player[j]->setMayor(true);
+						// Set the successor to mayor
+						playerSuccessor->setMayor(true);
+						foundSuccessor = true;
 						break;
 					}
 				}
+			}
 
-				// If this player is still the mayor,
-				if (this->p->City[this->City]->Mayor == id) {
+			// If we still didn't find a successor,
+			if (! foundSuccessor) {
 
-					// If the city is not orbable, destroy it
-					if (this->p->City[this->City]->isOrbable()==false) {
-						this->p->City[this->City]->destroy();
-					}
+				// If the city is not orbable, destroy it
+				if (city->isOrbable()==false) {
+					city->destroy();
+				}
 
-					// Else (orbable), start the Destruct timer
-					else {
-						this->p->City[this->City]->DestructTimer = this->p->Tick + TIMER_CITY_DESTRUCT;
-						this->p->City[this->City]->Mayor = -1;
-						this->p->City[this->City]->notHiring = 0;
-					}
+				// Else (orbable), start the Destruct timer
+				else {
+					city->DestructTimer = this->p->Tick + TIMER_CITY_DESTRUCT;
+					city->Mayor = -1;
+					city->notHiring = 0;
 				}
 			}
 		}
 	}
-
-	// Reset this player
-	this->p->Player[this->id]->X = 0;
-	this->p->Player[this->id]->Y = 0;
-	this->p->Player[this->id]->City = 0;
-	this->p->Player[this->id]->isDead = false;
-	this->p->Player[this->id]->timeDeath = 0;
 
 	// If the player is in game,
 	if (this->isInGame()) {
@@ -393,8 +406,13 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 		}
 	}
 
-	// Set the state to Chat
-	this->p->Player[this->id]->State = State_Chat;
+	// Reset this player
+	this->State = State_Chat;
+	this->X = 0;
+	this->Y = 0;
+	this->City = -1;
+	this->isDead = false;
+	this->timeDeath = 0;
 }
 
 /***************************************************************
@@ -446,11 +464,11 @@ void CPlayer::LoggedIn(string User) {
 	// Send everyone your stats
 	this->p->Account->GetStats(this->id);
 	pts.Index = this->id;
-	pts.Points = this->p->Player[this->id]->Points;
-	pts.Deaths = this->p->Player[this->id]->Deaths;
-	pts.Assists = this->p->Player[this->id]->Assists;
-	pts.Orbs = this->p->Player[this->id]->Orbs;
-	pts.MonthlyPoints = this->p->Player[this->id]->MonthlyPoints;
+	pts.Points = this->Points;
+	pts.Deaths = this->Deaths;
+	pts.Assists = this->Assists;
+	pts.Orbs = this->Orbs;
+	pts.MonthlyPoints = this->MonthlyPoints;
 	this->p->Send->SendAllBut(-1, smPointsUpdate, (char *)&pts, sizeof(pts));
 
 	// Set state to Verified (set above?)
