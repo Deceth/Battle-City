@@ -59,6 +59,13 @@ void _cdecl thrEngine(void * pParam) {
 				Sleep(10);
 				break;
 			
+			case 0:
+			case STATE_LOGIN:
+			case STATE_RECOVER:
+			case STATE_NEWACCOUNT:
+			case STATE_PERSONALITY:
+			case STATE_INTERVIEW:
+			case STATE_MEETING:
 			case STATE_VERIFY:
 				p->DDraw->Clear();
 				p->DDraw->Draw(p->DDraw->imgCompany, (p->ResolutionX/2), (p->ResolutionY/2)-240, 320, 240);
@@ -67,24 +74,6 @@ void _cdecl thrEngine(void * pParam) {
 				p->DDraw->Draw(p->DDraw->imgBCLogo, (p->ResolutionX/2), (p->ResolutionY/2), 320, 240);
 				p->DDraw->Flip();
 				Sleep(10);
-				break;
-
-			case STATE_LOGIN:
-				break;
-
-			case STATE_RECOVER:
-				break;
-
-			case STATE_NEWACCOUNT:
-				break;
-
-			case STATE_PERSONALITY:
-				break;
-
-			case STATE_INTERVIEW:
-				break;
-
-			case STATE_MEETING:
 				break;
 
 			default:
