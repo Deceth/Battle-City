@@ -6,9 +6,6 @@
  **************************************************************/
 CServer::CServer() {
 
-	// Set running to 1
-	this->running = 1;
-
 	// Create objects
 	Winsock = new CSocket(this);
 	Process = new CProcess(this);
@@ -33,6 +30,9 @@ CServer::CServer() {
 	for (int i = 0; i < MAX_CITIES; i++) {
 		this->City[i] = new CCity(this, i);
 	}
+
+	// Set running to 1
+	this->running = 1;
 }
 
 /***************************************************************
