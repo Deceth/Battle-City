@@ -536,7 +536,7 @@ void CProcess::ProcessChatCommand(int Index, int message) {
  **************************************************************/
 void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	int me = this->p->Winsock->MyIndex;
-	string newbieTip;
+	string welcome;
 
 	this->p->Draw->resetPlayerOffset();
 	this->p->Player[me]->X = (float)game->x;
@@ -549,30 +549,41 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	this->p->Player[me]->SetHP(MAX_HEALTH);
 	this->p->Player[me]->isInGame = 1;
 	this->p->Player[me]->GenerateNameString();
+	
+	// Clear screen a bit for welcome with newbie tips
+	this->p->InGame->AppendInfo("");
+	this->p->InGame->AppendInfo("");
+
+	welcome = "You joined ";
+	welcome += CityList[this->p->Player[this->p->Winsock->MyIndex]->City];
+	
+	if (this->p->Player[me]->isMayor) {
+			welcome += " as the Mayor!";
+	}
+	else {
+			welcome += " as a Commando!";
+	}	
+	this->p->InGame->AppendInfo(welcome);
 
 	this->p->InGame->AppendInfo("Press HELP for instructions, or visit: http://battlecity.looble.com/");
-	this->p->InGame->AppendInfo("");
-	this->p->InGame->AppendInfo("Your Mission: Orb the enemy city to win!");
-	this->p->InGame->AppendInfo("");
+	this->p->InGame->AppendInfo("");	
 
 	// If newbie tips are on,
 	if (this->p->Options->newbietips) {
-
-		newbieTip = "Newbie Tip: You joined ";
-		newbieTip += CityList[this->p->Player[this->p->Winsock->MyIndex]->City];
-
+		
+		this->p->InGame->AppendInfo("Your Mission: Orb enemy cities to win!");
+		this->p->InGame->AppendInfo("How to Orb? Drop the Orb on the enemies Command Center!");
+		this->p->InGame->AppendInfo("Press 'SHIFT' to shoot and 'U' to pick up items");		
+		
 		if (this->p->Player[me]->isMayor) {
-			newbieTip += " as the Mayor.  Right-click anywhere on the screen to start building!";
+			this->p->InGame->AppendInfo("Right-click the screen to start building your city!");
 		}
 		else {
-			newbieTip += " as a Commando.  Press 'Shift' to shoot and 'U' to pick up items!";
-		}
-
-		this->p->InGame->AppendInfo(newbieTip);
+			this->p->InGame->AppendInfo("Use your cities weapons to attack the enemy!");
+		}	
 	}
 
-	this->p->InGame->PrintWhoData();
-	this->p->InGame->AppendChat(this->p->Player[me]->Name + " has just joined!", COLOR_SYSTEM);
+	this->p->InGame->PrintWhoData();	
 
 	this->p->Dialog->StartDialog = 0;
 	

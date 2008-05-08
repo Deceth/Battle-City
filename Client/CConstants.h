@@ -54,24 +54,24 @@ static const int			ITEM_TYPE_PLASMA = 11;
 
 
 // Newbie tips
-static const string			NEWBIE_TIP_CLOAK = "Newbie Tip: Cloaks remove you from enemy radar.  Press 'C' to use a Cloaking Device.";
-static const string			NEWBIE_TIP_ROCKET = "Newbie Tip: Cougar Missles upgrade your tank's weapon, but only fire when your tank is not moving.";
-static const string			NEWBIE_TIP_MEDKIT = "Newbie Tip: Medkits restore your tank to full health. Press 'H' to use a Medkit.";
-static const string			NEWBIE_TIP_BOMB = "Newbie Tip: Bombs destroy nearby enemy buildings. Press 'B' to drop an activated bomb.";
-static const string			NEWBIE_TIP_MINE = "Newbie Tip: Mines detonate enemy tanks, and cannot be seen by the enemy.";
-static const string			NEWBIE_TIP_ORB = "Newbie Tip: The Orb destroys an enemy city .  Press 'O' to drop it on the opponent's Command Center!";
-static const string			NEWBIE_TIP_WALKIE = "Newbie Tip: Walkies allow teammates to communicate outside of radar range.";
-static const string			NEWBIE_TIP_DFG = "Newbie Tip: DFGs demobilize enemy tanks, and cannot be seen by the enemy.";
-static const string			NEWBIE_TIP_WALL = "Newbie Tip: Walls are strong obstacles.  Use them to protect your city's Command Center!";
-static const string			NEWBIE_TIP_TURRET = "Newbie Tip: Turrets automatically fire at nearby enemy tanks. Oress 'D' to drop a turret.";
-static const string			NEWBIE_TIP_SLEEPER = "Newbie Tip: Sleeper Turrets automatically fire at nearby enemy tanks, and cannot be seen by the enemy.";
-static const string			NEWBIE_TIP_PLASMA = "Newbie Tip: Plasma Cannons automatically fire at enemy tanks, and do more damage than regular Turrets.";
-static const string			NEWBIE_TIP_CC = "Newbie Tip: The Command Center (CC) allows your city to function. Protect it at all costs!";
-static const string			NEWBIE_TIP_HOSPITAL = "Newbie Tip: Hospitals restore your health with you stand on them.";
-static const string			NEWBIE_TIP_HOUSE = "Newbie Tip: Houses provide enough workers to staff 2 other buildings.";
-static const string			NEWBIE_TIP_RESEARCH = "Newbie Tip: Researches let you build Factories, and more advanced Researches.";
-static const string			NEWBIE_TIP_FACTORY = "Newbie Tip: Factories produce Items.  Drive onto an Item and press 'U' to pick it up.";
-static const string			NEWBIE_TIP_ORBABLE = "Newbie Tip: Your city can now be destroyed by an enemy orb.  Protect your CC at all costs!";
+static const string			NEWBIE_TIP_CLOAK = "Cloaks remove you from enemy radar.  Press 'C' to use a Cloaking Device.";
+static const string			NEWBIE_TIP_ROCKET = "Cougar Missles upgrade your tanks weapons but only fire when you are not moving.";
+static const string			NEWBIE_TIP_MEDKIT = "Medkits restore your tank to full health. Press 'H' to use a Medkit.";
+static const string			NEWBIE_TIP_BOMB = "Bombs destroy nearby enemy buildings. Press 'B' to drop an activated bomb.";
+static const string			NEWBIE_TIP_MINE = "Mines detonate enemy tanks, and cannot be seen by the enemy.";
+static const string			NEWBIE_TIP_ORB = "The Orb destroys your enemy when dropped on their Command Center! Press 'O' to drop the orb";
+static const string			NEWBIE_TIP_WALKIE = "Walkies allow teammates to communicate outside of radar range.";
+static const string			NEWBIE_TIP_DFG = "DFGs demobilize enemy tanks, and cannot be seen by the enemy.";
+static const string			NEWBIE_TIP_WALL = "Walls are strong obstacles. Use them to protect your Command Center!";
+static const string			NEWBIE_TIP_TURRET = "Turrets automatically fire at enemy tanks. Press 'D' to drop a Turret.";
+static const string			NEWBIE_TIP_SLEEPER = "Sleepers automatically fire at enemy tanks and cannot be seen by the enemy.";
+static const string			NEWBIE_TIP_PLASMA = "Plasmas automatically fire at enemy tanks and do more damage than regular Turrets.";
+static const string			NEWBIE_TIP_CC = "The Command Center (CC) allows your city to function. Protect it at all costs!";
+static const string			NEWBIE_TIP_HOSPITAL = "Hospitals restore your health while you stand on them.";
+static const string			NEWBIE_TIP_HOUSE = "Houses provide enough workers to staff 2 other buildings.";
+static const string			NEWBIE_TIP_RESEARCH = "Researches let you build Factories, and more advanced Researches.";
+static const string			NEWBIE_TIP_FACTORY = "Factories produce Items. Drive onto an Item and press 'U' to pick it up.";
+static const string			NEWBIE_TIP_ORBABLE = "Your city can now be destroyed by an enemy orb. Protect your CC at all costs!";
 
 enum States {
 	Empty,
