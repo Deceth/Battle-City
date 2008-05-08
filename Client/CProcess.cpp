@@ -551,6 +551,9 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	this->p->Player[me]->GenerateNameString();
 
 	this->p->InGame->AppendInfo("Press HELP for instructions, or visit: http://battlecity.looble.com/");
+	this->p->InGame->AppendInfo("");
+	this->p->InGame->AppendInfo("Your Mission: Orb the enemy city to win!");
+	this->p->InGame->AppendInfo("");
 
 	// If newbie tips are on,
 	if (this->p->Options->newbietips) {
@@ -562,7 +565,7 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 			newbieTip += " as the Mayor.  Right-click anywhere on the screen to start building!";
 		}
 		else {
-			newbieTip += " as a Commando.  Press Shift to shoot!";
+			newbieTip += " as a Commando.  Press 'Shift' to shoot and 'U' to pick up items!";
 		}
 
 		this->p->InGame->AppendInfo(newbieTip);
