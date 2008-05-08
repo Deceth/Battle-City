@@ -12,7 +12,7 @@ struct Cities {
 	int PlayerCount;
 };
 
-
+	
 class CMeeting {
 
 	public:
