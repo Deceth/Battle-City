@@ -339,6 +339,35 @@ void CInput::ProcessKeys(char buffer[256]) {
 				}*/
 			}
 		}
+
+				/************************************************
+		 * Firing
+		 ************************************************/
+		// Key: SHIFT (and user isn't chatting)
+		if ((KEYDOWN(buffer, DIK_LCONTROL) || KEYDOWN(buffer, DIK_RCONTROL))) {
+
+			// If the firing timer allows another shot (and user isn't frozen)
+			if ((p->Tick > this->LastShot) && (p->Player[me]->isFrozen == 0)) {
+
+				// Weapon: FLARE
+				if (p->InGame->HasFlare) {
+					this->LastShot = p->Tick + TIMER_SHOOT_FLARE;
+					int ReverseDirection = (p->Player[me]->Direction+16)%32;
+					float fDir = (float)-ReverseDirection-32;
+					int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+					int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+					p->Explode->newExplosion(FlashX, FlashY, 3);
+					p->Bullet->newBullet(FlashX, FlashY, 3, ReverseDirection, me);
+					p->Sound->PlayWav(sFlare,1);
+					sCMShot shot;
+					shot.dir = ReverseDirection;
+					shot.type = 3;
+					shot.x = FlashX;
+					shot.y = FlashY;
+					p->Winsock->SendData(cmShoot, (char *)&shot, sizeof(shot));
+				}			
+			}
+		}
 	}
 }
 

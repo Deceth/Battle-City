@@ -20,9 +20,13 @@ CBullet::CBullet(int x, int y, int type, int angle, unsigned short owner, CGame 
 	this->angle = angle;
 	this->prev = 0;
 	this->next = 0;
+	
+	if (this->type == 3) {
+		this->turretId = 0;
+	}
 
 	// Owner: TURRET
-	if (this->type > 2)  {
+	else if (this->type > 2)  {
 		this->turretId = this->owner;
 		this->type -= 3;
 	}
@@ -47,12 +51,19 @@ CBullet::CBullet(int x, int y, int type, int angle, unsigned short owner, CGame 
 		this->life = 340;
 		this->damage = 8;
 	}
+	
+	// Type: Flare
+	else if (this->type == 3) {
+		this->life = 1000;
+		this->damage = 5;
+	}
 
 	// Type: PLASMA
-	else if (this->type == 2) {
+	else if (this->type >= 2) {
 		this->life = 340;
 		this->damage = 12;
 	}
+
 }
 
 /***************************************************************
@@ -137,8 +148,16 @@ void CBulletList::Cycle() {
 
 		// Calculate direction and movement values
 		fDir = (float)-blt->angle+32;
-		MoveY = (float)(cos((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_BULLET);
-		MoveX = (float)(sin((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_BULLET);
+
+		if (blt->type == 3) {
+			MoveY = (float)(cos((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_FLARE);
+			MoveX = (float)(sin((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_FLARE);
+		}
+		else {
+			MoveY = (float)(cos((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_BULLET);
+	 		MoveX = (float)(sin((float)(fDir)/16*3.14)) * (p->TimePassed * MOVEMENT_SPEED_BULLET);
+		}
+		
 		if (MoveX > 20) {
 			MoveX = 20;
 		}

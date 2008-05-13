@@ -1042,7 +1042,15 @@ void CProcess::ProcessShot(sSMShot *shotsfired) {
 	}
 
 	else {
-		fDir = (float)-playerShooter->Direction+32;
+		if(shotsfired->type == 3) { 
+
+			int ReverseDirection = (playerShooter->Direction+16)%32;
+			fDir = (float)-ReverseDirection-32;
+		}
+		else {
+			fDir = (float)-playerShooter->Direction+32;
+		}
+
 		FlashY = (int)playerShooter->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
 		FlashX = (int)playerShooter->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
 		this->p->Explode->newExplosion(FlashX, FlashY, 3);
@@ -1057,6 +1065,9 @@ void CProcess::ProcessShot(sSMShot *shotsfired) {
 					break;
 				case 1:
 					this->p->Sound->Play3dSound(this->p->Sound->s_bigturret, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
+					break;
+				case 3:
+					this->p->Sound->Play3dSound(this->p->Sound->s_flare, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
 					break;
 			}
 		}
