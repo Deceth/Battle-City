@@ -46,7 +46,7 @@ class CInGame {
 
 		char HasLaser;
 		char HasRocket;
-		char HasUpLink;
+		char HasFlare;		
 		char ShowMap;
 		float timeDeath;
 		float timeLastAttack;

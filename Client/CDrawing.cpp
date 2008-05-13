@@ -705,7 +705,7 @@ void CDrawing::DrawItems() {
 
 					case ITEM_TYPE_MEDKIT:
 
-					case ITEM_TYPE_WALKIE:
+					case ITEM_TYPE_FLARE:
 
 					case ITEM_TYPE_WALL:
 						p->DDraw->Draw(p->DDraw->imgItems, tileX, tileY, 48, 48, itm->Type*48, 42, MaxMapX, MaxMapY);
@@ -935,7 +935,7 @@ void CDrawing::DrawInventory() {
 		}
 	}
 
-	// Walkie
+	// Flare
 	if (ItemCount[6] > 0) {
 		DrawX = (MaxMapX + 7);
 		DrawY = 337;

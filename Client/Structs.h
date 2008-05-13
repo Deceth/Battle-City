@@ -19,6 +19,7 @@ enum {
 	sDemolish,
 	sScreech,
 	sHit,
+	sFlare,
 };
 
 struct sKicked

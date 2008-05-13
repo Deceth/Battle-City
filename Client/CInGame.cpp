@@ -30,7 +30,7 @@ CInGame::CInGame(CGame *game) {
 	this->Successor = 0;
 	this->HasLaser = 0;
 	this->HasRocket = 0;
-	this->HasUpLink = 0;
+	this->HasFlare = 0;	
 	this->updateTick = 0;
 	this->lastTick = 0;
 	this->hospTick = 0;
@@ -344,6 +344,7 @@ void CInGame::ClearOut() {
 
 	HasLaser = 0;
 	HasRocket = 0;
+	HasFlare = 0;
 
 	timeDeath = 0;
 	timeLastAttack = 0;

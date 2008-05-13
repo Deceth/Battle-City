@@ -865,8 +865,8 @@ void CProcess::ProcessPickUp(sCMItem *item) {
 					this->p->InGame->AppendInfo(NEWBIE_TIP_ORB);
 					break;
 
-				case ITEM_TYPE_WALKIE:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_WALKIE);
+				case ITEM_TYPE_FLARE:
+					this->p->InGame->AppendInfo(NEWBIE_TIP_FLARE);
 					break;
 
 				case ITEM_TYPE_DFG:

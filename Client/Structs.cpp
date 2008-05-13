@@ -72,7 +72,7 @@ char *ItemList[] = {
 	"Bomb",
 	"Mine",
 	"Orb",
-	"Walkie Talkie",
+	"Flare Gun",
 	"DFG",
 	"Wall",
 	"Turret",
@@ -109,8 +109,8 @@ char *buildNames[] = {
 	"Wall Factory",
 	"DFG Research",
 	"DFG Factory",
-	"Walkie-Talkie Research",
-	"Walkie-Talkie Factory",
+	"Flare Gun Research",
+	"Flare Gun Factory",
 };
 
 int buildButton[] = {

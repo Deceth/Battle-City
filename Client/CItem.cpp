@@ -624,7 +624,7 @@ void CInventory::Cycle() {
 void CInventory::ItemCheck() {
 	CItem *itm = this->itemListHead;
 	bool hasRocket = false;
-	bool hasUpLink = false;
+	bool hasFlare = false;
 
 	// For each item,
 	while (itm) {
@@ -636,9 +636,9 @@ void CInventory::ItemCheck() {
 				hasRocket = true;
 				break;
 
-			// Item: UPLINK
-			case ITEM_TYPE_WALKIE:
-				hasUpLink = true;
+			// Item: FLARE
+			case ITEM_TYPE_FLARE:
+				hasFlare = true;
 				break;
 		}
 
@@ -647,7 +647,7 @@ void CInventory::ItemCheck() {
 	}
 
 	p->InGame->HasRocket = ( hasRocket ? 1 : 0 );
-	p->InGame->HasUpLink = ( hasUpLink ? 1 : 0 );
+	p->InGame->HasFlare = ( hasFlare ? 1 : 0 );
 }
 
 /***************************************************************

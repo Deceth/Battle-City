@@ -21,6 +21,7 @@ static const int			MAX_HEALTH = 40;					// synchronized with server
 static const unsigned char	MAX_PLAYERS = 63;
 static const int			MAX_PLAYERS_PER_CITY = 4;
 static const float			MOVEMENT_SPEED_ADMIN = 1.0f;
+static const float			MOVEMENT_SPEED_FLARE = 0.10f;		// TO SYNCH
 static const float			MOVEMENT_SPEED_BULLET = 0.80f;		// synchronized with server
 static const float			MOVEMENT_SPEED_PLAYER = 0.38f;		// synchronized with server
 static const int			TIMER_CHANGE_TANK = 1000;
@@ -32,6 +33,7 @@ static const int			TIMER_RESPAWN = 10000;				// synchronized with server
 static const int			TIMER_SHOOT_ADMIN = 50;
 static const int			TIMER_SHOOT_LASER = 650;			// synchronized with server
 static const int			TIMER_SHOOT_ROCKET = 650;			// synchronized with server
+static const int			TIMER_SHOOT_FLARE = 500;			// TO SYNCH
 static const int			TIMER_UNDER_ATTACK = 3000;
 static const short int		RadarSize = 2400;
 static const unsigned char	SectorSize = 16;
@@ -44,7 +46,7 @@ static const int			ITEM_TYPE_MEDKIT = 2;
 static const int			ITEM_TYPE_BOMB = 3;
 static const int			ITEM_TYPE_MINE = 4;
 static const int			ITEM_TYPE_ORB = 5;
-static const int			ITEM_TYPE_WALKIE = 6;
+static const int			ITEM_TYPE_FLARE = 6;
 static const int			ITEM_TYPE_DFG = 7;
 static const int			ITEM_TYPE_WALL = 8;
 static const int			ITEM_TYPE_TURRET = 9;
@@ -60,7 +62,7 @@ static const string			NEWBIE_TIP_MEDKIT = "Medkits restore your tank to full hea
 static const string			NEWBIE_TIP_BOMB = "Bombs destroy nearby enemy buildings. Press 'B' to drop an activated bomb.";
 static const string			NEWBIE_TIP_MINE = "Mines detonate enemy tanks, and cannot be seen by the enemy.";
 static const string			NEWBIE_TIP_ORB = "The Orb destroys your enemy when dropped on their Command Center! Press 'O' to drop the orb";
-static const string			NEWBIE_TIP_WALKIE = "Walkies allow teammates to communicate outside of radar range.";
+static const string			NEWBIE_TIP_FLARE = "Drop flares behind your tank to damage the enemy! Press CTRL to fire!";
 static const string			NEWBIE_TIP_DFG = "DFGs demobilize enemy tanks, and cannot be seen by the enemy.";
 static const string			NEWBIE_TIP_WALL = "Walls are strong obstacles. Use them to protect your Command Center!";
 static const string			NEWBIE_TIP_TURRET = "Turrets automatically fire at enemy tanks. Press 'D' to drop a Turret.";
@@ -100,7 +102,7 @@ static const char *ItemList[] = {
 	"Bomb",
 	"Mine",
 	"Orb",
-	"Walkie Talkie",
+	"Flare Gun",
 	"DFG",
 	"Wall",
 	"Turret",
@@ -167,8 +169,8 @@ static const char *buildNames[] = {
 	"Wall Factory",
 	"DFG Research",
 	"DFG Factory",
-	"Walkie-Talkie Research",
-	"Walkie-Talkie Factory",
+	"Flare Gun Research",
+	"Flare Gun Factory",
 };
 
 // Building order in build menu
@@ -286,6 +288,7 @@ enum {
 	sScreech,
 	sHit,
 	sCloak,
+	sFlare,
 };
 
 // ???

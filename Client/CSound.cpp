@@ -55,7 +55,8 @@ int CSound::LoadSounds()
 	s_screech = FSOUND_Sample_Load(FSOUND_FREE, "wav/screech.wav", FSOUND_NORMAL,0,0);
 	s_hit = FSOUND_Sample_Load(FSOUND_FREE, "wav/hit.wav", FSOUND_NORMAL,0,0);
 	s_cloak = FSOUND_Sample_Load(FSOUND_FREE, "cloak.wav", FSOUND_NORMAL,0,0);
-	if (!s_tanklaser || !s_fire || !s_engine || !s_build || !s_die || !s_eXplode || !s_turret || !s_buzz || !s_click || !s_bigturret || !s_demolish || !s_screech || !s_hit || !s_cloak)
+	s_flare = FSOUND_Sample_Load(FSOUND_FREE, "flare.wav", FSOUND_NORMAL,0,0);
+	if (!s_tanklaser || !s_fire || !s_engine || !s_build || !s_die || !s_eXplode || !s_turret || !s_buzz || !s_click || !s_bigturret || !s_demolish || !s_screech || !s_hit || !s_cloak || !s_flare)
 		return 0;  
 	return 1;
 }
@@ -125,6 +126,9 @@ void CSound::PlayWav(int Index, int channel)
 					break;
 				case 13:
 					FSOUND_PlaySound(channel, s_cloak);
+					break;
+				case 14:
+					FSOUND_PlaySound(channel, s_flare);
 					break;
 				//default:
 				}    
