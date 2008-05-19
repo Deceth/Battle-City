@@ -232,8 +232,8 @@ void CSend::SendCityList(int Index) {
 	CPlayer* player = this->p->Player[Index];
 	CCity* rentalCity;
 	
-	// If the player has a rental city,
-	if (player->RentalCity > -1) {
+	// If the player has a valid rental city,
+	if ((player->RentalCity > -1) && (player->RentalCity < MAX_CITIES)) {
 		rentalCity = this->p->City[player->RentalCity];
 	
 		// Send the rental city
