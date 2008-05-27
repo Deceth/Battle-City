@@ -452,59 +452,64 @@ BEGIN
     LTEXT           "*Successor",-1,11,6,158,12
 END
 
-ID_BCHELP DIALOGEX 0, 0, 347, 313
-STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION | WS_SYSMENU
+ID_BCHELP DIALOGEX 0, 0, 347, 255
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "BattleCity Help"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",1,292,294,50,14
-    LTEXT           "OBJECTIVE - Your mission is to defend your base while destroying enemy cities. Your rank will increase as you earn points in battle and if you master the arts of teamwork and strategy you may one day find your name on the top 20!",
-                    IDC_STATIC,5,4,336,25
-    LTEXT           "HOW IT WORKS - Each team has 4 players. Only one is the ""Mayor"" and is responsible for building the city. Factories built by the Mayor will produce items which players can then use defensively or offensively.",
-                    IDC_STATIC,5,37,326,26
-    LTEXT           "CONTROLS",IDC_STATIC,5,70,40,8
-    LTEXT           "Arrows",IDC_STATIC,5,102,22,8
-    LTEXT           "Shift",IDC_STATIC,188,104,15,8
-    LTEXT           "U",IDC_STATIC,10,147,8,8
-    LTEXT           "D",IDC_STATIC,10,134,8,8
-    LTEXT           "B",IDC_STATIC,10,178,8,8
-    LTEXT           "Drop (O)rb on enemy Command Center to destroy their entire city and earn points! - requires orb item",
-                    IDC_STATIC,38,198,136,25
-    LTEXT           "H",IDC_STATIC,10,161,8,8
-    LTEXT           "Enter",IDC_STATIC,5,118,18,9
-    LTEXT           "M",IDC_STATIC,192,126,8,8
-    LTEXT           "I",IDC_STATIC,193,143,8,8
-    LTEXT           "P",IDC_STATIC,191,164,8,8
-    LTEXT           "TAB",IDC_STATIC,187,186,15,8
-    LTEXT           "NEED MORE HELP?",IDC_STATIC,5,238,99,8
-    LTEXT           "KEY",IDC_STATIC,5,83,21,8
-    LTEXT           "ACTION",IDC_STATIC,40,83,33,8
-    LTEXT           "KEY",IDC_STATIC,188,84,21,8
-    LTEXT           "ACTION",IDC_STATIC,222,84,33,8
-    LTEXT           "Turn or drive your tank",IDC_STATIC,39,103,72,8
-    LTEXT           "Begin a chat message",IDC_STATIC,39,119,71,8
-    LTEXT           "(D)rop the item selected in your inventory",IDC_STATIC,
-                    38,134,134,8
-    LTEXT           "Refill your (H)ealth - requires Med-kit item",
-                    IDC_STATIC,38,161,134,8
-    LTEXT           "Pick (U)p an item",IDC_STATIC,38,147,134,8
-    LTEXT           "Drop an activated (B)omb - requires bomb item",
-                    IDC_STATIC,38,177,134,17
-    LTEXT           "Shoot - requires laser item or cougar missile item",
-                    IDC_STATIC,221,101,112,18
-    LTEXT           "Show/hide the (M)ap",IDC_STATIC,221,126,92,8
-    LTEXT           "Displays (I)nfo regarding nearest enemy city and players online",
-                    IDC_STATIC,220,140,111,24
-    LTEXT           "Display statistics, including (P)oints",IDC_STATIC,219,
-                    165,114,8
-    LTEXT           "Hold TAB and use arrow keys to move the screen view",
-                    IDC_STATIC,217,182,119,19
-    LTEXT           "O",IDC_STATIC,10,198,13,8
-    LTEXT           "Visit http://battlecity.looble.com for more help and information. Join the community and ask questions on the forums!",
-                    IDC_STATIC,5,254,328,18
-    LTEXT           "WEBSITE",IDC_STATIC,5,280,99,8
-    LTEXT           "http://battlecity.looble.com",IDC_STATIC,5,292,99,8
+    LTEXT	"OBJECTIVE",																									IDC_STATIC,  5, 4,336,25
+    LTEXT	"Each city is powered by a central Command Center.  Once a city is large enough to attack other cities, it ",	IDC_STATIC,  5, 12,336,25
+    LTEXT	"can be destroyed by an enemy Orb placed on its Command Center.  Your goal is to destroy enemy cities, ",		IDC_STATIC,  5, 20,336,25
+    LTEXT	"while preventing attackers from destroying your own.",															IDC_STATIC,  5, 28,336,25
+    LTEXT	"",																												IDC_STATIC,  5, 36,336,25
+    LTEXT	"HOW IT WORKS",																									IDC_STATIC,  5, 44,336,25
+    LTEXT	"Each city can support 4 players.  One player acts as ""Mayor,"" building the city and hiring Commandos. ",		IDC_STATIC,  5, 52,336,25
+    LTEXT	"All players can attack enemy cities or protect their own, with the aid of offensive and defensive items ",		IDC_STATIC,  5, 60,336,25
+    LTEXT	"produced by their city's factories.",																			IDC_STATIC,  5, 68,336,25
+    LTEXT	"",																												IDC_STATIC,  5, 76,336,25
+    LTEXT	"CONTROLS",																										IDC_STATIC,  5, 84,336,25
+    LTEXT	"Shift",																										IDC_STATIC,  5, 92,336,25
+	LTEXT	"Fire your weapon",																								IDC_STATIC, 35, 92,336,25
+    LTEXT	"Arrows",																										IDC_STATIC,156, 92,336,25
+	LTEXT	"Turn or drive your tank",																						IDC_STATIC,186, 92,336,25
+	LTEXT	"U",																											IDC_STATIC,  5,100,336,25
+	LTEXT	"Pick (Up) an item",																							IDC_STATIC, 35,100,336,25
+	LTEXT	"M",																											IDC_STATIC,156,100,336,25
+	LTEXT	"Open the (M)ap",																								IDC_STATIC,186,100,336,25
+	LTEXT	"D",																											IDC_STATIC,  5,108,336,25
+	LTEXT	"(D)rop the selected item",																						IDC_STATIC, 35,108,336,25
+	LTEXT	"I",																											IDC_STATIC,156,108,336,25
+	LTEXT	"Request (I)nfo on enemy cities",																				IDC_STATIC,186,108,336,25
+	LTEXT	"H",																											IDC_STATIC,  5,116,336,25
+	LTEXT	"Refill your (H)ealth (requires Medkit)",																		IDC_STATIC, 35,116,336,25
+	LTEXT	"P",																											IDC_STATIC,156,116,336,25
+	LTEXT	"Display your (P)oints and stats",																				IDC_STATIC,186,116,336,25
+	LTEXT	"B",																											IDC_STATIC,  5,124,336,25
+	LTEXT	"Drop a lit (B)omb (requires Bomb)",																			IDC_STATIC, 35,124,336,25
+	LTEXT	"Tab",																											IDC_STATIC,156,124,336,25
+	LTEXT	"Hold to move the screen with the arrow keys",																	IDC_STATIC,186,124,336,25
+	LTEXT	"O",																											IDC_STATIC,  5,132,336,25
+	LTEXT	"Drop the (O)rb (requires Orb)",																				IDC_STATIC, 35,132,336,25
+	LTEXT	"Enter",																										IDC_STATIC,156,132,336,25
+	LTEXT	"Start or send a chat message",																					IDC_STATIC,186,132,336,25
+	LTEXT	"C",																											IDC_STATIC,  5,140,336,25
+	LTEXT	"(C)loak on radar (requires Cloak)",																			IDC_STATIC, 35,140,336,25
+	LTEXT	"Ctrl",																											IDC_STATIC,156,140,336,25
+	LTEXT	"Fire a flare behind your tank (requires Flare)",																IDC_STATIC,186,140,336,25
+    LTEXT	"",																												IDC_STATIC,  5,148,336,25
+    LTEXT	"CHAT COMMANDS",																								IDC_STATIC,  5,156,336,25
+	LTEXT	"/pm PLAYER",																									IDC_STATIC,  5,164,336,25
+	LTEXT	"Send a private message to PLAYER",																				IDC_STATIC, 64,164,336,25
+	LTEXT	"/save FILENAME",																								IDC_STATIC,  5,172,336,25
+	LTEXT	"Save the current city design as FILENAME (requires Mayor)",													IDC_STATIC, 64,172,336,25
+	LTEXT	"/load FILENAME",																								IDC_STATIC,  5,180,336,25
+	LTEXT	"Load the city design in FILENAME (requires Mayor)",															IDC_STATIC, 64,180,336,25
+	LTEXT	"",																												IDC_STATIC,  5,188,336,25
+    LTEXT	"MORE INFORMATION",																								IDC_STATIC,  5,196,336,25
+    LTEXT	"Visit http://battlecity.looble.com for help, information, and game resources.  Join the forums to discuss ",	IDC_STATIC,  5,204,336,25
+    LTEXT	"strategies, share city designs, and suggest new features for the game.  Shop at the BC Store to buy custom ",	IDC_STATIC,  5,212,336,25
+    LTEXT	"tanks, rent exotic cities, and more-- and all money spent directly supports the game.",						IDC_STATIC,  5,220,336,25
+	DEFPUSHBUTTON   "Close",																								         1,292,238, 50,14
 END
 
 
