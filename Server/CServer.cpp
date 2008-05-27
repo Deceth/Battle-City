@@ -327,10 +327,6 @@ void CServer::reset() {
 
 	cout << "CServer::reset()" << endl;
 
-	// Restart the timer
-	cout << " - Restarting Timer" << endl;
-	this->Timer->Initialize();
-
 	// Rebuild the Build list
 	cout << " - Rebuilding building list" << endl;
 	delete this->Build;
