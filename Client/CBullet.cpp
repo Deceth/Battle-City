@@ -21,6 +21,7 @@ CBullet::CBullet(int x, int y, int type, int angle, unsigned short owner, CGame 
 	this->prev = 0;
 	this->next = 0;
 	
+	// Owner: PLAYER
 	if (this->type == 3) {
 		this->turretId = 0;
 	}
@@ -54,7 +55,7 @@ CBullet::CBullet(int x, int y, int type, int angle, unsigned short owner, CGame 
 	
 	// Type: Flare
 	else if (this->type == 3) {
-		this->life = 1000;
+		this->life = 2500;
 		this->damage = 5;
 	}
 

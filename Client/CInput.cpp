@@ -352,15 +352,19 @@ void CInput::ProcessKeys(char buffer[256]) {
 				// Weapon: FLARE
 				if (p->InGame->HasFlare) {
 					this->LastShot = p->Tick + TIMER_SHOOT_FLARE;
-					int ReverseDirection = (p->Player[me]->Direction+16)%32;
-					float fDir = (float)-ReverseDirection-32;
+					int ReverseDirectionLeft   = (p->Player[me]->Direction+20)%32;
+					int ReverseDirectionCenter = (p->Player[me]->Direction+16)%32;
+					int ReverseDirectionRight  = (p->Player[me]->Direction+12)%32;
+					float fDir = (float)-ReverseDirectionCenter-32;
 					int FlashY = (int)p->Player[me]->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
 					int FlashX = (int)p->Player[me]->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
 					p->Explode->newExplosion(FlashX, FlashY, 3);
-					p->Bullet->newBullet(FlashX, FlashY, 3, ReverseDirection, me);
+					p->Bullet->newBullet(FlashX, FlashY, 3, ReverseDirectionLeft, me);
+					p->Bullet->newBullet(FlashX, FlashY, 3, ReverseDirectionCenter, me);
+					p->Bullet->newBullet(FlashX, FlashY, 3, ReverseDirectionRight, me);
 					p->Sound->PlayWav(sFlare,1);
 					sCMShot shot;
-					shot.dir = ReverseDirection;
+					shot.dir = ReverseDirectionCenter;
 					shot.type = 3;
 					shot.x = FlashX;
 					shot.y = FlashY;

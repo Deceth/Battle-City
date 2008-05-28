@@ -1044,17 +1044,24 @@ void CProcess::ProcessShot(sSMShot *shotsfired) {
 	else {
 		if(shotsfired->type == 3) { 
 
-			int ReverseDirection = (playerShooter->Direction+16)%32;
-			fDir = (float)-ReverseDirection-32;
+			int ReverseDirectionLeft   = (playerShooter->Direction+20)%32;
+			int ReverseDirectionCenter = (playerShooter->Direction+16)%32;
+			int ReverseDirectionRight  = (playerShooter->Direction+12)%32;
+			fDir = (float)-ReverseDirectionCenter-32;
+			FlashY = (int)playerShooter->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+			FlashX = (int)playerShooter->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+			this->p->Explode->newExplosion(FlashX, FlashY, 3);
+			this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, ReverseDirectionLeft, shotsfired->id);
+			this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, ReverseDirectionCenter, shotsfired->id);
+			this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, ReverseDirectionRight, shotsfired->id);
 		}
 		else {
 			fDir = (float)-playerShooter->Direction+32;
+			FlashY = (int)playerShooter->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
+			FlashX = (int)playerShooter->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
+			this->p->Explode->newExplosion(FlashX, FlashY, 3);
+			this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, shotsfired->dir, shotsfired->id);
 		}
-
-		FlashY = (int)playerShooter->Y-24+10 + (int)(cos((float)(fDir)/16*3.14)*20);
-		FlashX = (int)playerShooter->X-24+6 + (int)(sin((float)(fDir)/16*3.14)*20);
-		this->p->Explode->newExplosion(FlashX, FlashY, 3);
-		this->p->Bullet->newBullet(shotsfired->x, shotsfired->y, shotsfired->type, shotsfired->dir, shotsfired->id);
 
 		if ((abs(playerShooter->X - playerMe->X) < 1000) && (abs(playerShooter->Y - playerMe->Y) < 1000)) {
 
