@@ -24,6 +24,7 @@ static const unsigned char	MAX_PLAYERS = 64;
 static const int			MAX_PLAYERS_PER_CITY = 4;
 static const int			MONEY_MAX_VALUE = 95000000;
 static const int			MONEY_STARTING_VALUE = 95000000;
+static const float			MOVEMENT_SPEED_FLARE = 0.10f;		// TO SYNCH
 static const float			MOVEMENT_SPEED_BULLET = 0.80f;		// synchronized with client
 static const float			MOVEMENT_SPEED_PLAYER = 0.38f;		// synchronized with client
 static const int			ORBABLE_SIZE = 21;

@@ -885,7 +885,16 @@ void CProcess::ProcessShot(sCMShot *data, int Index) {
 	shotsfired.x = data->x;
 	shotsfired.y = data->y;
 	shotsfired.dir = data->dir;
-	p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
+	
+	if(shotsfired.type == 3) {
+		p->Bullet->newBullet(data->x,data->y,data->type,data->dir+4, Index);
+		p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
+		p->Bullet->newBullet(data->x,data->y,data->type,data->dir-4, Index);
+	}
+	else {
+		p->Bullet->newBullet(data->x,data->y,data->type,data->dir, Index);
+	}
+
 
 	// Tell everyone but the player about the new shot
 	p->Send->SendRadarNotIndex(Index, smShoot, (char *)&shotsfired, sizeof(sSMShot));
