@@ -68,7 +68,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP |
 CAPTION "Account Information Recovery"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CTEXT           "Please enter your email address you used during the creation of your BattleCity account.  Your account user name and password will be sent to that address.",
+    CTEXT           "Please enter your email address you used during the creation of your Battle City account.  Your account user name and password will be sent to that address.",
                     IDC_STATIC,7,7,176,28
     EDITTEXT        IDEMAIL,7,37,177,12,ES_CENTER | ES_AUTOHSCROLL
     PUSHBUTTON      "Cancel",IDCANCEL,31,54,49,12
@@ -168,7 +168,7 @@ END
 ID_MEMBER DIALOGEX 0, 0, 226, 137
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "BattleCity - Member Panel"
+CAPTION "Battle City - Member Panel"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Button1",IDC_BUTTON1,155,15,50,14
@@ -239,7 +239,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 ID_OPTIONS DIALOGEX 0, 0, 177, 195
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "BattleCity Options"
+CAPTION "Battle City Options"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",1,104,10,50,14
@@ -254,7 +254,7 @@ BEGIN
                     5,65,80,16
     CONTROL         "Newbie Tips",1104,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     5,84,80,16
-    CONTROL         "Sleep (Only disable if BattleCity runs slow)",1105,
+    CONTROL         "Sleep (Only disable if Battle City runs slow)",1105,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,102,142,16
     CONTROL         "Debug Information",1106,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,120,142,16
@@ -291,17 +291,17 @@ END
 ID_LOGIN DIALOGEX 0, 0, 179, 130
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION
-CAPTION "Enter BattleCity"
+CAPTION "Enter Battle City"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     EDITTEXT        IDUSER,51,52,49,14
     EDITTEXT        IDPASS,51,75,49,14,ES_PASSWORD
-    DEFPUSHBUTTON   "Enter BattleCity",1,111,41,57,14
+    DEFPUSHBUTTON   "Enter Battle City",1,111,41,57,14
     PUSHBUTTON      "Exit",2,111,57,57,14
     PUSHBUTTON      "New Character",3,111,73,57,14
     LTEXT           "Password:",IDLBLPASS,8,77,39,11
     PUSHBUTTON      "Edit Character",4,111,89,57,14
-    CTEXT           "BattleCity Classic",IDVERSION,9,102,77,10
+    CTEXT           "Battle City",IDVERSION,9,102,77,10
     LTEXT           "Enter Your Character's Name and Password\n\nYou can create a new character by pressing the New Character button.",
                     IDLBLLOGIN,5,5,166,34
     PUSHBUTTON      "Recovery",5,111,105,57,14
@@ -383,7 +383,7 @@ END
 
 ID_MEETING DIALOGEX 0, 0, 443, 311
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
-CAPTION "BattleCity Classic - Meeting Room"
+CAPTION "Battle City - Meeting Room"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     EDITTEXT        IDNEWS,5,163,215,142,ES_MULTILINE | ES_AUTOVSCROLL | 
@@ -399,7 +399,7 @@ BEGIN
                     ES_READONLY | WS_VSCROLL
     PUSHBUTTON      "Quit",IDQUIT,405,10,32,14
     PUSHBUTTON      "Refresh",IDREFRESH,405,136,32,14
-    CTEXT           "The BattleCity Meeting Room - Select a city from the city list to join the game!",
+    CTEXT           "The Battle City Meeting Room - Select a city from the city list to join the game!",
                     IDC_STATIC,7,2,431,9
     CTEXT           "City list - double click to apply!",IDC_STATIC,227,153,
                     211,9
@@ -454,7 +454,7 @@ END
 
 ID_BCHELP DIALOGEX 0, 0, 347, 255
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "BattleCity Help"
+CAPTION "Battle City Help"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT	"OBJECTIVE",																									IDC_STATIC,  5, 4,336,25
@@ -506,7 +506,7 @@ BEGIN
 	LTEXT	"Load the city design in FILENAME (requires Mayor)",															IDC_STATIC, 64,180,336,25
 	LTEXT	"",																												IDC_STATIC,  5,188,336,25
     LTEXT	"MORE INFORMATION",																								IDC_STATIC,  5,196,336,25
-    LTEXT	"Visit http://battlecity.looble.com for help, information, and game resources.  Join the forums to discuss ",	IDC_STATIC,  5,204,336,25
+    LTEXT	"Visit http://Battle City.looble.com for help, information, and game resources.  Join the forums to discuss ",	IDC_STATIC,  5,204,336,25
     LTEXT	"strategies, share city designs, and suggest new features for the game.  Shop at the BC Store to buy custom ",	IDC_STATIC,  5,212,336,25
     LTEXT	"tanks, rent exotic cities, and more-- and all money spent directly supports the game.",						IDC_STATIC,  5,220,336,25
 	DEFPUSHBUTTON   "Close",																								         1,292,238, 50,14
