@@ -1653,6 +1653,7 @@ void CProcess::ProcessAdminEdit(sCMAdminEdit *adminedit) {
 	SetDlgItemText(this->p->AdminEdit->hWnd, IDSTATE, adminedit->State);
 	SetDlgItemText(this->p->AdminEdit->hWnd, IDEMAIL, adminedit->Email);
 	SetDlgItemInt(this->p->AdminEdit->hWnd, IDPOINTS, adminedit->Points, false);
+	SetDlgItemInt(this->p->AdminEdit->hWnd, IDMONTHLYTOP20, adminedit->MonthlyTop20, false);
 	SetDlgItemInt(this->p->AdminEdit->hWnd, IDDEATHS, adminedit->Deaths, false);
 	SetDlgItemInt(this->p->AdminEdit->hWnd, IDORBS, adminedit->Orbs, false);
 	SetDlgItemInt(this->p->AdminEdit->hWnd, IDASSISTS, adminedit->Assists, false);

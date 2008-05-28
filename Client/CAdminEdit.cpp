@@ -31,6 +31,7 @@ int CALLBACK AdminEditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 					GetDlgItemText(hwnd, IDSTATE, p->AdminEdit->state, 15);
 
 					p->AdminEdit->points = GetDlgItemInt(hwnd, IDPOINTS, NULL, 0);
+					p->AdminEdit->monthlyTop20 = GetDlgItemInt(hwnd, IDMONTHLYTOP20, NULL, 0);
 					p->AdminEdit->orbs = GetDlgItemInt(hwnd, IDORBS, NULL, 0);
 					p->AdminEdit->deaths = GetDlgItemInt(hwnd, IDDEATHS, NULL, 0);
 					p->AdminEdit->assists = GetDlgItemInt(hwnd, IDASSISTS, NULL, 0);
@@ -66,6 +67,7 @@ int CALLBACK AdminEditDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lPa
 					strcpy(AdminEdit.State, p->AdminEdit->state);
 					
 					AdminEdit.Points = p->AdminEdit->points;
+					AdminEdit.MonthlyTop20 = p->AdminEdit->monthlyTop20;
 					AdminEdit.Orbs = p->AdminEdit->orbs;
 					AdminEdit.Deaths = p->AdminEdit->deaths;
 					AdminEdit.Assists = p->AdminEdit->assists;

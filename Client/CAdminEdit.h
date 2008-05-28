@@ -26,6 +26,7 @@ public:
 	char state[15];
 
 	int points;
+	int monthlyTop20;
 	int orbs;
 	int deaths;
 	int assists;

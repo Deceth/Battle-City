@@ -86,6 +86,7 @@
 #define IDTANK7                         1066
 #define IDTANK8                         1067
 #define IDTANK9                         1068
+#define IDMONTHLYTOP20                  1070
 
 // Next default values for new objects
 // 
