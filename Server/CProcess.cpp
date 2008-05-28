@@ -1727,6 +1727,11 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit) {
 				converter << adminedit->Points;
 				DMLString += converter.str();
 
+				DMLString += ", MonthlyTop20 = ";
+				converter.str("");
+				converter << adminedit->MonthlyPoints;
+				DMLString += converter.str();
+
 				DMLString += ", Fullname = '";
 				DMLString += adminedit->FullName;
 
@@ -1852,6 +1857,7 @@ void CProcess::ProcessAdminEdit(int Index, sCMAdminEdit *adminedit) {
 						playerToEdit->Town = adminedit->Town;
 
 						playerToEdit->Points = adminedit->Points;
+						playerToEdit->MonthlyPoints = adminedit->MonthlyPoints;
 						playerToEdit->Deaths = adminedit->Deaths;
 						playerToEdit->Assists = adminedit->Assists;
 						playerToEdit->Orbs = adminedit->Orbs;
@@ -1924,6 +1930,7 @@ void CProcess::ProcessAdminEditRequest(int Index, sCMAdminEditRequest *adminedit
 					strcpy(newedit.Email, p->Database->Query.getStringField("Email"));
 
 					newedit.Points = p->Database->Query.getIntField("Points");
+					newedit.MonthlyPoints = p->Database->Query.getIntField("MonthlyTop20");
 					newedit.Orbs = p->Database->Query.getIntField("Orbs");
 					newedit.Deaths = p->Database->Query.getIntField("Deaths");
 					newedit.Assists = p->Database->Query.getIntField("Assists");
