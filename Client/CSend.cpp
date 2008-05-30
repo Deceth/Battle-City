@@ -93,6 +93,7 @@ void CSend::SendWhisper() {
 
 	sCMWhisper whisper;
 	memset(&whisper, 0, sizeof(whisper));
+	whisper.Recipient = -1;
 
 	// Parse the ChatLine, assuming "/pm recipient message" format
 	recipientStartIndex = p->InGame->ChatLine.find(" ",0) + 1;
@@ -146,7 +147,7 @@ void CSend::SendWhisper() {
 	}
 
 	// If the recipient was found,
-	if (whisper.Recipient > 0) {
+	if (whisper.Recipient > -1) {
 		// Send the message, append the message to the sender's chat
 		whisper.Sender = p->Winsock->MyIndex;
 		tmpString = p->Player[p->Winsock->MyIndex]->Name + " (to " + p->Player[whisper.Recipient]->Name + "): " + whisper.Message;
