@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.4"
+#define VERSION "3.5.5"
 
 static const int TCPPORT = 5643;
 //static const int TCPPORT = 6643;

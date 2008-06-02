@@ -1138,9 +1138,8 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 	CPlayer* playerOrbed;
 
 	if (playerMe->City == orbed->City) {
-
 		this->p->State = STATE_MEETING;
-		this->p->Sound->PlayWav(sDie, -1);
+		this->p->Sound->PlayWav(sDie, 1);	
 		MessageBox(this->p->hWnd, "Your city has been destroyed by the power of an Orb! This usually means that you were not defending your city properly. You have been warned!", "BattleCity", 0);
 		this->p->Meeting->ShowMeetingDlg();
 	}
@@ -1183,6 +1182,7 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 		this->p->InGame->AppendChat(msg.c_str(), COLOR_BLUE);
 
 		if (orbed->OrberCity == playerMe->City) {
+			this->p->Sound->PlayWav(sScreech, -1);
 			this->p->Engine->ThreadMessage(msg.c_str());
 		}
 	}
