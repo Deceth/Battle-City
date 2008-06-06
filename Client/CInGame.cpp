@@ -293,6 +293,7 @@ void CInGame::setPlayerInfo(string infoText, int lineIndex) {
 	while (infoText.length() > MessageLength) {
 		this->setPlayerInfoLine(infoText.substr(0, MessageLength), lineIndex, COLOR_SYSTEM);
 		infoText = infoText.substr(MessageLength, infoText.length());
+		lineIndex++;
 	}
 
 	this->setPlayerInfoLine(infoText, lineIndex, COLOR_SYSTEM);
