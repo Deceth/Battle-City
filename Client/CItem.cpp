@@ -623,22 +623,82 @@ void CInventory::Cycle() {
  **************************************************************/
 void CInventory::ItemCheck() {
 	CItem *itm = this->itemListHead;
+	bool hasCloak = false;
 	bool hasRocket = false;
+	bool hasMedkit = false;
+	bool hasBomb = false;
+	bool hasMine = false;
+	bool hasOrb = false;
 	bool hasFlare = false;
+	bool hasDFG = false;
+	bool hasWall = false;
+	bool hasTurret = false;
+	bool hasSleeper = false;
+	bool hasPlasma = false;
 
 	// For each item,
 	while (itm) {
 
 		switch (itm->Type) {
 
+			// Item: CLOAK
+			case ITEM_TYPE_CLOAK:
+				hasCloak = true;
+				break;
+
 			// Item: ROCKET
 			case ITEM_TYPE_ROCKET:
 				hasRocket = true;
 				break;
 
+			// Item: MEDKIT
+			case ITEM_TYPE_MEDKIT:
+				hasMedkit = true;
+				break;
+
+			// Item: BOMB
+			case ITEM_TYPE_BOMB:
+				hasBomb = true;
+				break;
+
+			// Item: MINE
+			case ITEM_TYPE_MINE:
+				hasMine = true;
+				break;
+
+			// Item: ORB
+			case ITEM_TYPE_ORB:
+				hasOrb = true;
+				break;
+
 			// Item: FLARE
 			case ITEM_TYPE_FLARE:
 				hasFlare = true;
+				break;
+
+			// Item: DFG
+			case ITEM_TYPE_DFG:
+				hasDFG = true;
+				break;
+
+			// Item: WALL
+			case ITEM_TYPE_WALL:
+				hasWall = true;
+				break;
+
+			// Item: TURRET
+			case ITEM_TYPE_TURRET:
+				hasTurret = true;
+				break;
+			
+			// Item: SLEEPER
+			case ITEM_TYPE_SLEEPER:
+				hasSleeper = true;
+				break;
+
+			// Item: PLASMA
+			case ITEM_TYPE_PLASMA:
+				hasPlasma = true;
 				break;
 		}
 
@@ -646,8 +706,18 @@ void CInventory::ItemCheck() {
 		itm = itm->next;
 	}
 
+	p->InGame->HasCloak = ( hasCloak ? 1 : 0 );
 	p->InGame->HasRocket = ( hasRocket ? 1 : 0 );
+	p->InGame->HasMedkit = ( hasMedkit ? 1 : 0 );
+	p->InGame->HasBomb = ( hasBomb ? 1 : 0 );
+	p->InGame->HasMine = ( hasMine ? 1 : 0 );
+	p->InGame->HasOrb = ( hasOrb ? 1 : 0 );
 	p->InGame->HasFlare = ( hasFlare ? 1 : 0 );
+	p->InGame->HasDFG = ( hasDFG ? 1 : 0 );
+	p->InGame->HasWall = ( hasWall ? 1 : 0 );
+	p->InGame->HasTurret = ( hasTurret ? 1 : 0 );
+	p->InGame->HasSleeper = ( hasSleeper ? 1 : 0 );
+	p->InGame->HasPlasma = ( hasPlasma ? 1 : 0 );
 }
 
 /***************************************************************

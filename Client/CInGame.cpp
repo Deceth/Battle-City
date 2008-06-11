@@ -29,8 +29,18 @@ CInGame::CInGame(CGame *game) {
 	this->ShowMap = 0;
 	this->Successor = 0;
 	this->HasLaser = 0;
+	this->HasCloak = 0;
 	this->HasRocket = 0;
-	this->HasFlare = 0;	
+	this->HasMedkit = 0;
+	this->HasBomb = 0;
+	this->HasMine = 0;
+	this->HasOrb = 0;
+	this->HasFlare = 0;
+	this->HasDFG = 0;
+	this->HasWall = 0;
+	this->HasTurret = 0;
+	this->HasSleeper = 0;
+	this->HasPlasma = 0;	
 	this->updateTick = 0;
 	this->lastTick = 0;
 	this->hospTick = 0;
@@ -344,8 +354,18 @@ void CInGame::ClearOut() {
 	Cash = 0;
 
 	HasLaser = 0;
+	HasCloak = 0;
 	HasRocket = 0;
+	HasMedkit = 0;
+	HasBomb = 0;
+	HasMine = 0;
+	HasOrb = 0;
 	HasFlare = 0;
+	HasDFG = 0;
+	HasWall = 0;
+	HasTurret = 0;
+	HasSleeper = 0;
+	HasPlasma = 0;
 
 	timeDeath = 0;
 	timeLastAttack = 0;

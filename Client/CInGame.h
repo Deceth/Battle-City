@@ -45,8 +45,18 @@ class CInGame {
 		long Hospital;
 
 		char HasLaser;
+		char HasCloak;
 		char HasRocket;
-		char HasFlare;		
+		char HasMedkit;
+		char HasBomb;
+		char HasMine;
+		char HasOrb;
+		char HasFlare;
+		char HasDFG;
+		char HasWall;
+		char HasTurret;
+		char HasSleeper;
+		char HasPlasma;		
 		char ShowMap;
 		float timeDeath;
 		float timeLastAttack;

@@ -835,61 +835,86 @@ void CProcess::ProcessPickUp(sCMItem *item) {
 
 	if (item2) {
 		CItem *itm = this->p->Inventory->newItem(item2->X, item2->Y, item2->Type, item2->City, item->id, item->active);
-		this->p->Inventory->ItemCheck();
-		this->p->Inventory->SelectedItemType = itm->Type;
-
+		
 		if (this->p->Options->newbietips) {
 			switch (item2->Type) {
 
 				case ITEM_TYPE_CLOAK:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_CLOAK);
+					if (p->InGame->HasCloak == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_CLOAK);
+					}
 					break;
 
 				case ITEM_TYPE_ROCKET:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_ROCKET);
+					if (p->InGame->HasRocket == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_ROCKET);
+					}
 					break;
 
 				case ITEM_TYPE_MEDKIT:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_MEDKIT);
+					if (p->InGame->HasMedkit == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_MEDKIT);
+					}
 					break;
 
 				case ITEM_TYPE_BOMB:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_BOMB);
+					if (p->InGame->HasBomb == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_BOMB);
+					}
 					break;
 
 				case ITEM_TYPE_MINE:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_MINE);
+					if (p->InGame->HasMine == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_MINE);
+					}
 					break;
 
 				case ITEM_TYPE_ORB:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_ORB);
+					if (p->InGame->HasOrb == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_ORB);
+					}
 					break;
 
 				case ITEM_TYPE_FLARE:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_FLARE);
+					if (p->InGame->HasFlare == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_FLARE);
+					}
 					break;
 
 				case ITEM_TYPE_DFG:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_DFG);
+					if (p->InGame->HasDFG == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_DFG);
+					}
 					break;
 
 				case ITEM_TYPE_WALL:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_WALL);
+					if (p->InGame->HasWall == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_WALL);
+					}
 					break;
 
 				case ITEM_TYPE_TURRET:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_TURRET);
+					if (p->InGame->HasTurret == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_TURRET);
+					}
 					break;
 
 				case ITEM_TYPE_SLEEPER:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_SLEEPER);
+					if (p->InGame->HasSleeper == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_SLEEPER);
+					}
 					break;
 
 				case ITEM_TYPE_PLASMA:
-					this->p->InGame->AppendInfo(NEWBIE_TIP_PLASMA);
+					if (p->InGame->HasPlasma == 0) {
+						this->p->InGame->AppendInfo(NEWBIE_TIP_PLASMA);
+					}
 					break;
 			}
 		}
+
+		this->p->Inventory->ItemCheck();
+		this->p->Inventory->SelectedItemType = itm->Type;
 	}
 }
 
