@@ -44,6 +44,29 @@ void CSend::SendAllBut(int DoNotSend, unsigned char PacketID, char *TheData, int
 }
 
 /***************************************************************
+ * Function:	SendGameAll
+ *
+ * @param Index
+ * @param PacketID
+ * @param TheData
+ * @param len
+ **************************************************************/
+void CSend::SendGameAll(int Index, unsigned char PacketID, char *TheData, int len) {
+
+	// For each possible player,
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+
+		// If the player is in game
+		if (p->Player[i]->isInGame()) {
+
+			// Send the data
+			p->Winsock->SendData(i, PacketID, TheData, len);
+		}
+	}	
+}
+
+
+/***************************************************************
  * Function:	SendGameAllBut
  *
  * @param DoNotSend

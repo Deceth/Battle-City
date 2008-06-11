@@ -25,6 +25,7 @@ class CSend {
 		void SendMiniMap(unsigned char Index);
 
 		void SendAllBut(int DoNotSend, unsigned char PacketID, char *TheData, int len = -1);
+		void SendGameAll(int Index, unsigned char PacketID, char *TheData, int len = -1);
 		void SendGameAllBut(int DoNotSend, unsigned char PacketID, char *TheData, int len = -1);
 		void SendRadarNotIndex(int Index, unsigned char PacketID, char *TheData, int len = -1);
 		void SendRadarAndTeam(int Index, unsigned char PacketID, char *TheData, int len = -1);

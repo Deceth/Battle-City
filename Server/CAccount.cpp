@@ -490,6 +490,20 @@ string CAccount::ReturnRank(int Points) {
  * @param points
  **************************************************************/
 void CAccount::AddPoints(int Index, int points) {
+	// Check if the point addition leads to a promotion
+	string oldRank = ReturnRank(p->Player[Index]->Points);
+	string newRank = ReturnRank(p->Player[Index]->Points + points);
+	if (oldRank == newRank) {
+		// No promotion, do nothing!
+	}
+	else {
+		char tmpstring[255];
+		int length = newRank.length();
+		tmpstring[0] = (unsigned char)Index;
+		strcpy(&tmpstring[1], newRank.c_str());		
+		p->Send->SendGameAll(Index, smPromotion, tmpstring, length + 1);
+	}
+
 	// Add points to the players's Points and MonthlyPoints values
 	p->Player[Index]->Points += points;
 	p->Player[Index]->MonthlyPoints += points;
