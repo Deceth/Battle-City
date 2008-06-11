@@ -198,6 +198,11 @@ int CProcess::ProcessData(char *TheData) {
 			this->ProcessGlobal(TheData);
 			break;
 
+		// Packet: smPromotion
+		case smPromotion:
+			this->ProcessPromotion(TheData);
+			break;
+
 		// Packet: smShoot
 		case smShoot:
 			this->ProcessShot((sSMShot *)&TheData[1]);
@@ -1796,6 +1801,17 @@ void CProcess::ProcessGlobal(char *TheData) {
 	string tmpstring = this->p->Player[Index]->Name + " (Global): " + &TheData[2];
 
 	this->p->InGame->AppendChat(tmpstring, COLOR_GLOBAL_CHAT);
+}
+
+/***************************************************************
+ * Function:	ProcessPromotion
+ *
+ * @param TheData
+ **************************************************************/
+void CProcess::ProcessPromotion(char *TheData) {
+	int Index = (unsigned char)TheData[1];
+	string tmpstring = this->p->Player[Index]->Name + " has been promoted to " + &TheData[2] + "!";
+	this->p->InGame->AppendChat(tmpstring, COLOR_PROMOTION_CHAT);
 }
 
 /***************************************************************

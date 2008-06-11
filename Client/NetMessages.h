@@ -45,6 +45,7 @@ enum ServerMessages {
 	smNextStep,
 	smItemLife,
 	smGlobal,
+	smPromotion,
 	smAdmin,
 	smKicked,
 	smUpdate,

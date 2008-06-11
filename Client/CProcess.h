@@ -65,6 +65,7 @@ public:
 	void ProcessFinance(sSMFinance *finance);
 	void ProcessWhisper(char *TheData);
 	void ProcessGlobal(char *TheData);
+	void ProcessPromotion(char *TheData);
 	void ProcessUnderAttack();
 	void ProcessAutoBuild(sSMAutoBuild* response);
 	void CProcess::ProcessNowOrbable();
