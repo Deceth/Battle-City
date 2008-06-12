@@ -29,7 +29,6 @@ void CCity::resetToDefault() {
 	this->active = 1;
 
 	// Reset the mayor, stats, hiring info, etc.  
-	// Note that maxBuildingCount starts at 1 for CC.
 	this->Mayor = -1;
 	this->Successor = -1;
 	this->Orbs = 0;
@@ -167,11 +166,6 @@ void CCity::cycle() {
 			if (this->p->Tick > this->DestructTimer) {
 				this->destroy();
 			}
-		}
-		
-		// If the destruct timer is set,
-		else {
-			
 		}
 
 		// If no mayor, return
