@@ -1223,7 +1223,7 @@ void CProcess::ProcessAdmin(sCMAdmin *admin, int Index) {
 
 				// If the city has no mayor, set the admin to mayor
 				if (cityTarget->Mayor == -1) {
-					player->setMayor(true);
+					player->setMayor(true, false);
 				}
 				player->StartJoin();
 			}

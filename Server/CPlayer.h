@@ -65,6 +65,7 @@ class CPlayer {
 		void Clear(bool triggerServerReset);
 		void setCloak(bool isCloaked);
 		void setMayor(bool isMayor);
+		void setMayor(bool isMayor, bool requireInGame);
 		int FindApplyMayor();
 
 		bool isAdmin();

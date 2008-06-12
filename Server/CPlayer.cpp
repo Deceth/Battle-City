@@ -22,11 +22,20 @@ CPlayer::~CPlayer() {
 }
 
 /***************************************************************
- * Function:	CPlayer
+ * Function:	setMayor
  *
  * @param set
  **************************************************************/
 void CPlayer::setMayor(bool isMayor) {
+	this->setMayor(isMayor, true);
+}
+/***************************************************************
+ * Function:	setMayor
+ *
+ * @param set
+ * @param requireInGame
+ **************************************************************/
+void CPlayer::setMayor(bool isMayor, bool requireInGame) {
 	sSMFinance finance;
 	sSMMayorUpdate Mayorupdate;
 	CCity* city;
@@ -34,11 +43,11 @@ void CPlayer::setMayor(bool isMayor) {
 	// Store whether the player is mayor or not
 	this->Mayor = isMayor;
 
-	// If the player is in game,
-	if (this->isInGame()) {
+	// If requireInGame is false, or player is in game, 
+	if ((!requireInGame) || this->isInGame()) {
 		city = this->p->City[this->City];
 	
-		// If the player is now mayor,
+		// If the player is being set mayor
 		if (isMayor) {
 
 			// Store this player as mayor of this city,
@@ -48,11 +57,6 @@ void CPlayer::setMayor(bool isMayor) {
 			if (city->hiring > -1) {
 				this->p->Winsock->SendData(city->hiring,smMayorChanged," ");
 			}
-
-			// Reset the mayor options
-			city->Successor = -1;
-			city->notHiring = 0;
-			city->hiring = -1;
 
 			// For each item,
 			for (int j = 0; j <= 26; j++) {
@@ -73,11 +77,23 @@ void CPlayer::setMayor(bool isMayor) {
 			Mayorupdate.IsMayor = 1;
 		}
 
-		// Else (player is now not mayor),
+		// Else (player is being set to not-mayor),
 		else {
+
+			// If the city thinks the player is now its mayor, un-mayor it
+			if (city->Mayor == this->id) {
+				city->Mayor = -1;
+			}
+
+
 			// Set isMayor = 0 on the packet
 			Mayorupdate.IsMayor = 0;
 		}
+
+		// Reset the mayor options
+		city->Successor = -1;
+		city->notHiring = 0;
+		city->hiring = -1;
 
 		// Tell everyone the mayor changed
 		Mayorupdate.Index = id;
