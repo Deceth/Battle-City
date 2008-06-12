@@ -41,9 +41,6 @@ void CPlayer::setMayor(bool isMayor) {
 		// If the player is now mayor,
 		if (isMayor) {
 
-			// ???
-			city->id = this->City;
-
 			// Store this player as mayor of this city,
 			city->Mayor = this->id;
 
@@ -328,7 +325,7 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 	if (transferMayor) {
 
 		// If the player is mayor,
-		if (this->Mayor) {
+		if (this->Mayor && (city->Mayor==this->id)) {
 
 			// If there is a successor,
 			if (city->Successor > -1) {
@@ -386,6 +383,9 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 					city->DestructTimer = this->p->Tick + TIMER_CITY_DESTRUCT;
 					city->Mayor = -1;
 					city->notHiring = 0;
+
+					// Announce to everyone that the server is going to self destruct in TIMER_CITY_DESTRUCT seconds
+					// TODO: implement
 				}
 			}
 		}
@@ -395,14 +395,15 @@ void CPlayer::LeaveGame(bool showMessage, bool transferMayor) {
 	if (this->isInGame()) {
 
 		// Save the player's stats
+		cout << "Left::" << Name << "::Saving...";
 		this->p->Account->SaveStats(this->id);
+		cout << " Done." << endl;
 
 		// If showMessage, tell everyone you left
 		if (showMessage) {
 			packet[0] = (char)this->id;
 			packet[1] = 69;
 			this->p->Send->SendGameAllBut(this->id, smChatCommand, packet, 2); 
-			cout << "Left::" << Name << endl;
 		}
 	}
 
