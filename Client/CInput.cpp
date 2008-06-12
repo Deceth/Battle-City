@@ -562,6 +562,7 @@ void CInput::MouseDown(DIMOUSESTATE mouse_state, int X, int Y, char buffer[256])
 		if (p->Player[p->Winsock->MyIndex]->isAdmin()) {
 			if (X > (p->Draw->MaxMapX + 110) && X < (p->Draw->MaxMapX + 110 + 42) && Y > 460 && Y < 479) {
 				p->Admin->ShowAdminDlg();
+				p->Send->RequestStartingCity();
 
 				// Save the mouse state and return
 				this->endMouseDown(mouse_state);

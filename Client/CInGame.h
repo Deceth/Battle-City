@@ -119,6 +119,8 @@ class CInGame {
 		void saveCity(string chatLine);
 		bool createBuilding(unsigned char type, unsigned short x, unsigned short y, bool isAutoBuild);
 
+		static bool isValidCityIndex(int city);
+
 	private:
 		CGame *p;
 

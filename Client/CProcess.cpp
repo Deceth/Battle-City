@@ -345,6 +345,11 @@ int CProcess::ProcessData(char *TheData) {
 			this->ProcessNowOrbable();
 			break;
 
+		// Packet: smStartingCity
+		case smStartingCity:
+			this->ProcessStartingCity((sSMStartingCity *)&TheData[1]);
+			break;
+
 		// Packet: unknown!
 		default:
 			std::ostringstream thing;
@@ -1091,7 +1096,7 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
 	}
 
 	// Else, if city is valid, show "(" + cityName + ")"
-	else if ((City > -1) && (City < MAX_CITIES)) {
+	else if (CInGame::isValidCityIndex(City)) {
 		tmpString += " (";
 		tmpString += CityList[City];
 		tmpString += ")";
@@ -1239,7 +1244,7 @@ void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 	}
 
 	// If a valid city was the orber,
-	if ((orbed->OrberCity > -1) && (orbed->OrberCity < MAX_CITIES)) {
+	if (CInGame::isValidCityIndex(orbed->OrberCity)) {
 
 		string msg = "";
 		msg += CityList[orbed->OrberCity];
@@ -1955,4 +1960,13 @@ void CProcess::ProcessNowOrbable() {
 	if (this->p->Options->newbietips) {
 		this->p->InGame->AppendInfo(NEWBIE_TIP_ORBABLE);
 	}
+}
+
+
+/***************************************************************
+ * Function:	ProcessStartingCity
+ *
+ **************************************************************/
+void CProcess::ProcessStartingCity(sSMStartingCity* response) {
+	this->p->Admin->SetStartingCity(response->City);
 }

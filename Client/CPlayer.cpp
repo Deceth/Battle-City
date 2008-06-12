@@ -610,7 +610,7 @@ void CPlayer::GenerateNameString() {
 	newNameString += this->Name;
 
 	// If the player is in a valid city, get the city to show
-	if (this->City > -1 && this->City < MAX_CITIES) {
+	if (CInGame::isValidCityIndex(this->City)) {
 		newTownString += "(";
 		if (this->isMayor) {
 			newTownString += "Mayor of ";

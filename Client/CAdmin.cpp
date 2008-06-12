@@ -126,6 +126,27 @@ int CALLBACK AdminDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					EndDialog(hwnd, IDCANCEL);
 					p->AdminEdit->ShowAdminEditDlg();
 				}
+				break;
+				case IDUPDATESTARTINGCITY:
+				{
+					// Get the string
+					char NewStartingCity[3];
+					memset(NewStartingCity, 0, sizeof(NewStartingCity));
+					GetDlgItemText(p->Admin->hWnd, IDSTARTINGCITY, NewStartingCity, sizeof(NewStartingCity));
+
+					// Convert it to an int
+					istringstream iss(NewStartingCity);
+					int NewStartingCityInt;
+
+					// If the conversion worked (valid number), send it to the server
+					if (iss>>NewStartingCityInt) {
+
+						sCMStartingCity request;
+						request.City = NewStartingCityInt;
+						p->Winsock->SendData(cmChangeStartingCity, (char *)&request, sizeof(request));
+					}
+				}
+				break;
             }
 			break;
         default:
@@ -235,4 +256,17 @@ void CAdmin::AddBan(sSMBan *ban)
 void CAdmin::SetNews(string TheNews)
 {
 	SetDlgItemText(p->Admin->hWnd, IDNEWS, TheNews.c_str());
+}
+
+
+void CAdmin::SetStartingCity(int City)
+{
+	// Required to make sure the panel is drawn before we try to set its contents
+	Sleep(100);
+
+	stringstream ss;
+	string cityString;
+	ss << City;
+	cityString = ss.str();
+	SetDlgItemText(p->Admin->hWnd, IDSTARTINGCITY, cityString.c_str());
 }

@@ -19,6 +19,8 @@ public:
 	void SendGlobal();
 	void SendMessage();
 
+	void RequestStartingCity();
+
 private:
 	CGame *p;
 protected:

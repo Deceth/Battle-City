@@ -22,6 +22,7 @@ public:
 
 	void AddBan(sSMBan *ban);
 	void SetNews(string TheNews);
+	void SetStartingCity(int City);
 private:
 	CGame *p;
 protected:

@@ -68,7 +68,8 @@ public:
 	void ProcessPromotion(char *TheData);
 	void ProcessUnderAttack();
 	void ProcessAutoBuild(sSMAutoBuild* response);
-	void CProcess::ProcessNowOrbable();
+	void ProcessNowOrbable();
+	void ProcessStartingCity(sSMStartingCity *response);
 
 private:
 	CGame *p;

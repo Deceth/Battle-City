@@ -67,7 +67,8 @@ enum ServerMessages {
 	smCount,
 	smCloak,
 	smAutoBuild,
-	smNowOrbable
+	smNowOrbable,
+	smStartingCity
 };
 
 struct sSMUpdate
@@ -246,6 +247,18 @@ struct sSMAutoBuild
 	char filename[64];
 };
 
+struct sSMStartingCity
+{
+	int City;
+};
+
+
+
+
+
+
+
+
 enum ClientMessages {
 	CMTCP,
 	cmVersion,
@@ -295,7 +308,9 @@ enum ClientMessages {
 	cmCount,
 	cmCloak,
 	cmAutoBuild,
-	cmCheatCheck
+	cmCheatCheck,
+	cmStartingCity,
+	cmChangeStartingCity
 };
 
 struct sCMBuild
@@ -383,6 +398,7 @@ struct sCMAdminEdit
 	char Town[15];
 	char State[15];
 	int Points;
+	int MonthlyPoints;
 	int MonthlyTop20;
 	int Deaths;
 	int Orbs;
@@ -432,6 +448,11 @@ struct sCMCheatCheck
 	int timerRespawn;
 	int timerLaser;
 	int timerRocket;
+};
+
+struct sCMStartingCity
+{
+	int City;
 };
 
 #endif

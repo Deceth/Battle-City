@@ -1,19 +1,15 @@
 #include "CSend.h"
 
-CSend::CSend(CGame *game)
-{
-	p = game;
+CSend::CSend(CGame *game) {
+	this->p = game;
 }
 
-CSend::~CSend()
-{
+CSend::~CSend() {
 
 }
 
-void CSend::SendLogin(int NewAccount)
-{
-	if (NewAccount == 0)
-	{
+void CSend::SendLogin(int NewAccount) {
+	if (NewAccount == 0) {
 		sCMLogin LoginData;
 		memset(&LoginData, 0, sizeof(LoginData));
 		strcpy(LoginData.User, p->Login->user);
@@ -21,8 +17,7 @@ void CSend::SendLogin(int NewAccount)
 
 		p->Winsock->SendData(cmLogin, (char *)&LoginData, sizeof(LoginData));
 	}
-	else
-	{
+	else {
 		sCMNewAccount NewAccount;
 		memset(&NewAccount, 0, sizeof(NewAccount));
 		strcpy(NewAccount.Pass, p->NewAccount->pass);
@@ -36,8 +31,7 @@ void CSend::SendLogin(int NewAccount)
 	}
 }
 
-void CSend::SendVersion()
-{
+void CSend::SendVersion() {
 	sCMVersion vers;
 	memset(vers.Version, 0, 10);
 	memset(vers.UniqID, 0, 50);
@@ -48,8 +42,7 @@ void CSend::SendVersion()
 	p->Winsock->SendData(cmVersion, (char *)&vers, sizeof(vers));
 }
 
-void CSend::SendAccountUpdate()
-{
+void CSend::SendAccountUpdate() {
 	sCMNewAccount NewAccount;
 	memset(&NewAccount, 0, sizeof(NewAccount));
 	strcpy(NewAccount.Pass, p->NewAccount->pass);
@@ -62,8 +55,7 @@ void CSend::SendAccountUpdate()
 	p->Winsock->SendData(cmAccountUpdate, (char *)&NewAccount, sizeof(NewAccount));
 }
 
-void CSend::SendAccountEdit()
-{	
+void CSend::SendAccountEdit() {	
 	sCMLogin LoginData;
 	memset(&LoginData, 0, sizeof(LoginData));
 	strcpy(LoginData.User, p->Login->user);
@@ -213,4 +205,8 @@ void CSend::SendMessage() {
 	else {
 		p->InGame->AppendChat(tmpString, COLOR_TEAM_CHAT);
 	}
+}
+
+void CSend::RequestStartingCity() {	
+	p->Winsock->SendData(cmStartingCity, "");
 }

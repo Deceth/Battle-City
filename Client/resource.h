@@ -87,6 +87,8 @@
 #define IDTANK8                         1067
 #define IDTANK9                         1068
 #define IDMONTHLYTOP20                  1070
+#define IDSTARTINGCITY					1071
+#define IDUPDATESTARTINGCITY			1072
 
 // Next default values for new objects
 // 

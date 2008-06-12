@@ -934,3 +934,11 @@ bool CInGame::createBuilding(unsigned char type, unsigned short x, unsigned shor
 
 	return true;
 }
+
+/***************************************************************
+ * Function:	isValidCityIndex
+ *
+ **************************************************************/
+bool CInGame::isValidCityIndex(int city) {
+	return ((city>-1) && (city<MAX_CITIES));
+}
