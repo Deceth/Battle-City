@@ -43,6 +43,7 @@ class CSend {
 		void SendWhisper(int Index, sCMWhisper *whisper);
 
 		void ResetStartingCC();
+		void ResetStartingCC(bool randomReset);
 
 		CServer *p;
 

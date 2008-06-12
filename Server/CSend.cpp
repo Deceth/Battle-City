@@ -7,7 +7,6 @@
  **************************************************************/
 CSend::CSend(CServer *Server) {
 	this->p = Server;
-	this->ResetStartingCC();
 
 	// Set options for possible starting cities
 	startingCityOptions[0] = 18;
@@ -19,6 +18,8 @@ CSend::CSend(CServer *Server) {
 	startingCityOptions[6] = 34;
 	startingCityOptions[7] = 35;
 	startingCityOptions[8] = 36;
+
+	startingCity = startingCityOptions[0];
 }
 
 /***************************************************************
@@ -821,7 +822,7 @@ void CSend::SendTheCities(int Index) {
 	}
 
 	// Decide how many cities we want to open
-	citiesWanted = ((int)(((float)(totalPlayers)) / 5.0f)) + 7;
+	citiesWanted = ((int)(((float)(totalPlayers)) / 5.0f)) + 6;
 
 	// If the startingCity is open, send it
 	if (p->City[this->startingCity]->Mayor == -1) {
@@ -898,8 +899,31 @@ void CSend::SendWhisper(int WhoSent, sCMWhisper *whisper) {
  *
  **************************************************************/
 void CSend::ResetStartingCC() {
-	srand ( time(NULL) );
-	int startingCityOptionIndex = (rand() % (sizeof(startingCityOptions)/sizeof(int))) ;
+	this->ResetStartingCC(false);
+}
+
+/***************************************************************
+ * Function:	ResetStartingCC
+ *
+ * @param randomReset
+ **************************************************************/
+void CSend::ResetStartingCC(bool randomReset) {
+	int startingCityOptionIndex;
+
+	// If randomReset, only reset on a random condition
+	if (randomReset) {
+
+		// If a random number is not divisible by three, return
+		srand ( time(NULL) );
+		if ((rand() % 3) != 0) {
+			cout << " -- no city reset: random condition failed" << endl;
+			return;
+		}
+	}
+
+	// Reset the CC
+	srand((int)GetTickCount());
+	startingCityOptionIndex = (rand() % (sizeof(startingCityOptions)/sizeof(int))) ;
 	this->startingCity = startingCityOptions[startingCityOptionIndex];
 
 	cout << " -- starting city: index(" << startingCityOptionIndex << ") value(" << startingCityOptions[startingCityOptionIndex] << ")" << endl;
