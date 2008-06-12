@@ -12,6 +12,7 @@ class CSend {
 		~CSend();
 
 		int startingCity;
+		int startingCityOptions[9];
 
 		void SendNews(int Index);
 		void SendAdminNews(int Index);
@@ -40,6 +41,8 @@ class CSend {
 
 		void SendSector(int Index, int XSector, int YSector);
 		void SendWhisper(int Index, sCMWhisper *whisper);
+
+		void ResetStartingCC();
 
 		CServer *p;
 

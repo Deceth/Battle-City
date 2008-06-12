@@ -355,5 +355,8 @@ void CServer::reset() {
 	cout << " - Reloading Map and CCs" << endl;
 	this->Map->LoadMap();
 
+	cout << " - Reseting starting CC" << endl;
+	this->Send->ResetStartingCC();
+
 	cout << "Reset::Success" << endl << endl;
 }

@@ -7,11 +7,18 @@
  **************************************************************/
 CSend::CSend(CServer *Server) {
 	this->p = Server;
+	this->ResetStartingCC();
 
-	srand((int)GetTickCount());
-	this->startingCity = 35;//27
-
-	this->p = Server;
+	// Set options for possible starting cities
+	startingCityOptions[0] = 18;
+	startingCityOptions[1] = 19;
+	startingCityOptions[2] = 20;
+	startingCityOptions[3] = 26;
+	startingCityOptions[4] = 27;
+	startingCityOptions[5] = 28;
+	startingCityOptions[6] = 34;
+	startingCityOptions[7] = 35;
+	startingCityOptions[8] = 36;
 }
 
 /***************************************************************
@@ -884,5 +891,17 @@ void CSend::SendWhisper(int WhoSent, sCMWhisper *whisper) {
 
 	// Send the message
 	p->Winsock->SendData(whisper->Recipient, smWhisper, tmpstring, sizeof(tmpstring));
+}
+
+/***************************************************************
+ * Function:	ResetStartingCC
+ *
+ **************************************************************/
+void CSend::ResetStartingCC() {
+	srand ( time(NULL) );
+	int startingCityOptionIndex = (rand() % (sizeof(startingCityOptions)/sizeof(int))) ;
+	this->startingCity = startingCityOptions[startingCityOptionIndex];
+
+	cout << " -- starting city: index(" << startingCityOptionIndex << ") value(" << startingCityOptions[startingCityOptionIndex] << ")" << endl;
 }
 
