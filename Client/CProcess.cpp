@@ -462,34 +462,54 @@ void CProcess::ProcessEvent(int Event) {
  * @param global
  **************************************************************/
 void CProcess::ProcessChatMessage(char *TheData, char global) {
-	string tmpstring;
+	string chatMessage = "";
 	int Index = (unsigned char)TheData[1];
-	tmpstring = this->p->Player[Index]->Name + ": " + &TheData[2];
+	CPlayer* player = this->p->Player[Index];
+	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
+	COLORREF color;
+
+	// If name is missing, return
+	if (player->Name.empty()) {
+		return;
+	}
+	// If message is missing, return
+	if (sizeof(TheData) < 2) {
+		return;
+	}
+
+	// Build the chat message
+	chatMessage += player->Name + ": " + &TheData[2];
+
+	// Switch on the player's state...
 	switch (this->p->State) {
+
+		// State: GAME
 		case STATE_GAME:
-			if (this->p->Player[Index]->isAdmin()) {
-				this->p->InGame->AppendChat(tmpstring, COLOR_ADMIN_CHAT);
+
+			// Get chat color based on player Admin, player Dead, player team
+			if (player->isAdmin()) {
+				color = COLOR_ADMIN_CHAT;
+			}
+			else if (player->isDead == true) {
+				color = COLOR_DEAD_CHAT;
+			}
+			else if (player->City == playerMe->City) {
+				color = COLOR_TEAM_CHAT;
 			}
 			else {
-
-				if (this->p->Player[Index]->isDead == true) {
-					this->p->InGame->AppendChat(tmpstring, COLOR_DEAD_CHAT);
-				}
-				else {
-					if (this->p->Player[Index]->City == this->p->Player[this->p->Winsock->MyIndex]->City) {
-						this->p->InGame->AppendChat(tmpstring, COLOR_TEAM_CHAT);
-					}
-					else {
-						this->p->InGame->AppendChat(tmpstring, COLOR_ENEMY_CHAT);
-					}
-				}
+				color = COLOR_ENEMY_CHAT;
 			}
-			break;
-		case STATE_MEETING:
-			this->p->Meeting->AppendData(tmpstring);
-			break;
-		default:
 
+			this->p->InGame->AppendChat(chatMessage, color);
+			break;
+
+		// State: MEETING
+		case STATE_MEETING:
+			this->p->Meeting->AppendData(chatMessage);
+			break;
+
+		// State: DEFAULT
+		default:
 			break;
 	}
 }
@@ -501,36 +521,55 @@ void CProcess::ProcessChatMessage(char *TheData, char global) {
  * @param message
  **************************************************************/
 void CProcess::ProcessChatCommand(int Index, int message) {
+	CPlayer* player = this->p->Player[Index];
 	string tmpString;
-	if (this->p->Player[Index]->Name.length() > 0) {
-		tmpString = this->p->Player[Index]->Name;
-		switch(message) {
-			case 65: //Message A
-				this->p->Meeting->AddPlayer(Index);
-				this->p->InGame->PrintWhoData();
-				break;
-			case 66: //Message B
-			case 67: //Message C 
-			case 68: //Message D
-				this->p->Meeting->ClearPlayer(Index);
-				this->p->InGame->PrintWhoData();
-				break;
-			case 69: //Message E
-				tmpString.append(" has left");
-				this->p->Player[Index]->InGameClear();
-				this->p->InGame->PrintWhoData();
-				if (this->p->Admin->IsOpen) {
-					this->p->Admin->DrawPlayerList();
-				}
-				break;
-		}
-		switch(this->p->State) {
-			case STATE_GAME:
-				this->p->InGame->AppendChat(&tmpString[0], COLOR_SYSTEM);
-				break;
-			default:
-				break;
-		}
+
+	// If player name is empty, return
+	if (player->Name.empty()) {
+		return;
+	}
+	tmpString += player->Name;
+
+	switch(message) {
+		
+		// Message: NEW PLAYER
+		case 65: //Message A
+			this->p->Meeting->AddPlayer(Index);
+			this->p->InGame->PrintWhoData();
+			break;
+
+		// Message: B?
+		// ???
+		case 66:
+
+		// Message: C?
+		// ???
+		case 67:
+
+		// Message: PLAYER LEAVES MEETING ROOM
+		case 68: //Message D
+			this->p->Meeting->ClearPlayer(Index);
+			this->p->InGame->PrintWhoData();
+			break;
+
+		// Message: PLAYER LEAVES BATTLEFIELD
+		case 69: //Message E
+			tmpString += " has left";
+			this->p->Player[Index]->InGameClear();
+			this->p->InGame->PrintWhoData();
+
+			// If player has admin panel open, redraw player list
+			if (this->p->Admin->IsOpen) {
+				this->p->Admin->DrawPlayerList();
+			}
+			break;
+	}
+	switch(this->p->State) {
+		case STATE_GAME:
+			this->p->InGame->AppendChat(&tmpString[0], COLOR_SYSTEM);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -541,32 +580,34 @@ void CProcess::ProcessChatCommand(int Index, int message) {
  **************************************************************/
 void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	int me = this->p->Winsock->MyIndex;
-	string welcome;
+	CPlayer* playerMe = this->p->Player[me];
+	string welcome = "";
 
 	this->p->Draw->resetPlayerOffset();
-	this->p->Player[me]->X = (float)game->x;
-	this->p->Player[me]->Y = (float)game->y;
-	this->p->Player[me]->SectorX = (game->x/48) / SectorSize;
-	this->p->Player[me]->SectorY = (game->y/48) / SectorSize;
-	this->p->Player[me]->CityX = game->x;
-	this->p->Player[me]->CityY = game->y;
-	this->p->Player[me]->City = game->City;
-	this->p->Player[me]->SetHP(MAX_HEALTH);
-	this->p->Player[me]->isInGame = 1;
-	this->p->Player[me]->GenerateNameString();
+	playerMe->X = (float)game->x;
+	playerMe->Y = (float)game->y;
+	playerMe->SectorX = (game->x/48) / SectorSize;
+	playerMe->SectorY = (game->y/48) / SectorSize;
+	playerMe->CityX = game->x;
+	playerMe->CityY = game->y;
+	playerMe->City = game->City;
+	playerMe->SetHP(MAX_HEALTH);
+	playerMe->isInGame = 1;
+	playerMe->GenerateNameString();
 	
 	// Clear screen a bit for welcome with newbie tips
 	this->p->InGame->AppendInfo("");
 	this->p->InGame->AppendInfo("");
 
-	welcome = "You joined ";
-	welcome += CityList[this->p->Player[this->p->Winsock->MyIndex]->City];
+	// Build the welcome message
+	welcome += "You joined ";
+	welcome += CityList[playerMe->City];
 	
-	if (this->p->Player[me]->isMayor) {
-			welcome += " as the Mayor!";
+	if (playerMe->isMayor) {
+		welcome += " as the Mayor!";
 	}
 	else {
-			welcome += " as a Commando!";
+		welcome += " as a Commando!";
 	}	
 	this->p->InGame->AppendInfo(welcome);
 
@@ -580,7 +621,7 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 		this->p->InGame->AppendInfo("How to Orb? Drop the Orb on the enemies Command Center!");
 		this->p->InGame->AppendInfo("Press 'SHIFT' to shoot and 'U' to pick up items");		
 		
-		if (this->p->Player[me]->isMayor) {
+		if (playerMe->isMayor) {
 			this->p->InGame->AppendInfo("Right-click the screen to start building your city!");
 		}
 		else {
@@ -685,23 +726,31 @@ void CProcess::ProcessCanBuild(char TheData[255]) {
  * @param TheData
  **************************************************************/
 void CProcess::ProcessComms(char TheData[255]) {
-	string tmpString;
-	if (this->p->Player[(unsigned char)TheData[1]]->Name.length() > 0) {
-		switch (TheData[2]) {
-			case 124: // |
-				tmpString = "The mayor has arrived - Start talking.";
-				break;
-			default:
-				tmpString = this->p->Player[(unsigned char)TheData[1]]->Name + ": ";
-				tmpString.append(&TheData[2]);
-				break;
-		}
-		if (this->p->State == STATE_GAME) {
-			this->p->Personnel->AppendData(tmpString);
-		}
-		else  {
-			this->p->Interview->AppendData(tmpString);
-		}
+	string chatString = "";
+	CPlayer* player = this->p->Player[(unsigned char)TheData[1]];
+
+	// If player name is empty, return
+	if (player->Name.empty()) {
+		return;
+	}
+
+	switch (TheData[2]) {
+		case 124: // |
+			chatString += "The mayor has arrived - Start talking.";
+			break;
+		default:
+			chatString += player->Name + ": ";
+
+			if (&TheData[2]) {
+				chatString += &TheData[2];
+			}
+			break;
+	}
+	if (this->p->State == STATE_GAME) {
+		this->p->Personnel->AppendData(chatString);
+	}
+	else  {
+		this->p->Interview->AppendData(chatString);
 	}
 }
 
@@ -732,31 +781,37 @@ void CProcess::ProcessInterview() {
  * @param Index
  **************************************************************/
 void CProcess::ProcessMayorHire(int Index) {
-	string tmpString;
-	tmpString.clear();
+	string tmpString = "";
+	CPlayer* player = this->p->Player[Index];
+	string rankToShow = this->p->InGame->ReturnRank(player->Points);
 
-	if (this->p->Personnel->DenyApplicants == 0)  {
+	// If we are denying applicants, 
+	if (this->p->Personnel->DenyApplicants != 0)  {
 
-		if (this->p->Player[Index]->Name.length() > NULL) {
-			tmpString = this->p->InGame->ReturnRank(this->p->Player[Index]->Points) + " ";
-			tmpString += this->p->Player[Index]->Name;
-			tmpString += " of ";
-			tmpString += this->p->Player[Index]->Town;
-			tmpString += + " is looking for a job";
-			this->p->Personnel->ApplicantWaiting = 1;
-			this->p->InGame->AppendInfo("Note:  Another player is applying for a position in your city.");
-			this->p->Personnel->AppendData(tmpString);
-			this->p->Sound->PlayWav(sBuzz,-1);
-		}
-	}
-
-	else {
+		// Send denial, no-hire
 		char packet[2];
 		packet[0] = (char)this->p->Personnel->DenyApplicants;
 		packet[1] = 0;
 		this->p->Winsock->SendData(cmIsHiring, packet, 1);
 		this->p->Winsock->SendData(cmHireDecline, " ", 1);
+		return;
 	}
+
+	// If player name is empty, return
+	if (player->Name.empty()) {
+		return;
+	}
+
+	tmpString += rankToShow + " ";
+	tmpString += player->Name;
+	tmpString += " of ";
+	tmpString += player->Town;
+	tmpString += + " is looking for a job";
+
+	this->p->Personnel->ApplicantWaiting = 1;
+	this->p->InGame->AppendInfo("Note:  Another player is applying for a position in your city.");
+	this->p->Personnel->AppendData(tmpString);
+	this->p->Sound->PlayWav(sBuzz,-1);
 }
 
 /***************************************************************
@@ -958,13 +1013,12 @@ void CProcess::ProcessPop(sSMPop *pop) {
  * @param City
  **************************************************************/
 void CProcess::ProcessDeath(int Index, char deathType, char City) {
-	string tmpString;
+	string tmpString = "";
     srand((unsigned int)this->p->Tick);
     int random_integer = rand()%13;
 	int me = this->p->Winsock->MyIndex;
 	CPlayer* player = this->p->Player[Index];
 	CPlayer* playerMe = this->p->Player[me];
-	string cityName = CityList[City];
 
 	player->isDead = true;
 	player->isMoving = false;
@@ -991,43 +1045,43 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
 	// Choose a random death message
 	switch (random_integer) {
 		case 0:
-			tmpString = player->Name + " no longer exists as a single entity";
+			tmpString += player->Name + " no longer exists as a single entity";
 			break;
 		case 1:
-			tmpString = player->Name + " just had a TNT experience";
+			tmpString += player->Name + " just had a TNT experience";
 			break;
 		case 2:
-			tmpString = player->Name + " has shattered into many pieces";
+			tmpString += player->Name + " has shattered into many pieces";
 			break;
 		case 3:
-			tmpString = player->Name + " has been blown up";
+			tmpString += player->Name + " has been blown up";
 			break;
 		case 4:
-			tmpString = player->Name + " is no more";
+			tmpString += player->Name + " is no more";
 			break;
 		case 5:
-			tmpString = player->Name + " is worm food";
+			tmpString += player->Name + " is worm food";
 			break;
 		case 6:
-			tmpString = player->Name + " just ran out of luck";
+			tmpString += player->Name + " just ran out of luck";
 			break;
 		case 7:
-			tmpString = "Alas poor " + player->Name + " we knew him well";
+			tmpString += "Alas poor " + player->Name + " we knew him well";
 			break;
 		case 8:
-			tmpString = "A funeral service will shortly be held for " + player->Name;
+			tmpString += "A funeral service will shortly be held for " + player->Name;
 			break;
 		case 9:
-			tmpString = player->Name + " has bitten the dust";
+			tmpString += player->Name + " has bitten the dust";
 			break;
 		case 10:
-			tmpString = player->Name + " has gone to meet his maker";
+			tmpString += player->Name + " has gone to meet his maker";
 			break;
 		case 11:
-			tmpString = player->Name + " is dead meat";
+			tmpString += player->Name + " is dead meat";
 			break;
 		case 12:
-			tmpString = player->Name + " was useless at this game anyway!";
+			tmpString += player->Name + " was useless at this game anyway!";
 			break;
 	}
 
@@ -1036,9 +1090,11 @@ void CProcess::ProcessDeath(int Index, char deathType, char City) {
 		tmpString += " (Friendly Fire!)";
 	}
 
-	// Else, show "(" + cityName + ")"
-	else {
-		tmpString += " (" + cityName + ")";
+	// Else, if city is valid, show "(" + cityName + ")"
+	else if ((City > -1) && (City < MAX_CITIES)) {
+		tmpString += " (";
+		tmpString += CityList[City];
+		tmpString += ")";
 	}
 
 	// Add the death message to the chat
@@ -1098,13 +1154,13 @@ void CProcess::ProcessShot(sSMShot *shotsfired) {
 			switch(shotsfired->type) {
 
 				case 0:
-					this->p->Sound->Play3dSound(this->p->Sound->s_tanklaser, 100, playerShooter->X, this->p->Player[shotsfired->id]->Y);
+					this->p->Sound->Play3dSound(this->p->Sound->s_tanklaser, 100, playerShooter->X, playerShooter->Y);
 					break;
 				case 1:
-					this->p->Sound->Play3dSound(this->p->Sound->s_bigturret, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
+					this->p->Sound->Play3dSound(this->p->Sound->s_bigturret, 100, playerShooter->X, playerShooter->Y);
 					break;
 				case 3:
-					this->p->Sound->Play3dSound(this->p->Sound->s_flare, 100, this->p->Player[shotsfired->id]->X, this->p->Player[shotsfired->id]->Y);
+					this->p->Sound->Play3dSound(this->p->Sound->s_flare, 100, playerShooter->X, playerShooter->Y);
 					break;
 			}
 		}
@@ -1166,54 +1222,67 @@ void CProcess::ProcessRemoveBuilding(sSMBuild *build) {
 void CProcess::ProcessOrbed(sSMOrbedCity *orbed) {
 	CPlayer* playerMe = this->p->Player[this->p->Winsock->MyIndex];
 	CPlayer* playerOrbed;
+	bool showOrbedMessage = true;
 
+	// If this player is being orbed, show orbed popup and return
 	if (playerMe->City == orbed->City) {
 		this->p->State = STATE_MEETING;
 		this->p->Sound->PlayWav(sDie, 1);	
 		MessageBox(this->p->hWnd, "Your city has been destroyed by the power of an Orb! This usually means that you were not defending your city properly. You have been warned!", "BattleCity", 0);
 		this->p->Meeting->ShowMeetingDlg();
+		return;
 	}
-	else {
 
-		string msg;
-		msg.clear();
-		int i = orbed->points;
-		msg = CityList[orbed->OrberCity];
-		msg.append(" has orbed ");
-		msg.append(CityList[orbed->City]);
-		msg.append("!  (");
+	// If an invalid city was orbed, return
+	if ((orbed->City < 0) || (orbed->City >= MAX_CITIES)) {
+		return;
+	}
+
+	// If a valid city was the orber,
+	if ((orbed->OrberCity > -1) && (orbed->OrberCity < MAX_CITIES)) {
+
+		string msg = "";
+		msg += CityList[orbed->OrberCity];
+		msg += " has orbed ";
+		msg += CityList[orbed->City];
+		msg += "!  (";
+
 		std::ostringstream thing;
 		thing << orbed->points;
 		msg += thing.str();
+
 		msg.append(" Points).  ");
 		msg.append(CityList[orbed->OrberCity]);
 		msg.append(" is now worth ");
+
 		ostringstream thing2;
 		thing2 << orbed->OrberCityPoints;
 		msg.append(thing2.str());
+
 		msg.append(" Points!");
 
-		// For each possible player,
-		for (int i = 0; i < MAX_PLAYERS; i++) {
-			playerOrbed = this->p->Player[i];
-
-			// If the player was in the orbed city,
-			if (playerOrbed->City == orbed->City) {
-
-				// Reset the player
-				playerOrbed->isInGame = false;
-				playerOrbed->X = 0;
-				playerOrbed->Y = 0;
-				playerOrbed->isDead = false;
-			}
-		}
-		
 		// Show the orbed message
 		this->p->InGame->AppendChat(msg.c_str(), COLOR_BLUE);
 
 		if (orbed->OrberCity == playerMe->City) {
 			this->p->Sound->PlayWav(sScreech, -1);
 			this->p->Engine->ThreadMessage(msg.c_str());
+		}
+
+	}
+
+	// For each possible player,
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		playerOrbed = this->p->Player[i];
+
+		// If the player was in the orbed city,
+		if (playerOrbed->City == orbed->City) {
+
+			// Reset the player
+			playerOrbed->isInGame = false;
+			playerOrbed->X = 0;
+			playerOrbed->Y = 0;
+			playerOrbed->isDead = false;
 		}
 	}
 }
@@ -1475,8 +1544,27 @@ void CProcess::ProcessEditAccount(char TheData[255]) {
 void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity) {
 	int me = this->p->Winsock->MyIndex;
 	CPlayer* playerMe = this->p->Player[me];
-	string direction;
-	string cityName = CityList[selectedcity->city];
+	string direction = "";
+	string cityName = "";
+
+	// If selectedcity->city is out of range,
+	if ((selectedcity->city < 0) || (selectedcity->city >= MAX_CITIES)) {
+
+		// If there is no info city, show message
+		if (selectedcity->city == 255) {
+			this->p->Draw->ClearPanel();
+			this->p->Draw->PanelLine1 = "No Threats Detected";
+			this->p->Draw->PanelLine2 = "";
+			this->p->Draw->PanelLine3 = "All existing cities";
+			this->p->Draw->PanelLine4 = "are too small to";
+			this->p->Draw->PanelLine5 = "attack!";
+		}
+
+		// for all out of range, return
+		return;
+	}
+
+	cityName = CityList[selectedcity->city];
 
 	int cityX = ((512*48) - (32+(selectedcity->city % 8*64) + 1) * 48);
 	int cityY = ((512*48) - (32+(selectedcity->city / 8*64) + 1) * 48); 
@@ -1489,17 +1577,6 @@ void CProcess::ProcessInfoButton(sSMInfoButton *selectedcity) {
 	bool isMoreXThanY = (distanceX > (distanceY*2));
 	bool isMoreYThanX = (distanceY > (distanceX*2));
 	stringstream ss;
-
-	// If there is no info city, show message and return
-	if (selectedcity->city == 255) {
-		this->p->Draw->ClearPanel();
-		this->p->Draw->PanelLine1 = "No Threats Detected";
-		this->p->Draw->PanelLine2 = "";
-		this->p->Draw->PanelLine3 = "All existing cities";
-		this->p->Draw->PanelLine4 = "are too small to";
-		this->p->Draw->PanelLine5 = "attack!";
-		return;
-	}
 
 	// Else, find the direction of the info city
 	if (isMoreXThanY) {
@@ -1590,21 +1667,17 @@ void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo) {
 
 	// Mayor
 	converter.str("");
-	converter << "Mayor:   ";
-	converter << ( cityHasMayor ? this->p->Player[cityMayor]->Name : "(none)" );
+	converter << "Mayor:   " << ( cityHasMayor ? this->p->Player[cityMayor]->Name : "(none)" );
 	this->p->Draw->PanelLine2 = converter.str();
 
 	// Players
 	converter.str("");
-	converter << "Players: ";
-	converter << playerCount;
+	converter << "Players: " << playerCount;
 	this->p->Draw->PanelLine3 = converter.str();
 
 	// Buildings
 	converter.str("");
-	converter << "Size:    ";
-	converter << cityinfo->BuildingCount;
-	converter << (cityinfo->BuildingCount == 1 ? " building" : " buildings");
+	converter << "Size:    " << cityinfo->BuildingCount << (cityinfo->BuildingCount == 1 ? " building" : " buildings");
 	this->p->Draw->PanelLine4 = converter.str();
 
 	// If the city is orbable,
@@ -1612,24 +1685,17 @@ void CProcess::ProcessRightClickCity(sSMRightClickCity *cityinfo) {
 
 		// Points
 		converter.str("");
-		converter << "Bounty:  ";
-		converter << cityinfo->OrbPoints;
-		converter << " points";
+		converter << "Bounty:  " << cityinfo->OrbPoints << " points";
 		this->p->Draw->PanelLine5 = converter.str();
 
 		// Orbs
 		converter.str("");
-		converter << "Orbs:    ";
-		converter << cityinfo->Orbs;
+		converter << "Orbs:    " << cityinfo->Orbs;
 		this->p->Draw->PanelLine6 = converter.str();
 
 		// Uptime
 		converter.str("");
-		converter << "Uptime:  ";
-		converter << (cityinfo->UptimeInMinutes / 60);
-		converter << "h ";
-		converter << (cityinfo->UptimeInMinutes % 60);
-		converter << "m";
+		converter << "Uptime:  " << (cityinfo->UptimeInMinutes / 60) << "h " << (cityinfo->UptimeInMinutes % 60) << "m";
 		this->p->Draw->PanelLine7 = converter.str();
 	}
 
@@ -1828,21 +1894,32 @@ void CProcess::ProcessUnderAttack() {
  * @param chatLine
  **************************************************************/
 void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
-	string fileName = response->filename;
-	string folderName;
+	string fileName = "";
+	string folderName = "";
 	CPlayer *player = this->p->Player[this->p->Winsock->MyIndex];
 	int city = player->City;
-	string cityName = CityList[city];
+	string cityName = "";
 	char buffer[1024];
 	int* buildingInfo;
 
-	// If the request was denied,
+	// If the request was denied, return
 	if (response->isAllowed == false) {
 		this->p->InGame->AppendInfo("You cannot load a city template now!");
 		return;
 	}
-
 	// Else, request was approved,
+
+	// If filename is missing, return
+	if (! response->filename) {
+		return;
+	}
+	folderName = response->filename;
+
+	// If the player's city is invalid, return
+	if ((city < 0) || (city > MAX_CITIES)) {
+		return;
+	}
+	cityName = CityList[city];
 
 	// Get the filename from the ChatLine
 	folderName = FILE_CITIES_FOLDER + "/" + cityName;
