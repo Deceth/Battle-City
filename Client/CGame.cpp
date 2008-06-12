@@ -163,11 +163,11 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	this->Timer->Initialize();
 
 	#ifndef _DEBUG
-//		Winsock->Init("72.167.115.50");
-		Winsock->Init("localhost");
+		Winsock->Init("72.167.115.50");
+//		Winsock->Init("localhost");
 	#else
-//		Winsock->Init("72.167.115.50");
-		Winsock->Init("localhost");	
+		Winsock->Init("72.167.115.50");
+//		Winsock->Init("localhost");	
 	#endif
 
 	// If fullscreen is not on, open in Windowed mode

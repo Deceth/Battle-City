@@ -1928,7 +1928,7 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 
 	// Get the filename from the ChatLine
 	folderName = FILE_CITIES_FOLDER + "/" + cityName;
-	fileName = folderName + "/" + fileName + FILE_CITIES_EXTENSION;
+	fileName = folderName + "/" + cityName + FILE_CITIES_EXTENSION;
 
 	// If you can't open the file, exit
 	ifstream cityFileStream(fileName.c_str());
