@@ -53,7 +53,8 @@ class CProcess {
 		void ProcessChangeTank(int Index, int Tank);
 		void ProcessAutoBuild(int Index, sCMAutoBuild *request);
 		void ProcessCheatCheck(int Index, sCMCheatCheck* request);
-
+		void ProcessStartingCity(int Index);
+		void ProcessChangeStartingCity(int Index, sCMStartingCity* request);
 };
 
 #endif

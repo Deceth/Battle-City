@@ -287,6 +287,16 @@ void CProcess::ProcessData(char *TheData, int Index) {
 		case cmCheatCheck:
 			this->ProcessCheatCheck(Index, (sCMCheatCheck *)&TheData[1]);
 			break;
+			
+		// Packet: cmStartingCity
+		case cmStartingCity:
+			this->ProcessStartingCity(Index);
+			break;
+
+		// Packet: cmChangeStartingCity
+		case cmChangeStartingCity:
+			this->ProcessChangeStartingCity(Index, (sCMStartingCity *)&TheData[1]);
+			break;
 	}
 } 
 
@@ -2147,5 +2157,30 @@ void CProcess::ProcessCheatCheck(int Index, sCMCheatCheck* cheatCheck) {
 		adminPacket.id = Index;
 		this->p->Send->SendGameAllBut(Index, smAdmin, (char *)&adminPacket, sizeof(adminPacket));
 		this->p->Winsock->SendData(Index, smKicked, " ");
+	}
+}
+
+/***************************************************************
+ * Function:	ProcessStartingCity
+ *
+ * @param Index
+ **************************************************************/
+void CProcess::ProcessStartingCity(int Index) {
+	sSMStartingCity response;
+	response.City = this->p->Send->startingCity;
+	p->Winsock->SendData(Index, smStartingCity, (char *)&response, sizeof(response));
+}
+
+
+/***************************************************************
+ * Function:	ProcessChangeStartingCity
+ *
+ * @param Index
+ * @param request
+ **************************************************************/
+void CProcess::ProcessChangeStartingCity(int Index, sCMStartingCity* request) {
+	// If the city is valid, set it as the starting city
+	if (CCity::isValidCityIndex(request->City)) {
+		this->p->Send->startingCity = request->City;
 	}
 }

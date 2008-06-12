@@ -256,7 +256,7 @@ void CSend::SendCityList(int Index) {
 	CCity* rentalCity;
 	
 	// If the player has a valid rental city,
-	if ((player->RentalCity > -1) && (player->RentalCity < MAX_CITIES)) {
+	if (CCity::isValidCityIndex(player->RentalCity)) {
 		rentalCity = this->p->City[player->RentalCity];
 	
 		// Send the rental city
@@ -842,7 +842,7 @@ void CSend::SendTheCities(int Index) {
 			}
 
 			// If the targetCity is a valid index and didn't edgewrap,
-			if( (targetCity>-1) && (targetCity<MAX_CITIES) && isNeighbor ) {
+			if( CCity::isValidCityIndex(targetCity) && isNeighbor ) {
 
 				// Open the city at targetCity index
 				if (p->City[targetCity]->Mayor == -1) {

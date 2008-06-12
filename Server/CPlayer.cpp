@@ -246,9 +246,9 @@ bool CPlayer::isConnected() {
  **************************************************************/
 bool CPlayer::isInGame() {
 	return 
-		(this->City > -1)
+		(this->State == State_Game)
 		&&
-		(this->State == State_Game);
+		(CCity::isValidCityIndex(this->City));
 }
 
 /***************************************************************

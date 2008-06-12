@@ -60,6 +60,7 @@ class CCity {
 		int getUptimeInMinutes();
 
 		int PlayerCount();
+		static bool isValidCityIndex(int city);
 
 	protected:
 

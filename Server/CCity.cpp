@@ -445,3 +445,11 @@ int CCity::getUptimeInSeconds() {
 int CCity::getUptimeInMinutes() {
 	return this->getUptimeInSeconds() / 60;
 }
+
+/***************************************************************
+ * Function:	isValidCityIndex
+ *
+ **************************************************************/
+bool CCity::isValidCityIndex(int city) {
+	return ((city>-1) && (city<MAX_CITIES));
+}
