@@ -26,11 +26,19 @@ CServer::CServer() {
 	//Item = new CItemList(this);
 	//Bullet = new CBulletList(this);
 
+	// Create the players
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		this->Player[i] = new CPlayer(this, i);
+	}
+
 	// Pause...
 	this->PlatformSleep(1000);
 
 	// Reset the game state
 	this->reset();
+
+	// Pause...
+	this->PlatformSleep(1000);
 
 	// Set running to 1
 	this->running = 1;
@@ -344,12 +352,7 @@ void CServer::reset() {
 	// Rebuild each possible player
 	cout << " - Rebuilding players" << endl;
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		if (this->Player[i]) {
-			this->Player[i]->Clear(false);
-		}
-		else {
-			this->Player[i] = new CPlayer(this, i);
-		}
+		this->Player[i]->Clear(false);
 	}
 
 	cout << " - Reloading Map and CCs" << endl;
