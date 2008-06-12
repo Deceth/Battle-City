@@ -6,30 +6,31 @@
  **************************************************************/
 CServer::CServer() {
 
+	// Print startup messages
+	cout << "Battle City Server Version " << VERSION << endl;
+	cout << "(C) Copyright 2005-2008 Looble Network" << endl;
+	cout << endl;
+
 	// Create objects
 	Winsock = new CSocket(this);
 	Process = new CProcess(this);
 	Account = new CAccount(this);
 	Send = new CSend(this);
-	Build = new CBuildingList(this);
-	Item = new CItemList(this);
 	Collision = new CCollision(this);
-	Bullet = new CBulletList(this);
 	Map = new CMap(this);
 	Timer = new CTime();
 	Log = new CLog(this);
 	EMail = new CEMail(this);
 	Database = new CDatabase(this);
+	//Build = new CBuildingList(this);
+	//Item = new CItemList(this);
+	//Bullet = new CBulletList(this);
 
-	// For each possible player, create player objects
-	for (int i = 0; i < MAX_PLAYERS; i++) {
-		this->Player[i] = new CPlayer(this, i);
-	}
+	// Pause...
+	this->PlatformSleep(1000);
 
-	// For each possible city, create city objects
-	for (int i = 0; i < MAX_CITIES; i++) {
-		this->City[i] = new CCity(this, i);
-	}
+	// Reset the game state
+	this->reset();
 
 	// Set running to 1
 	this->running = 1;
@@ -75,13 +76,6 @@ CServer::~CServer() {
  **************************************************************/
 void CServer::Init() {
 
-	// Print startup messages
-	cout << "Battle City Server Version " << VERSION << endl;
-	cout << "(C) Copyright 2005-2008 Looble Network" << endl;
-	cout << endl;
-
-	cout << sizeof(WORD);
-
 	cout << "Server::Start" << endl;
 
 	// Start the timer, start listening on the socket
@@ -91,8 +85,6 @@ void CServer::Init() {
 	this->Winsock->InitWinsock();
 
 	// Load the database, files, and news
-	cout << " - Loading Map" << endl;
-	this->Map->LoadMap();
 	cout << " - Checking Files" << endl;
 	this->CheckFilesAndPaths();
 	cout << " - Loading Database" << endl;
@@ -104,7 +96,7 @@ void CServer::Init() {
 		timeBeginPeriod(1);
 	#endif
 
-	cout << "Server::Start::Success" << endl;
+	cout << "Server::Start::Success" << endl << endl;
 }
 
 /***************************************************************
@@ -320,7 +312,7 @@ void CServer::reset() {
 
 	// If any player is connected, return
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		if (this->Player[i]->isConnected()) {
+		if (this->Player[i] && this->Player[i]->isConnected()) {
 			return;
 		}
 	}
@@ -335,22 +327,33 @@ void CServer::reset() {
 	// Rebuild the Item list
 	cout << " - Rebuilding item list" << endl;
 	delete this->Item;
-	Item = new CItemList(this);
+	this->Item = new CItemList(this);
 
 	// Rebuild the Bullet list
 	cout << " - Rebuilding bullet list" << endl;
 	delete this->Bullet;
-	Bullet = new CBulletList(this);
+	this->Bullet = new CBulletList(this);
 
-	// Reset each possible city (must happen after destroying buildings list)
-	cout << " - Clearing cities" << endl;
+	// Rebuild each possible city (must happen after destroying buildings list)
+	cout << " - Rebuilding cities" << endl;
 	for (int i = 0; i < MAX_CITIES; i++) {
-		this->City[i]->resetToDefault();
+		delete this->City[i];
+		this->City[i] = new CCity(this, i);
 	}
 
-	// Reset each possible player
-	cout << " - Clearing players" << endl;
+	// Rebuild each possible player
+	cout << " - Rebuilding players" << endl;
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-		this->Player[i]->Clear(false);
+		if (this->Player[i]) {
+			this->Player[i]->Clear(false);
+		}
+		else {
+			this->Player[i] = new CPlayer(this, i);
+		}
 	}
+
+	cout << " - Reloading Map and CCs" << endl;
+	this->Map->LoadMap();
+
+	cout << "Reset::Success" << endl << endl;
 }
