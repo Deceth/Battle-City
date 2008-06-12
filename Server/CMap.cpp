@@ -35,7 +35,7 @@ void CMap::LoadMap() {
 	FILE *file;
 
 	// If the map file is missing,
-	cout << " - Looking for map file" << endl;
+	cout << " -- Loading map file" << endl;
 	if (this->p->Exists("map.dat") == 0) {
 
 		// Error and return
@@ -45,14 +45,14 @@ void CMap::LoadMap() {
 	}
 
 	// Open and read the map file
-	cout << " - Opening map file" << endl;
+	cout << " -- Opening map file" << endl;
 	file = fopen("map.dat","r");
 	
 	if (file) {
-		cout << " - Reading map file" << endl;
+		cout << " -- Reading map file" << endl;
 		fread(this->map,512,512,file);
 
-		cout << " - Calculating tiles" << endl;
+		cout << " -- Placing CCs" << endl;
 		this->CalculateTiles();
 	}
 
