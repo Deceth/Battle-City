@@ -337,14 +337,16 @@ void CBulletList::Cycle() {
 
 			// Set up rectangle for collision measurement
 			rp.X = (bld->X-3)*48;
-			rp.Y = (bld->Y-3)*48;
 			rp.w = 144;
-			rp.h = 144;
 
 			// If the building is a Factory or Hospital (anything with a bay?),
 			if (bld->Type / 100 <= 2) {
 				rp.Y = (bld->Y-2)*48;
 				rp.h = 96;
+			}
+			else {
+				rp.Y = (bld->Y-3)*48;
+				rp.h = 144;
 			}
 
 			// If the bullet hits a building,
