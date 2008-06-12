@@ -589,22 +589,42 @@ void CPlayer::HitDFG() {
  *
  **************************************************************/
 void CPlayer::GenerateNameString() {
+	string newNameString = "";
+	string newTownString = "";
+
+	// If the player's not in game, abort
+	if (this->isInGame == 0) {
+		return;
+	}
+
+	// Add the rank (or Admin)
 	if (this->isAdmin()) {
-		this->NameString = "Admin";
+		newNameString += "Admin";
 	}
 	else {
-		this->NameString = this->p->InGame->ReturnRank(Points);
+		newNameString += this->p->InGame->ReturnRank(this->Points);
 	}
 
-	this->NameString += " ";
-	this->NameString += this->Name;
+	// Add a space
+	newNameString += " ";
+	newNameString += this->Name;
 
-	this->TownString = "(";
-	if (isMayor) {
-		this->TownString += "Mayor of ";
+	// If the player is in a valid city, get the city to show
+	if (this->City > -1 && this->City < MAX_CITIES) {
+		newTownString += "(";
+		if (this->isMayor) {
+			newTownString += "Mayor of ";
+		}
+		newTownString += CityList[this->City];
+		newTownString += ")";
 	}
-	this->TownString += CityList[City];
-	this->TownString += ")";
+
+	this->NameString.clear();
+	this->NameString += newNameString;
+
+	this->TownString.clear();
+	this->TownString += newTownString;
+
 }
 
 /***************************************************************
