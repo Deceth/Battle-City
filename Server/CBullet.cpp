@@ -329,9 +329,7 @@ void CBulletList::cycle() {
 
 				// Set up rectangle for collision measurement
 				rp.x = (bld->x-3)*48;
-				rp.y = (bld->y-3)*48;
 				rp.w = 144;
-				rp.h = 144;
 
 				// If the building is a Factory or Hospital (anything with a bay?),
 				if (bld->isFactory() || bld->isHospital() || bld->isCC()) {
@@ -346,6 +344,9 @@ void CBulletList::cycle() {
 				// If the bullet hits a building,
 				if (p->Collision->checkCollision(rp,rb)) {
 
+					// Kill the bullet
+					blt->life = -1;
+
 					// If that building is not a CC and has 0 (or less) life,
 					if ((! bld->isCC()) && (bld->pop <= 0)) {
 
@@ -354,8 +355,7 @@ void CBulletList::cycle() {
 						alreadyHasNextBuilding = true;
 					}
 
-					// Kill the bullet, break
-					blt->life = -1;
+					// Break
 					break;
 				}
 
