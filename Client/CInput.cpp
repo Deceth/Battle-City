@@ -340,10 +340,7 @@ void CInput::ProcessKeys(char buffer[256]) {
 			}
 		}
 
-				/************************************************
-		 * Firing
-		 ************************************************/
-		// Key: CONTROL (and user isn't chatting)
+		// Key: CONTROL
 		if ((KEYDOWN(buffer, DIK_LCONTROL) || KEYDOWN(buffer, DIK_RCONTROL))) {
 
 			// If the firing timer allows another shot (and user isn't frozen)
