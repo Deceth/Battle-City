@@ -1918,7 +1918,7 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 	if (! response->filename) {
 		return;
 	}
-	folderName = response->filename;
+	fileName = response->filename;
 
 	// If the player's city is invalid, return
 	if ((city < 0) || (city > MAX_CITIES)) {
@@ -1927,8 +1927,9 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
 	cityName = CityList[city];
 
 	// Get the filename from the ChatLine
+	
 	folderName = FILE_CITIES_FOLDER + "/" + cityName;
-	fileName = folderName + "/" + cityName + FILE_CITIES_EXTENSION;
+	fileName = folderName + "/" + fileName + FILE_CITIES_EXTENSION;
 
 	// If you can't open the file, exit
 	ifstream cityFileStream(fileName.c_str());
@@ -1957,9 +1958,9 @@ void CProcess::ProcessAutoBuild(sSMAutoBuild* response) {
  **************************************************************/
 void CProcess::ProcessNowOrbable() {
 	
-	if (this->p->Options->newbietips) {
+	//if (this->p->Options->newbietips) {
 		this->p->InGame->AppendInfo(NEWBIE_TIP_ORBABLE);
-	}
+	//}
 }
 
 
