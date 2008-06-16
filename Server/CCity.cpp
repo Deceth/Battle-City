@@ -357,7 +357,7 @@ void CCity::addBuilding(int type) {
 		}
 
 		// Tell the city it is now orbable
-		this->p->Send->SendTeam(this->id, smNowOrbable, " ", 1);
+		//this->p->Send->SendTeam(this->id, smNowOrbable, " ", 1);
 	}
 }
 

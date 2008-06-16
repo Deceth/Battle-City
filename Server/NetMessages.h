@@ -399,7 +399,6 @@ struct sCMAdminEdit
 	char State[15];
 	int Points;
 	int MonthlyPoints;
-	int MonthlyTop20;
 	int Deaths;
 	int Orbs;
 	int Assists;
