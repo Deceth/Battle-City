@@ -68,6 +68,8 @@ void CDrawing::ClearDrawing() {
 
 	// 1024
 	if (p->Options->resolution1024) {
+		this->MaxMapX = p->ResolutionX - 200;
+		this->MaxMapY = p->ResolutionY;
 		this->defaultPlayerOffsetX = (this->MaxMapX / 2) - 24;
 		this->defaultPlayerOffsetY = (this->MaxMapY / 2) - 24;
 		this->groundTilesToDraw = 7;
@@ -80,7 +82,7 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 25;
 		this->clickOffsetX = 9;
 		this->clickOffsetY = 9;
-		this->chatBarWidth = 103;
+		this->chatBarWidth = 101;
 		//this->chatBarWidth = 51;
 	}
 	// 800
@@ -97,7 +99,7 @@ void CDrawing::ClearDrawing() {
 		this->minimapOffsetY = 7;
 		this->clickOffsetX = 7;
 		this->clickOffsetY = 7;
-		this->chatBarWidth = 75;
+		this->chatBarWidth = 73;
 		//this->chatBarWidth = 37;
 	}
 
@@ -735,17 +737,15 @@ void CDrawing::DrawItems() {
  **************************************************************/
 void CDrawing::DrawChat() {
 	int Y;
+	int chatLineIndex;
 
 	// Draw info lines
 	Y = 0;
-	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine1, p->InGame->playerInfoColor1);
-	Y += 14;
-	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine2, p->InGame->playerInfoColor2);
-	Y += 14;
-	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine3, p->InGame->playerInfoColor3);
-	Y += 14;
-	p->DDraw->DTextOut(0, Y, p->InGame->playerInfoLine4, p->InGame->playerInfoColor4);
-
+	for (int i=0; i<MAX_INFO_LINES; i++) {
+		p->DDraw->DTextOut(0, Y, this->p->InGame->infoLines[i], COLOR_SYSTEM);
+		Y += 14;
+	}
+	
 	// If mouse is over chat,
 	Y = MaxMapY - 126;
 	if (p->Input->MouseOverChat) {
@@ -753,6 +753,14 @@ void CDrawing::DrawChat() {
 	}
 
 	// Draw chat lines
+	for (int i=this->p->InGame->numVisibleChatLines-1; i>=0; i--) {
+		chatLineIndex = this->p->InGame->minVisibleChatLine + i;
+		this->p->DDraw->DTextOut(0, Y, this->p->InGame->chatLines[chatLineIndex], this->p->InGame->chatColors[chatLineIndex]);
+		Y += 14;
+	}
+
+	// TODO: remove
+	/*
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine1, p->InGame->chatColor1);
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine2, p->InGame->chatColor2);
@@ -769,6 +777,7 @@ void CDrawing::DrawChat() {
 	Y += 14;
 	p->DDraw->DTextOut(0, Y, p->InGame->chatLine8, p->InGame->chatColor8);
 	Y += 14;
+	*/
 
 	// If chatting, fill just the chat bar with black
 	if (p->InGame->IsChatting == 1) {

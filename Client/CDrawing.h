@@ -40,6 +40,7 @@ class CDrawing {
 		int PlayerOffsetY;
 		int MaxMapX;
 		int MaxMapY;
+		int MinPanelX;
 		int groundTilesToDraw;
 		int tilesToDraw;
 		int buildingCursorOffsetX;

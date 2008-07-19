@@ -64,37 +64,18 @@ class CInGame {
 		bool isUnderAttack;
 		float timeUnderAttack;
 
-		string chatLine1;
-		string chatLine2;
-		string chatLine3;
-		string chatLine4;
-		string chatLine5;
-		string chatLine6;
-		string chatLine7;
-		string chatLine8;
+		string infoLines[MAX_INFO_LINES];
+		string chatLines[MAX_CHAT_LINES];
+		COLORREF chatColors[MAX_CHAT_LINES];
 		string ChatLine;
-		COLORREF chatColor1;
-		COLORREF chatColor2;
-		COLORREF chatColor3;
-		COLORREF chatColor4;
-		COLORREF chatColor5;
-		COLORREF chatColor6;
-		COLORREF chatColor7;
-		COLORREF chatColor8;
-
-		string playerInfoLine1;
-		string playerInfoLine2;
-		string playerInfoLine3;
-		string playerInfoLine4;
-		COLORREF playerInfoColor1;
-		COLORREF playerInfoColor2;
-		COLORREF playerInfoColor3;
-		COLORREF playerInfoColor4;
 
 		string NewbieTip;
 
 		char IsChatting;
 		char BombsAreActivated;
+		int minVisibleChatLine;
+		int numVisibleChatLines;
+		int numChatLines;
 
 		string ReturnRank(int Points);
 		void AppendChat(string ChatText, COLORREF Color);
@@ -112,11 +93,6 @@ class CInGame {
 		int getGrossIncome();
 		void setIsUnderAttack(bool isUnderAttack);
 
-		string getFileNameFromChatLine(string chatLine);
-		int* splitStringIntoInts(char* buildingLine);
-
-		void requestAutoBuild(string chatLine);
-		void saveCity(string chatLine);
 		bool createBuilding(unsigned char type, unsigned short x, unsigned short y, bool isAutoBuild);
 
 		static bool isValidCityIndex(int city);
