@@ -370,24 +370,6 @@ void CInput::ProcessKeys(char buffer[256]) {
 			}
 		}
 	}
-
-
-	/************************************************
-	 * Chat Scroll
-	 ************************************************/
-	// Key: PAGE UP
-	if (KEYDOWN(buffer,	DIK_PRIOR)) {
-		if (this->p->InGame->minVisibleChatLine + this->p->InGame->numVisibleChatLines < this->p->InGame->numChatLines) {
-			this->p->InGame->minVisibleChatLine += 1;
-		}
-	}
-	// Key: PAGE DOWN
-	if (KEYDOWN(buffer,	DIK_NEXT)) {
-		if (this->p->InGame->minVisibleChatLine > 0) {
-			this->p->InGame->minVisibleChatLine -= 1;
-		}
-	}
-
 }
 
 /***************************************************************

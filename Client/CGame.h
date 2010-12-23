@@ -52,7 +52,6 @@ using namespace std;
 #include "CExplode.h"
 #include "CTimer.h"
 #include "CDrawing.h"
-#include "CUtil.h"
 
 #include "NetMessages.h"
 
@@ -96,73 +95,71 @@ class CExplosionList;
 class CTime;
 class CDrawing;
 
-class CGame {
-	public:
-		void Init(HWND hWnd, HINSTANCE hInst);
+class CGame
+{
+public:
+	void Init(HWND hWnd, HINSTANCE hInst);
 
-		string ReturnUniqID();
-		int CheckFile(string file);
-		int SilentCheckFile(string file);
-		void Restructure();
+	string ReturnUniqID();
+	int CheckFile(string file);
+	int SilentCheckFile(string file);
+	void Restructure();
 
-		void Cycle();
-		void handleKey(WPARAM wParam);
-		void handleChatKey(WPARAM wParam);
-		void handleGameKey(WPARAM wParam);
+	void Cycle();
+	void handleKey(WPARAM wParam);
+	void handleChatKey(WPARAM wParam);
+	void handleGameKey(WPARAM wParam);
 
-		int running;
-		int State;
-		HWND hWnd;
-		HINSTANCE hInst;
-		
-		CGame();
-		~CGame();
+	int running;
+	int State;
+	HWND hWnd;
+	HINSTANCE hInst;
+	
+	CGame();
+	~CGame();
 
-		CLogin *Login;
-		CNew *NewAccount;
-		CPersonality *Personality;
-		CMeeting *Meeting;
-		CInGame *InGame;
-		CInterview *Interview;
-		CPersonnel *Personnel;
-		COptions *Options;
-		CHelp *Help;
-		CManage *Manage;
-		CVerify *Verify;
-		CRecover *Recover;
-		CAdmin *Admin;
-		CAdminEdit *AdminEdit;
+	CLogin *Login;
+	CNew *NewAccount;
+	CPersonality *Personality;
+	CMeeting *Meeting;
+	CInGame *InGame;
+	CInterview *Interview;
+	CPersonnel *Personnel;
+	COptions *Options;
+	CHelp *Help;
+	CManage *Manage;
+	CVerify *Verify;
+	CRecover *Recover;
+	CAdmin *Admin;
+	CAdminEdit *AdminEdit;
 
-		CDialog *Dialog;
-		CWinsock *Winsock;
-		CProcess *Process;
-		CEngine *Engine;
-		CDDraw *DDraw;
-		CSend *Send;
-		CPlayer *Player[MAX_PLAYERS];
-		CMap *Map;
-		CCollision *Collision;
-		CBuildingList *Build;
-		CItemList *Item;
-		CInput *Input;
-		CSound *Sound;
-		CInventory *Inventory;
-		CBulletList *Bullet;
-		CExplosionList *Explode;
-		CDrawing *Draw;
+	CDialog *Dialog;
+	CWinsock *Winsock;
+	CProcess *Process;
+	CEngine *Engine;
+	CDDraw *DDraw;
+	CSend *Send;
+	CPlayer *Player[MAX_PLAYERS];
+	CMap *Map;
+	CCollision *Collision;
+	CBuildingList *Build;
+	CItemList *Item;
+	CInput *Input;
+	CSound *Sound;
+	CInventory *Inventory;
+	CBulletList *Bullet;
+	CExplosionList *Explode;
+	CDrawing *Draw;
 
-		CTime *Timer;
-		float Tick;
-		float lastTick;
-		float TimePassed;
+	CTime *Timer;
+	float Tick;
+	float lastTick;
+	float TimePassed;
 
-		int ResolutionX;
-		int ResolutionY;
-
-	private:
-
-	protected:
-
+	int ResolutionX;
+	int ResolutionY;
+private:
+protected:
 };
 
 #endif

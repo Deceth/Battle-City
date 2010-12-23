@@ -269,27 +269,7 @@ void CCity::didOrb(int City, int index) {
 	// Get the value of the orbed city and the orber's city
 	pointsGiven = p->City[City]->getOrbValue();
 	orberCityPoints = p->City[id]->getOrbValue();
-	
-	// Is it the weekend? If so, double the points. Yay!
-	// %a = Thu, %A = Thursday, %b = Aug, %B = August
-	time_t mytime;
-	struct tm *today;
-	char fday[30];
-	char fmonth[30];
-	time(&mytime);
-	today = localtime(&mytime);
-	strftime(fday, 30, "%A", today );
-	strftime(fmonth, 30, "%B", today );
-	
-	if(strcmp(fmonth, "December") == 0) {
-		if(strcmp(fday, "Saturday") == 0) {
-			pointsGiven = pointsGiven*2;
-		}
-		else if(strcmp(fday, "Sunday") == 0) {
-			pointsGiven = pointsGiven*2;
-		}
-	}
-	
+
 	// Tell each player about the orb
 	orbed.points = pointsGiven;
 	orbed.OrberCity = id;

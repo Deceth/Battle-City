@@ -385,44 +385,24 @@ void CGame::handleChatKey(WPARAM wParam) {
 		// If there was text to send,
 		if (this->InGame->ChatLine.length() > 0) {
 
-			// If CHAT COMMAND,
-			if (this->InGame->ChatLine.find("/",0) == 0) {
+			// If GLOBAL and ADMIN,
+			if ((this->InGame->ChatLine.find("/g",0) == 0) && (this->Player[this->Winsock->MyIndex]->isAdmin())) {
+				this->Send->SendGlobal();
+			}
 
-				// If GLOBAL and ADMIN,
-				if ((this->InGame->ChatLine.find("/g",0) == 0)) {
-					if ( this->Player[this->Winsock->MyIndex]->isAdmin()) {
-						this->Send->SendGlobal();
-					}
-					else {
-						this->InGame->AppendInfo("Sorry, only admins can use the /g chat command!");
-					}
-				}
+			// Else, if PM,
+			else if (this->InGame->ChatLine.find("/pm",0) == 0) {
+				this->Send->SendWhisper();
+			}
 
-				// Else, if PM,
-				else if (
-					(this->InGame->ChatLine.find("/pm ",0) == 0)
-					||
-					(this->InGame->ChatLine.find("/t ",0) == 0)
-					||
-					(this->InGame->ChatLine.find("/tell ",0) == 0)
-					||
-					(this->InGame->ChatLine.find("/w ",0) == 0) ) {
-					this->Send->SendWhisper();
-				}
+			// Else, if Load,
+			else if (this->InGame->ChatLine.find("/load ",0) == 0) {
+				this->InGame->requestAutoBuild(this->InGame->ChatLine);
+			}
 
-				// Else, if Load,
-				else if (this->InGame->ChatLine.find("/load ",0) == 0) {
-					this->Process->RequestAutoBuild(this->InGame->ChatLine);
-				}
-
-				// Else, if Save,
-				else if (this->InGame->ChatLine.find("/save ",0) == 0) {
-					this->Process->RequestSaveCity(this->InGame->ChatLine);
-				}
-				// Else, Unknown command,
-				else {
-					this->InGame->AppendInfo("Unknown chat command!  Did you mean /pm, /load, or /save?");
-				}
+			// Else, if Save,
+			else if (this->InGame->ChatLine.find("/save ",0) == 0) {
+				this->InGame->saveCity(this->InGame->ChatLine);
 			}
 
 			// Else, NORMAL,

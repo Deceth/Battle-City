@@ -10,17 +10,20 @@ CInGame::CInGame(CGame *game) {
 	this->Cash = 0;
 	this->ShowBuildMenu = 0;
 
-	// Chat lines
-	for (int i=0; i<MAX_CHAT_LINES; i++) { 
-		this->chatLines[i].clear();
-	}
-	numChatLines = 0;
+	this->chatLine1.clear();
+	this->chatLine2.clear();
+	this->chatLine3.clear();
+	this->chatLine4.clear();
+	this->chatLine5.clear();
+	this->chatLine6.clear();
+	this->chatLine7.clear();
+	this->chatLine8.clear();
 	this->ChatLine.clear();
 
-	// Info lines
-	for (int i=0; i<MAX_INFO_LINES; i++) { 
-		this->infoLines[i].clear();
-	}
+	this->playerInfoLine1.clear();
+	this->playerInfoLine2.clear();
+	this->playerInfoLine3.clear();
+	this->playerInfoLine4.clear();
 
 	this->IsChatting = 0;
 	this->ShowMap = 0;
@@ -56,8 +59,6 @@ CInGame::CInGame(CGame *game) {
 	memset(this->HasSector, 0, sizeof(this->HasSector));
 	memset(this->RequestedSector, 0, sizeof(this->RequestedSector));
 
-	this->minVisibleChatLine=0;
-	this->numVisibleChatLines=8;
 }
 
 /***************************************************************
@@ -241,28 +242,13 @@ void CInGame::PrintWhoData() {
  * @param color
  **************************************************************/
 void CInGame::AppendChat(string chatText, COLORREF color) {
-	unsigned int maxLineLength = this->p->Draw->chatBarWidth;
-	string lineSplitOnSpace;
-	int lineLength;
-	bool isMoreText = true;
-
-	while (isMoreText) {
-
-		// Get the line split on space with a max length of maxLineLength
-		lineSplitOnSpace = CUtil::getLineSplitOnSpace(chatText, maxLineLength);
-		lineLength = lineSplitOnSpace.length();
-
-		// Add the line
-		this->AppendChatLine(lineSplitOnSpace, color);
-
-		// Remove the added text from the chatText
-		if (chatText.length() > lineLength) {
-			chatText = chatText.substr(lineLength, chatText.length());
-		}
-		else {
-			isMoreText = false;
-		}
+	unsigned int MessageLength = this->p->Draw->chatBarWidth;
+	while (chatText.length() > MessageLength) {
+		this->AppendChatLine(chatText.substr(0, MessageLength), color);
+		chatText = chatText.substr(MessageLength, chatText.length());
 	}
+
+	this->AppendChatLine(chatText, color);
 }
 
 /***************************************************************
@@ -272,27 +258,22 @@ void CInGame::AppendChat(string chatText, COLORREF color) {
  * @param color
  **************************************************************/
 void CInGame::AppendChatLine(string chatText, COLORREF color) {
-	// For every chat line (working backwards so we don't copy the same string all the way forward),
-	for (int i=this->numChatLines-1; i>0; i--) { 
-
-		// Set it to the line before it
-		this->chatLines[i] = this->chatLines[i-1];
-		this->chatColors[i] = this->chatColors[i-1];
-	}
-
-	// Add the new chat line (at index 0)
-	this->chatLines[0] = chatText;
-	this->chatColors[0] = color;
-	if (this->numChatLines < MAX_CHAT_LINES) {
-		this->numChatLines++;
-	}
-
-	// If there are "history" chat lines,
-	if (this->numChatLines > this->numVisibleChatLines) {
-
-		// Alter the newest "history" line
-		this->chatLines[this->numVisibleChatLines] = "> " + this->chatLines[this->numVisibleChatLines];
-	}
+	chatLine1 = chatLine2;
+	chatLine2 = chatLine3;
+	chatLine3 = chatLine4;
+	chatLine4 = chatLine5;
+	chatLine5 = chatLine6;
+	chatLine6 = chatLine7;
+	chatLine7 = chatLine8;
+	chatLine8 = chatText;
+	chatColor1 = chatColor2;
+	chatColor2 = chatColor3;
+	chatColor3 = chatColor4;
+	chatColor4 = chatColor5;
+	chatColor5 = chatColor6;
+	chatColor6 = chatColor7;
+	chatColor7 = chatColor8;
+	chatColor8 = color;	
 }
 
 /***************************************************************
@@ -318,35 +299,39 @@ void CInGame::setPlayerInfo(string infoText) {
  * @param lineIndex
  **************************************************************/
 void CInGame::setPlayerInfo(string infoText, int lineIndex) {
-	unsigned int maxLineLength = this->p->Draw->chatBarWidth;
-	bool isMoreText = true;
-	int lineLength;
-	string lineSplitOnSpace;
+	unsigned int MessageLength = this->p->Draw->chatBarWidth;
+	while (infoText.length() > MessageLength) {
+		this->setPlayerInfoLine(infoText.substr(0, MessageLength), lineIndex, COLOR_SYSTEM);
+		infoText = infoText.substr(MessageLength, infoText.length());
+		lineIndex++;
+	}
 
-	// For each info line,
-	for (int i=0; i<MAX_INFO_LINES; i++) {
+	this->setPlayerInfoLine(infoText, lineIndex, COLOR_SYSTEM);
+}
 
-		// Clear the line
-		this->infoLines[i].clear();
-
-		// If there is info text left to add,
-		if (isMoreText) {
-
-			// Get the longest possible line, split on space
-			lineSplitOnSpace = CUtil::getLineSplitOnSpace(infoText, maxLineLength);
-			lineLength = lineSplitOnSpace.length();
-
-			// Add the info text
-			this->infoLines[i] = lineSplitOnSpace;
-
-			// Remove the added text from the infoText
-			if (infoText.length() > lineLength) {
-				infoText = infoText.substr(lineLength, infoText.length());
-			}
-			else {
-				isMoreText = false;
-			}
-		}
+/***************************************************************
+ * Function:	setPlayerInfoLine
+ *
+ * @param playerInfoText
+ * @param lineIndex
+ * @param color
+ **************************************************************/
+void CInGame::setPlayerInfoLine(string playerInfoText, int lineIndex, COLORREF color) {
+	if (lineIndex==0) {
+		playerInfoLine1 = playerInfoText;
+		playerInfoColor1 = color;	
+	}
+	else if (lineIndex==1) {
+		playerInfoLine2 = playerInfoText;
+		playerInfoColor2 = color;	
+	}
+	else if (lineIndex==2) {
+		playerInfoLine3 = playerInfoText;
+		playerInfoColor3 = color;	
+	}
+	else if (lineIndex==3) {
+		playerInfoLine4 = playerInfoText;
+		playerInfoColor4 = color;	
 	}
 }
 
@@ -385,14 +370,12 @@ void CInGame::ClearOut() {
 	timeDeath = 0;
 	timeLastAttack = 0;
 
-	// Chat lines
-	for (int i=0; i<MAX_CHAT_LINES; i++) { 
-		this->chatLines[i].clear();
-	}
-	// Info lines
-	for (int i=0; i<MAX_INFO_LINES; i++) { 
-		this->infoLines[i].clear();
-	}
+	chatLine1.clear();
+	chatLine2.clear();
+	chatLine3.clear();
+	chatLine4.clear();
+	chatLine5.clear();
+	ChatLine.clear();
 
 	IsChatting = 0;
 	BombsAreActivated = 0;
@@ -759,6 +742,151 @@ void CInGame::setIsUnderAttack(bool isUnderAttack) {
 		this->timeUnderAttack = 0;
 	}
 
+}
+
+/***************************************************************
+ * Function:	requestAutoBuild
+ *
+ * @param chatLine
+ **************************************************************/
+void CInGame::requestAutoBuild(string chatLine) {
+	string fileName = this->getFileNameFromChatLine(chatLine);
+	CPlayer* player = this->p->Player[this->p->Winsock->MyIndex];
+	int* buildingInfo;
+	sCMAutoBuild request;
+	
+	// If there is no filename, return
+	if (fileName.length() == 0) {
+		this->AppendInfo("Please specify a city design name!");
+		return;
+	}
+
+	// If the player is dead, return
+	if (player->isDead) {
+		this->AppendInfo("You must be alive to load a city design!");
+		return;
+	}
+
+	// If the player is not mayor, return
+	if (player->isMayor == false) {
+		this->AppendInfo("You must be mayor to load a city design!");
+		return;
+	}
+
+	strcpy(request.filename, fileName.c_str());
+	this->p->Winsock->SendData(cmAutoBuild,(char *)&request,sizeof(request));
+}
+
+/***************************************************************
+ * Function:	saveCity
+ *
+ * @param chatLine
+ **************************************************************/
+void CInGame::saveCity(string chatLine) {
+	CBuilding *bld = this->p->Build->buildingListHead;
+	stringstream ss;
+	string fileName = this->getFileNameFromChatLine(chatLine);
+	string folderName;
+	int city = this->p->Player[this->p->Winsock->MyIndex]->City;
+	CPlayer* player = this->p->Player[this->p->Winsock->MyIndex];
+	string cityName = CityList[city];
+	FILE *cityFile;
+
+	// If not mayor, return
+	if (player->isMayor == false) {
+		this->AppendInfo("You must be mayor to save the city design!");
+		return;
+	}
+	
+	// If there is no filename, return
+	if (fileName.length() == 0) {
+		this->AppendInfo("Please specify a city design name!");
+		return;
+	}
+
+	// Create the directory (does nothing if directory already exists)
+	folderName = FILE_CITIES_FOLDER;
+	CreateDirectory(folderName.c_str(), NULL);
+	folderName = folderName + "/" + cityName;
+	CreateDirectory(folderName.c_str(), NULL);
+
+	// Get the filename from the ChatLine
+	fileName = folderName + "/" + fileName + FILE_CITIES_EXTENSION;
+
+	// Open the file for writing
+	cityFile = fopen(fileName.c_str(),"w+");
+
+	// If the file couldn't be opened, error
+	if (!cityFile) {
+		this->AppendInfo("Unable to open the file \"" + fileName + "\"!");
+		return;
+	}
+
+	// For each building in the linked list,
+	while (bld) {
+
+		// If the building belongs to this city, and building isn't a CC,
+		if ((bld->City == city) && (bld->isCC() == false)) {
+
+			// Write the building's info to the file
+			ss.str("");
+			ss << bld->rawType << " " << bld->X << " " << bld->Y << endl;
+			fwrite(ss.str().c_str(), ss.str().size(), 1, cityFile); 
+		}
+
+		// Move the pointer to the next building in the linked list
+		bld = bld->next;
+	}
+
+	// Close the file
+	fclose(cityFile);
+	this->AppendInfo("Saved as: \"" + fileName + "\"!");
+}
+
+/***************************************************************
+ * Function:	getFileNameFromChatLine
+ *
+ * @param chatLine
+ **************************************************************/
+string CInGame::getFileNameFromChatLine(string chatLine) {
+	string fileName;
+	int fileNameStartIndex = chatLine.find(" ",0) + 1;
+	int fileNameEndIndex = chatLine.find(" ",fileNameStartIndex) + 1;
+
+	// If there was no space, set filenameEndIndex to the end of the chatline
+	if (fileNameEndIndex == 0) {
+		fileNameEndIndex = chatLine.length();
+	}
+
+	// If there is no filename, return
+	if (fileNameStartIndex == fileNameEndIndex) {
+		return "";
+	}
+
+	// Get the filename from the chatLine
+	return chatLine.substr(fileNameStartIndex, fileNameEndIndex-fileNameStartIndex);
+}
+
+/***************************************************************
+ * Function:	splitStringIntoInts
+ *
+ * @param chatLine
+ **************************************************************/
+int* CInGame::splitStringIntoInts(char* buildingLine) {
+	int counter = 0;
+	int *buildingInts = new int[3];
+	string buf;
+
+	// Insert the string into a stream
+	stringstream buildingStream(buildingLine); 
+
+	// Add each "word" in the string (separated by whitespace) to th
+	while (buildingStream >> buf) {
+		buildingInts[counter] = atoi(buf.c_str());
+		counter++;
+	}
+
+	return buildingInts;
 }
 
 /***************************************************************

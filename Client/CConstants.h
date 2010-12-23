@@ -1,7 +1,7 @@
 #ifndef _CCONSTANTS
 #define _CCONSTANTS
 
-#define VERSION "3.5.8"
+#define VERSION "3.5.7"
 
 static const int TCPPORT = 5643;
 //static const int TCPPORT = 6643;
@@ -17,8 +17,6 @@ static const string			FILE_CITIES_FOLDER = "cities";
 static const string			FILE_CITIES_EXTENSION = ".city";
 static const int			MAP_SQUARE_LAVA = 1;
 static const int			MAP_SQUARE_ROCK = 2;
-static const int			MAX_CHAT_LINES = 48;
-static const int			MAX_INFO_LINES = 4;
 static const int			MAX_CITIES = 64;
 static const int			MAX_HEALTH = 40;					// synchronized with server
 static const int			MAX_PLAYERS = 64;
