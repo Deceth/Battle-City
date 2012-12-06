@@ -309,7 +309,7 @@ BEGIN
     LTEXT           "Enter Your Character's Name and Password\n\nYou can create a new character by pressing the New Character button.",
                     IDLBLLOGIN,5,5,166,34
     PUSHBUTTON      "Recovery",5,111,105,57,14
-    CTEXT           "www.looble.com",IDLBLJAMES,9,113,78,10
+    CTEXT           "battlecity.org",IDLBLJAMES,9,113,78,10
     LTEXT           "User Name:",-1,7,54,37,10
 END
 
@@ -510,7 +510,7 @@ BEGIN
 	LTEXT	"Load the city design in FILENAME (requires Mayor)",															IDC_STATIC, 64,180,336,25
 	LTEXT	"",																												IDC_STATIC,  5,188,336,25
     LTEXT	"MORE INFORMATION",																								IDC_STATIC,  5,196,336,25
-    LTEXT	"Visit http://battlecity.looble.com for help, information, and game resources.  Join the forums to discuss ",	IDC_STATIC,  5,204,336,25
+    LTEXT	"Visit http://battlecity.org for help, information, and game resources.  Join the forums to discuss ",	IDC_STATIC,  5,204,336,25
     LTEXT	"strategies, share city designs, and suggest new features for the game.  Shop at the BC Store to buy custom ",	IDC_STATIC,  5,212,336,25
     LTEXT	"tanks, rent exotic cities, and more-- and all money spent directly supports the game.",						IDC_STATIC,  5,220,336,25
 	DEFPUSHBUTTON   "Close",																								         1,292,238, 50,14

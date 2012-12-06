@@ -163,10 +163,10 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	this->Timer->Initialize();
 
 	#ifndef _DEBUG
-		Winsock->Init("72.167.115.50");
+		Winsock->Init("deceth.no-ip.org");
 //		Winsock->Init("localhost");
 	#else
-		Winsock->Init("72.167.115.50");
+		Winsock->Init("deceth.no-ip.org");
 //		Winsock->Init("localhost");	
 	#endif
 
@@ -228,7 +228,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	// If the hash doesn't match the string below, tell the user the file is corrupted
 	if (strcmp(szReport, "74 2E 00 1A 48 05 AD A1 A8 8B E1 5E 1E 0F 75 1A 82 B6 E8 B7") != 0) {
 		this->Winsock->Socket = 0;
-		MessageBox(hWnd, "Your map.dat is corrupted.  Please redownload the client at battlecity.looble.com!", "BattleCity", 0);
+		MessageBox(hWnd, "Your map.dat is corrupted.  Please redownload the client at battlecity.org!", "BattleCity", 0);
 		SendMessage(hWnd, WM_CLOSE, 0, 0);
 	}
 }
@@ -293,7 +293,7 @@ int CGame::CheckFile(string file)
 	if (flag == 1) return 1;
 
 	string ErrorString;
-	ErrorString = "File " + file + " not found.  Please visit battlecity.looble.com and download the latest client to fix this problem!";
+	ErrorString = "File " + file + " not found.  Please visit battlecity.org and download the latest client to fix this problem!";
 
 	MessageBox(hWnd, ErrorString.c_str(), "Error", 0);
 	return 0;

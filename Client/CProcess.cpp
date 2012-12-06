@@ -413,7 +413,7 @@ void CProcess::ProcessError(int error) {
 		case 69: //Message E
 			{MessageBox(this->p->hWnd, "Account is currently in use", "BattleCity", 0); this->p->Login->ShowLoginDlg(); break;}
 		case 70: //Message F
-			{MessageBox(this->p->hWnd, "Please download the latest version of BattleCity at http://battlecity.looble.com", 0, 0); SendMessage(this->p->hWnd, WM_CLOSE, 0, 0); break;}
+			{MessageBox(this->p->hWnd, "Please download the latest version of BattleCity at http://battlecity.org", 0, 0); SendMessage(this->p->hWnd, WM_CLOSE, 0, 0); break;}
 		case 71: //Message G
 			{MessageBox(this->p->hWnd, "Banned", 0, 0); SendMessage(this->p->hWnd, WM_CLOSE, 0, 0); break;}
 		case 72: //Message H
@@ -616,7 +616,7 @@ void CProcess::ProcessEnterGame(sSMStateGame *game) {
 	}	
 	this->p->InGame->AppendInfo(welcome);
 
-	this->p->InGame->AppendInfo("Press HELP for instructions, or visit: http://battlecity.looble.com/");
+	this->p->InGame->AppendInfo("Press HELP for instructions, or visit: http://battlecity.org");
 	this->p->InGame->AppendInfo("");	
 
 	// If newbie tips are on,

@@ -8,7 +8,7 @@ CServer::CServer() {
 
 	// Print startup messages
 	cout << "Battle City Server Version " << VERSION << endl;
-	cout << "(C) Copyright 2005-2008 Looble Network" << endl;
+	cout << "(C) Copyright BattleCity.org" << endl;
 	cout << endl;
 
 	// Create objects
