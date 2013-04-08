@@ -1,3 +1,25 @@
+/*
+===============================================================================
+
+    Battle City - CGame header file
+    Copyright (C) 2005-2013  battlecity.org
+
+    This file is part of Battle City.
+
+    Battle City is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Battle City is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Battle City.  If not, see <http://www.gnu.org/licenses/>.
+===============================================================================
+*/
 #ifndef _CGAME
 #define _CGAME
 
@@ -98,66 +120,66 @@ class CDrawing;
 class CGame
 {
 public:
-	void Init(HWND hWnd, HINSTANCE hInst);
+    void Init(HWND hWnd, HINSTANCE hInst);
 
-	string ReturnUniqID();
-	int CheckFile(string file);
-	int SilentCheckFile(string file);
-	void Restructure();
+    string ReturnUniqID();
+    int CheckFile(string file);
+    int SilentCheckFile(string file);
+    void Restructure();
 
-	void Cycle();
-	void handleKey(WPARAM wParam);
-	void handleChatKey(WPARAM wParam);
-	void handleGameKey(WPARAM wParam);
+    void Cycle();
+    void handleKey(WPARAM wParam);
+    void handleChatKey(WPARAM wParam);
+    void handleGameKey(WPARAM wParam);
 
-	int running;
-	int State;
-	HWND hWnd;
-	HINSTANCE hInst;
-	
-	CGame();
-	~CGame();
+    int running;
+    int State;
+    HWND hWnd;
+    HINSTANCE hInst;
+    
+    CGame();
+    ~CGame();
 
-	CLogin *Login;
-	CNew *NewAccount;
-	CPersonality *Personality;
-	CMeeting *Meeting;
-	CInGame *InGame;
-	CInterview *Interview;
-	CPersonnel *Personnel;
-	COptions *Options;
-	CHelp *Help;
-	CManage *Manage;
-	CVerify *Verify;
-	CRecover *Recover;
-	CAdmin *Admin;
-	CAdminEdit *AdminEdit;
+    CLogin *Login;
+    CNew *NewAccount;
+    CPersonality *Personality;
+    CMeeting *Meeting;
+    CInGame *InGame;
+    CInterview *Interview;
+    CPersonnel *Personnel;
+    COptions *Options;
+    CHelp *Help;
+    CManage *Manage;
+    CVerify *Verify;
+    CRecover *Recover;
+    CAdmin *Admin;
+    CAdminEdit *AdminEdit;
 
-	CDialog *Dialog;
-	CWinsock *Winsock;
-	CProcess *Process;
-	CEngine *Engine;
-	CDDraw *DDraw;
-	CSend *Send;
-	CPlayer *Player[MAX_PLAYERS];
-	CMap *Map;
-	CCollision *Collision;
-	CBuildingList *Build;
-	CItemList *Item;
-	CInput *Input;
-	CSound *Sound;
-	CInventory *Inventory;
-	CBulletList *Bullet;
-	CExplosionList *Explode;
-	CDrawing *Draw;
+    CDialog *Dialog;
+    CWinsock *Winsock;
+    CProcess *Process;
+    CEngine *Engine;
+    CDDraw *DDraw;
+    CSend *Send;
+    CPlayer *Player[MAX_PLAYERS];
+    CMap *Map;
+    CCollision *Collision;
+    CBuildingList *Build;
+    CItemList *Item;
+    CInput *Input;
+    CSound *Sound;
+    CInventory *Inventory;
+    CBulletList *Bullet;
+    CExplosionList *Explode;
+    CDrawing *Draw;
 
-	CTime *Timer;
-	float Tick;
-	float lastTick;
-	float TimePassed;
+    CTime *Timer;
+    float Tick;
+    float lastTick;
+    float TimePassed;
 
-	int ResolutionX;
-	int ResolutionY;
+    int ResolutionX;
+    int ResolutionY;
 private:
 protected:
 };
