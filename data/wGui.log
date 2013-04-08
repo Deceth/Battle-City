@@ -1,0 +1,8 @@
+wGui Application Log (version 0.4.2)
+Severity Levels : [1] Critical, [3] Error, [5] Warning, [8] Info
+Sat Dec 11 13:02:12 2010 [ 8 ] : wGui Application starting
+Sat Dec 11 13:02:12 2010 [ 8 ] : wGui Application config read from Local directory.
+Sat Dec 11 13:02:13 2010 [ 8 ] : CFontEngine - Loaded new font : 12 point, ./Vera.ttf
+Sat Dec 11 13:02:13 2010 [ 8 ] : Created new CView : Updater
+Sat Dec 11 13:02:13 2010 [ 8 ] : wGui Application entering Exec loop
+Sat Dec 11 13:02:17 2010 [ 8 ] : wGui Application closing
