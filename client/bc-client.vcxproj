@@ -71,7 +71,8 @@
       <AdditionalLibraryDirectories>..\external\fmod-3.75\api\lib;..\external\directx\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)external\fmod-3.75\api\*.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y "$(SolutionDir)external\fmod-3.75\api\*.dll" "$(OutDir)"
+xcopy /sy "$(SolutionDir)data" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

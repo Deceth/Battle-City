@@ -2,8 +2,8 @@
 #define _CSound
 
 #include "CGame.h"
-#include "../bc-libraries/fmod/inc/fmod.h"
-#include "../bc-libraries/fmod/inc/fmod_errors.h"    
+#include "../external/fmod-3.75/api/inc/fmod.h"
+#include "../external/fmod-3.75/api/inc/fmod_errors.h"    
 
 class CGame;
 
