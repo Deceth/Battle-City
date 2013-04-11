@@ -20,6 +20,9 @@
     along with Battle City.  If not, see <http://www.gnu.org/licenses/>.
 ===============================================================================
 */
+
+/** @file Main.cpp Functions related to start bcserver.exe */
+
 #include "CServer.h"
 #include <exception> 
 
@@ -162,7 +165,7 @@ int main(int argc, char *argv[]) {
 	cout << endl << endl << endl << "The server has been safely shutdown.  Press any key to exit" << endl;
 
 #ifdef WIN32
-	getch();
+	getchar();
 #endif
 
 	return EXIT_SUCCESS;
