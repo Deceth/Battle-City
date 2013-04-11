@@ -4,6 +4,8 @@
     Battle City - Main
     Copyright (C) 2005-2013  battlecity.org
 
+    Contains the main application function. 
+
     This file is part of Battle City.
 
     Battle City is free software: you can redistribute it and/or modify
@@ -20,6 +22,10 @@
     along with Battle City.  If not, see <http://www.gnu.org/licenses/>.
 ===============================================================================
 */
+
+/** @file: Main.cpp Contains functions related to starting Battle City */
+
+
 #include "CGame.h"
 
 CGame Game;
@@ -30,55 +36,61 @@ const char g_szClassName[] = "BattleCity";
 
 void CreateMyTooltip (HWND hwnd, HINSTANCE ghThisInstance);
 
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch(msg) {
 
-		// Close window
+        // Close window
         case WM_CLOSE:
-			Game.running = 0;
-			Sleep(50);
+            Game.running = 0;
+            Sleep(50);
             DestroyWindow(hwnd);
-			break;
+            break;
 
-		// Destroy window
+        // Destroy window
         case WM_DESTROY:
-			Game.running = 0;
-			Sleep(50);
+            Game.running = 0;
+            Sleep(50);
             PostQuitMessage(0);
-			break;
-
-		// Focus on window
-		case WM_SETFOCUS:
-			Game.Input->HasFocus = 1;
-			if (Game.InGame->Minimized == 1) {
-				Game.InGame->Minimized = 0;
-				if (Game.DDraw->FullScreen == 1) {
-					Game.DDraw->DirectDraw->SetDisplayMode(Game.ResolutionX, Game.ResolutionY, 16, 0, 0);
-				}
-				Game.DDraw->LoadSurfaces();
-				Game.DDraw->DirectDraw->RestoreAllSurfaces();
-			}
             break;
 
-		// Remove focus from window
-		case WM_KILLFOCUS:
-			Game.Input->HasFocus = 0;
+        // Focus on window
+        case WM_SETFOCUS:
+            Game.Input->HasFocus = 1;
+            if (Game.InGame->Minimized == 1) {
+                Game.InGame->Minimized = 0;
+                if (Game.DDraw->FullScreen == 1) {
+                    Game.DDraw->DirectDraw->SetDisplayMode(Game.ResolutionX, Game.ResolutionY, 16, 0, 0);
+                }
+                Game.DDraw->LoadSurfaces();
+                Game.DDraw->DirectDraw->RestoreAllSurfaces();
+            }
             break;
 
-		// Any keyboard character
-		case WM_CHAR:
+        // Remove focus from window
+        case WM_KILLFOCUS:
+            Game.Input->HasFocus = 0;
+            break;
 
-			// Pass it to the game to handle
-			Game.handleKey(wParam);
-			break;
+        // Any keyboard character
+        case WM_CHAR:
 
-		// Default action: pass the key through to the window
+            // Pass it to the game to handle
+            Game.handleKey(wParam);
+            break;
+
+        // Default action: pass the key through to the window
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
     return 0;
 }
 
+/*
+===========
+WinMain
+===========
+*/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     WNDCLASSEX wc;
     HWND hwnd;
@@ -102,33 +114,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
 
-	int X, Y;
+    int X, Y;
         
-	X = (GetSystemMetrics(SM_CXSCREEN) / 2) - (Game.ResolutionX / 2);
-	Y = (GetSystemMetrics(SM_CYSCREEN) / 2) - (Game.ResolutionY / 2);
+    X = (GetSystemMetrics(SM_CXSCREEN) / 2) - (Game.ResolutionX / 2);
+    Y = (GetSystemMetrics(SM_CYSCREEN) / 2) - (Game.ResolutionY / 2);
 
-	Game.Options->LoadOptions();
-	if (Game.Options->fullscreen == 1) {
-		hwnd = CreateWindowEx(
-			0,
-			g_szClassName,
-			"Battle City",
-			WS_POPUP,
-			X, Y, Game.ResolutionX, Game.ResolutionY,
-			NULL, NULL, hInstance, NULL);
-	}
+    Game.Options->LoadOptions();
+    if (Game.Options->fullscreen == 1) {
+        hwnd = CreateWindowEx(
+            0,
+            g_szClassName,
+            "Battle City",
+            WS_POPUP,
+            X, Y, Game.ResolutionX, Game.ResolutionY,
+            NULL, NULL, hInstance, NULL);
+    }
 
-	else {
-		Game.DDraw->XOff = 4;
-		Game.DDraw->YOff = 30;
-		hwnd = CreateWindowEx(
-			0,
-			g_szClassName,
-			"Battle City",
-			WS_DLGFRAME,
-			X, Y, Game.ResolutionX + 7, Game.ResolutionY + 33,
-			NULL, NULL, hInstance, NULL);
-	}
+    else {
+        Game.DDraw->XOff = 4;
+        Game.DDraw->YOff = 30;
+        hwnd = CreateWindowEx(
+            0,
+            g_szClassName,
+            "Battle City",
+            WS_DLGFRAME,
+            X, Y, Game.ResolutionX + 7, Game.ResolutionY + 33,
+            NULL, NULL, hInstance, NULL);
+    }
 
     if(hwnd == NULL) {
         MessageBox(NULL, "Window Creation Failed!", "Error!",
@@ -139,7 +151,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowWindow(hwnd, nCmdShow);
     UpdateWindow(hwnd);
 
-	Game.Init(hwnd, hInstance);
+    Game.Init(hwnd, hInstance);
 
     while(GetMessage(&Msg, NULL, 0, 0) > 0) {
         TranslateMessage(&Msg);
@@ -147,5 +159,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     return (int)Msg.wParam;
-
 }

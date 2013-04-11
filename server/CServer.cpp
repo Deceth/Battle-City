@@ -29,8 +29,17 @@
 CServer::CServer() {
 
 	// Print startup messages
+    cout << endl;
+    cout << "Battle City Copyright (C) 2005-2013  battlecity.org" << endl;
+    cout << "===========================================================" << endl;
+    cout << "This program comes with ABSOLUTELY NO WARRANTY;" << endl;
+    cout << "for details visit http://www.gnu.org/licenses/." << endl;
+    cout << "This is free software, and you are welcome to redistribute it" << endl;
+    cout << "under certain conditions; visit http://www.gnu.org/licenses" << endl; 
+    cout << "for details." << endl;
+    cout << "===========================================================" << endl;
+    cout << endl;
 	cout << "Battle City Server Version " << VERSION << endl;
-	cout << "(C) Copyright BattleCity.org" << endl;
 	cout << endl;
 
 	// Create objects
