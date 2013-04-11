@@ -74,7 +74,7 @@ void CDatabase::LoadDatabase() {
 
 		// Create the Accounts Table
 		cout << "Database::Create::Accounts" << endl;
-		Database.execDML("CREATE TABLE tAccounts(AccountID INT PRIMARY KEY, Account CHAR(15), Password CHAR(15), Email CHAR(50), Fullname CHAR(20), Town char(15), State CHAR(15), Points INT DEFAULT 0, MonthlyTop20 INT DEFAULT 0, Orbs INT DEFAULT 0, Assists INT DEFAULT 0, Deaths INT DEFAULT 0, Member INT DEFAULT 0, IsAdmin INT DEFAULT 0);");
+		Database.execDML("CREATE TABLE tAccounts(AccountID INT PRIMARY KEY, Account CHAR(15), Password CHAR(15), Email CHAR(50), Fullname CHAR(20), Town char(15), State CHAR(15), Points INT DEFAULT 0, MonthlyTop20 INT DEFAULT 0, Orbs INT DEFAULT 0, Assists INT DEFAULT 0, Deaths INT DEFAULT 0, Member INT DEFAULT 0, IsAdmin INT DEFAULT 0, Red INT DEFAULT 0, Green INT DEFAULT 0, Blue INT DEFAULT 0, Tank INT DEFAULT 0, Tank2 INT DEFAULT 0, Tank3 INT DEFAULT 0, Tank4 INT DEFAULT 0, Tank5 INT DEFAULT 0, Tank6 INT DEFAULT 0, Tank7 INT DEFAULT 0, Tank8 INT DEFAULT 0, Tank9 INT DEFAULT 0);");
 		Database.execDML("CREATE INDEX idxPoints ON tAccounts (Points DESC);");
 		Database.execDML("CREATE UNIQUE INDEX idxName ON tAccounts (Account);");
 
