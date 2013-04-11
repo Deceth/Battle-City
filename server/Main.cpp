@@ -20,6 +20,9 @@
     along with Battle City.  If not, see <http://www.gnu.org/licenses/>.
 ===============================================================================
 */
+
+/** @file Main.cpp Functions related to start bcserver.exe */
+
 #include "CServer.h"
 #include <exception> 
 
