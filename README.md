@@ -8,7 +8,7 @@
 License: GPLv3
 Credits: Deceth
 
-Download the latest release from the [official website](http://www.battlecity.org)
+Download the latest release from the [official website](http://battlecity.org)
 
 Download the source code from the master [Battle-City code repository](https://github.com/Deceth/Battle-City)
 
