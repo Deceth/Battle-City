@@ -22,20 +22,21 @@
 */
 #ifndef _CSocket
 #define _CSocket
-
+//  Methods from CServer inherited
 #include "CServer.h"
-
+//  Default listening port for server application
 #define TCPPORT 5643
-//#define TCPPORT 6643
-
 #ifdef WIN32
+//  WS2tcpip.h requires socklen_t as integer
 #define socklen_t int
 #endif
-
+//  Inherit methods from CServer
 class CServer;
 
+/// <summary>
+/// Network abstraction
+/// </summary>
 class CSocket {
-
 	public:
 		CSocket(CServer *Server);
 		~CSocket();
@@ -56,7 +57,9 @@ class CSocket {
 		void TCPCycle();
 
 		int listener;
+        //  Master File Descriptor Set
 		fd_set master;
+        //  Read-only File Descriptor Set
 		fd_set read_fds;
 		struct sockaddr_in myaddr; 
 		struct sockaddr_in remoteaddr;
