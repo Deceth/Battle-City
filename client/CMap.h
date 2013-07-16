@@ -20,25 +20,34 @@
     along with Battle City.  If not, see <http://www.gnu.org/licenses/>.
 ===============================================================================
 */
+//  Upon verifying __MAP constant is not defined, define __MAP and class
 #ifndef __MAP
 #define __MAP
-
+//  Includes CGame header file
 #include "CGame.h"
-
+//  Initialize CGame class
 class CGame;
-
+//  Define CMap class
 class CMap
 {
+//  Public methods, pointers, and variables
 public:
+    /// <summary>   Constructor. </summary>
+    ///
+    /// <param name="Game"> [in,out] If non-null, the game. </param>
     CMap(CGame *Game);
+    /// <summary>   Destructor. </summary>
     ~CMap();
-
+    /// <summary>   Calculates the tiles. </summary>
     void CalculateTiles();
+    /// <summary>   Loads the map. </summary>
     void LoadMap();
-
+    /// <summary>   The map[ 512][512]. </summary>
     unsigned char map[512][512];
+    /// <summary>   The tiles[ 512][512]. </summary>
     short tiles[512][512];
 private:
+    /// <summary>   The CGame* to process. </summary>
     CGame *p;
 protected:
 };

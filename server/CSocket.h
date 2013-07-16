@@ -40,7 +40,6 @@ class CSocket {
 	public:
 		CSocket(CServer *Server);
 		~CSocket();
-
 		void InitWinsock();
 		void Cycle();
 		void SendData(int i, unsigned char PacketID, char TheData[255], int len = -1);
@@ -51,21 +50,31 @@ class CSocket {
 		bool hasData(int sock);
 
 	private:
-		CServer *p;
-
+        /// <summary>
+        /// Set up deferenced pointer
+        /// </summary>
+        CServer *p;
+        /// <summary>
+        /// Set up listener socket
+        /// </summary>
 		void InitTCP();
-		void TCPCycle();
-
+        /// <summary>
+        /// Handle incoming connections and receive data from existing connections
+        /// </summary>
+        void TCPCycle();
+        //  Listener socket
 		int listener;
         //  Master File Descriptor Set
 		fd_set master;
         //  Read-only File Descriptor Set
 		fd_set read_fds;
+        //  Socket definition for local machine
 		struct sockaddr_in myaddr; 
+        //  Socket definition for remote machine
 		struct sockaddr_in remoteaddr;
+        //  Address length
 		socklen_t addrlen;
+        //  Socket time interval
 		timeval timev;
-
 };
-
 #endif

@@ -23,7 +23,7 @@
 #include "CServer.h"
 
 /// <summary>
-/// Initializes a new instance of the <see cref="CSocket"/> class.
+/// Initializes a new instance of the <see cref="CSocket" /> class.
 /// </summary>
 /// <param name="Server">The server.</param>
 CSocket::CSocket(CServer *Server) {
@@ -53,7 +53,7 @@ CSocket::CSocket(CServer *Server) {
 
 
 /// <summary>
-/// Finalizes an instance of the <see cref="CSocket"/> class by
+/// Finalizes an instance of the <see cref="CSocket" /> class by
 /// terminating Winsock 2 DLL
 /// </summary>
 CSocket::~CSocket() {
@@ -70,7 +70,7 @@ void CSocket::InitWinsock() {
 }
 
 /// <summary>
-/// Initializing TCP
+/// Set up listener socket
 /// </summary>
 void CSocket::InitTCP() {
     //  Set listener to obtained socket; otherwise, print error message

@@ -25,9 +25,8 @@
 
 /** @file: Main.cpp Contains functions related to starting Battle City */
 
-
 #include "CGame.h"
-
+/// <summary>   The game. </summary>
 CGame Game;
 
 #include <windows.h>
@@ -36,6 +35,14 @@ const char g_szClassName[] = "BattleCity";
 
 void CreateMyTooltip (HWND hwnd, HINSTANCE ghThisInstance);
 
+/// <summary>   Windows process handler </summary>
+///
+/// <param name="hwnd">     Handle of the. </param>
+/// <param name="msg">      The message. </param>
+/// <param name="wParam">   The wParam field of the message. </param>
+/// <param name="lParam">   The lParam field of the message. </param>
+///
+/// <returns>   . </returns>
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch(msg) {
@@ -86,11 +93,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return 0;
 }
 
-/*
-===========
-WinMain
-===========
-*/
+/// <summary>   Windows dialog main method </summary>
+///
+/// <param name="hInstance">        The instance. </param>
+/// <param name="hPrevInstance">    The previous instance. </param>
+/// <param name="lpCmdLine">        The command line. </param>
+/// <param name="nCmdShow">         The command show. </param>
+///
+/// <returns>   . </returns>
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     WNDCLASSEX wc;
     HWND hwnd;

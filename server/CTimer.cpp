@@ -22,10 +22,10 @@
 */
 #include "CTimer.h"
 
-/***************************************************************
- * Constructor
- *
- **************************************************************/
+
+/// <summary>
+/// Initializes a new instance of the <see cref="CTime" /> class.
+/// </summary>
 CTime::CTime() {
 	this->dt = 0;
 	this->td2 = 0;
@@ -37,48 +37,43 @@ CTime::CTime() {
 	this->Initialize();
 }
 
-/***************************************************************
- * Function:	Update
- *
- **************************************************************/
+/// <summary>
+/// Updates the Timer
+/// </summary>
 void CTime::Update()  {
 	this->td2 = this->GetTime();
 	this->dt = (this->td2-this->td) * 0.1f; 
 	this->td = this->td2;
 }
 
-/***************************************************************
- * Function:	Initialize
- *
- **************************************************************/
+/// <summary>
+/// Initializes this instance.
+/// </summary>
 void CTime::Initialize() {
 #ifdef WIN32
 	// Use timeGetTime() To Get Current Time
-	this->mm_timer_start	= timeGetTime();			
+	this->mm_timer_start = timeGetTime();			
 
 	// Set Our Timer Resolution To .001f
-	resolution		= 1.0f/1000.0f;
+	resolution = 1.0f/1000.0f;
 	
 	// Set Our Timer Frequency To 1000
-	frequency			= 1000;					
+	frequency = 1000;					
 
 	// Set The Elapsed Time To The Current Time
 	mm_timer_elapsed	= mm_timer_start;		
 #endif
 }
 
-/***************************************************************
- * Function:	Get_dt
- *
- **************************************************************/
+/// <summary>
+/// Get_dts this instance.
+/// </summary>
+/// <returns></returns>
 float CTime::Get_dt() const  { 
 	return this->dt; 
 }
 
-/***************************************************************
- * Function:	GetTime
- *
- **************************************************************/
+
 float CTime::GetTime() const {
 #ifdef WIN32
 	// Get Time In Milliseconds

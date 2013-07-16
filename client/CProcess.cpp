@@ -454,29 +454,41 @@ void CProcess::ProcessError(int error) {
 	}
 }
 
-/***************************************************************
- * Function:	ProcessEvent
- *
- * @param Event
- **************************************************************/
+/// <summary>   Processes the event ID</summary>
+///
+/// <param name="Event">    Event ID </param>
 void CProcess::ProcessEvent(int Event) {
-
+    //  Observe Event ID
 	switch (Event) {
-		case 1: //Error connecting
+        //  Process connection errors
+		case 1:
+            //  Set running to false
 			this->p->running = 0;
+            //  Perform thread sleep
 			Sleep(100);
+            //  Display message box alerting user that a connection issue was experienced
 			MessageBox(this->p->hWnd, "Unable to connect to the BattleCity server.  Make sure you are properly connected to the internet, and if you are, the server is likely down for maintenance or being updated.  Please try again later.", "BattleCity", 0);
+            //  Send WM_CLOSE to window handler
 			SendMessage(this->p->hWnd, WM_CLOSE, 0, 0);
 			break;
-		case 2: //Connected
+        //  Process connected
+		case 2:
+            //  Display the login dialog box
 			this->p->Login->ShowLoginDlg();
+            //  Send the version to the game server
 			this->p->Send->SendVersion();
 			break;
-		case 3: //Disconnected
+        //  Process disconnection
+		case 3:
+            //  Upon verifying running is false then break from logic
 			if (this->p->running == 0) return;
+            //  Set running to false
 			this->p->running = 0;
+            //  Perform thread sleep for 100 milliseconds
 			Sleep(100);
+            //  Display message box informing user that they have disconnected
  			MessageBox(this->p->hWnd, "You have been disconnected from the BattleCity server.  Please try again later.", "BattleCity", 0);
+            //  Send WM_CLOSE to the window handler
 			SendMessage(this->p->hWnd, WM_CLOSE, 0, 0);
 			break;
 	}
