@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{89681387-4F3C-4977-BFF1-30EB955E6E95}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\build\$(PlatformName)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\build\$(PlatformName)\$(Configuration)\intermediate\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    </LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>dxguid.lib;ddraw.lib;dinput8.lib;ws2_32.lib;fmodvc.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)Updater.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>..\external\fmod-3.75\api\lib;..\external\directx\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(SolutionDir)external\fmod-3.75\api\*.dll" "$(OutDir)"
+xcopy /sy "$(SolutionDir)data" "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>dxguid.lib;ddraw.lib;dinput8.lib;ws2_32.lib;fmodvc.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)bc.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CAdmin.cpp" />
+    <ClCompile Include="CAdminEdit.cpp" />
+    <ClCompile Include="CBuilding.cpp" />
+    <ClCompile Include="CBullet.cpp" />
+    <ClCompile Include="CCollision.cpp" />
+    <ClCompile Include="CDDraw.cpp" />
+    <ClCompile Include="CDialog.cpp" />
+    <ClCompile Include="CDrawing.cpp" />
+    <ClCompile Include="CEngine.cpp" />
+    <ClCompile Include="CExplode.cpp" />
+    <ClCompile Include="CGame.cpp" />
+    <ClCompile Include="CHelp.cpp" />
+    <ClCompile Include="CInGame.cpp" />
+    <ClCompile Include="CInput.cpp" />
+    <ClCompile Include="CInterview.cpp" />
+    <ClCompile Include="CItem.cpp" />
+    <ClCompile Include="CLogin.cpp" />
+    <ClCompile Include="CManage.cpp" />
+    <ClCompile Include="CMap.cpp" />
+    <ClCompile Include="CMeeting.cpp" />
+    <ClCompile Include="CNew.cpp" />
+    <ClCompile Include="COptions.cpp" />
+    <ClCompile Include="CPersonality.cpp" />
+    <ClCompile Include="CPersonnel.cpp" />
+    <ClCompile Include="CPlayer.cpp" />
+    <ClCompile Include="CProcess.cpp" />
+    <ClCompile Include="CRecover.cpp" />
+    <ClCompile Include="CSend.cpp" />
+    <ClCompile Include="CSound.cpp" />
+    <ClCompile Include="CTimer.cpp" />
+    <ClCompile Include="CWinsock.cpp" />
+    <ClCompile Include="DDUtil.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="SHA1.cpp" />
+    <ClCompile Include="Structs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CAdmin.h" />
+    <ClInclude Include="CAdminEdit.h" />
+    <ClInclude Include="CBuilding.h" />
+    <ClInclude Include="CBullet.h" />
+    <ClInclude Include="CCollision.h" />
+    <ClInclude Include="CDDraw.h" />
+    <ClInclude Include="CDialog.h" />
+    <ClInclude Include="CDrawing.h" />
+    <ClInclude Include="CEngine.h" />
+    <ClInclude Include="CExplode.h" />
+    <ClInclude Include="CGame.h" />
+    <ClInclude Include="CHelp.h" />
+    <ClInclude Include="CInGame.h" />
+    <ClInclude Include="CInput.h" />
+    <ClInclude Include="CInterview.h" />
+    <ClInclude Include="CItem.h" />
+    <ClInclude Include="CLogin.h" />
+    <ClInclude Include="CManage.h" />
+    <ClInclude Include="CMap.h" />
+    <ClInclude Include="CMeeting.h" />
+    <ClInclude Include="CNew.h" />
+    <ClInclude Include="COptions.h" />
+    <ClInclude Include="CPersonality.h" />
+    <ClInclude Include="CPersonnel.h" />
+    <ClInclude Include="CPlayer.h" />
+    <ClInclude Include="CProcess.h" />
+    <ClInclude Include="CRecover.h" />
+    <ClInclude Include="CSend.h" />
+    <ClInclude Include="CSound.h" />
+    <ClInclude Include="CTimer.h" />
+    <ClInclude Include="CWinsock.h" />
+    <ClInclude Include="ddraw.h" />
+    <ClInclude Include="DDUtil.h" />
+    <ClInclude Include="NetMessages.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SHA1.h" />
+    <ClInclude Include="Structs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BattleCityClient.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\BC.ico" />
+    <None Include="BC.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
