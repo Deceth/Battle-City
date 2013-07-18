@@ -74,7 +74,7 @@ void CWinsock::StartTCP() {
 		p->Process->ProcessEvent(1);
 	} else {
 		this->Connected = true;
-		p->Process->ProcessEvent(2); //Connected
+		p->Process->ProcessEvent(2);
 	}
 }
 

@@ -47,6 +47,7 @@ public:
     char names;
     char limitfps;
     char resolution1024;
+    string gameServerAddress;
 
     void LoadOptions();
     void SaveOptions();
