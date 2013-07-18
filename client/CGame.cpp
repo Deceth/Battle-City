@@ -24,7 +24,7 @@
 #include "NetMessages.h"
 
 CGame::CGame() {
-	
+	ConnectionManager = new CConnectionManager(this);
 	Login = new CLogin(this);
 	NewAccount = new CNew(this);
 	Personality = new CPersonality(this);
@@ -87,6 +87,7 @@ CGame::~CGame() {
 	running = 0;
     //  Deallocate memory blocks
     //  http://msdn.microsoft.com/en-us/library/h6227113.aspx
+    delete ConnectionManager;
 	delete Login;
 	delete NewAccount;
 	delete Personality;
@@ -194,7 +195,9 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 	//  Initialize the time interval object
 	this->Timer->Initialize();
     //  Initialize the Winsock object
-		Winsock->Init("localhost");
+    if(!Options->gameServerAddress.empty()) {
+	    Winsock->Init(&Options->gameServerAddress[0]);
+    }
 
     //  Upon verifying windowed mode initialize direct draw for windowed mode
     //  Otherwise, initialize direct draw for full screen mode

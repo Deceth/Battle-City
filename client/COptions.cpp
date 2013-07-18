@@ -129,7 +129,9 @@ void COptions::LoadOptions()
 		this->names = GetPrivateProfileInt("Options", "Names", 1, buffer);
 		this->limitfps = GetPrivateProfileInt("Options", "LimitFPS", 1, buffer);
 		this->resolution1024 = GetPrivateProfileInt("Options", "Resolution1024", 1, buffer);
-        this->gameServerAddress = GetPrivateProfileString("GameServer", "Address","deceth.no-ip.org",NULL,1024,buffer);
+        char _gameServerAddress[255];
+        GetPrivateProfileString("GameServer", "Address","deceth.no-ip.org",_gameServerAddress,255,buffer);
+        this->gameServerAddress = _gameServerAddress;
 	} else {
         //  Otherwise; load the default values
 		this->music = 1;

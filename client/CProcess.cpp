@@ -469,7 +469,8 @@ void CProcess::ProcessEvent(int Event) {
             //  Display message box alerting user that a connection issue was experienced
 			MessageBox(this->p->hWnd, "Unable to connect to the BattleCity server.  Make sure you are properly connected to the internet, and if you are, the server is likely down for maintenance or being updated.  Please try again later.", "BattleCity", 0);
             //  Send WM_CLOSE to window handler
-			SendMessage(this->p->hWnd, WM_CLOSE, 0, 0);
+            this->p->ConnectionManager->showConnectionManager();
+			//  SendMessage(this->p->hWnd, WM_CLOSE, 0, 0);
 			break;
         //  Process connected
 		case 2:

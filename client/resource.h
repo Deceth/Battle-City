@@ -64,6 +64,7 @@
 #define IDTANK                          1044
 #define IDPOINTS                        1045
 #define IDDEATHS                        1046
+#define ID_CONNECTIONMANAGER            1046
 #define IDC_STATIC8                     1047
 #define IDC_STATIC9                     1048
 #define IDORBS                          1049
@@ -75,9 +76,13 @@
 #define IDC_TAB1                        1053
 #define IDGREEN                         1054
 #define IDC_EDIT1                       1054
+#define ID_GameServerAddress            1054
 #define IDC_RAINBOW2                    1055
 #define IDC_RAINBOW                     1055
+#define IDC_COMBO1                      1055
+#define ID_Connect                      1056
 #define IDBLUE                          1057
+#define ID_Exit                         1057
 #define IDTANK2                         1061
 #define IDTANK3                         1062
 #define IDTANK4                         1063
@@ -87,16 +92,17 @@
 #define IDTANK8                         1067
 #define IDTANK9                         1068
 #define IDMONTHLYTOP20                  1070
-#define IDSTARTINGCITY					1071
-#define IDUPDATESTARTINGCITY			1072
+#define IDSTARTINGCITY                  1071
+#define IDUPDATESTARTINGCITY            1072
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        116
+#define _APS_NEXT_RESOURCE_VALUE        117
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1055
+#define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

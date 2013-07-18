@@ -1,7 +1,7 @@
 /*
 ===============================================================================
 
-    Battle City - COptions header file
+    Battle City - CLogin header file
     Copyright (C) 2005-2013  battlecity.org
 
     This file is part of Battle City.
@@ -20,42 +20,20 @@
     along with Battle City.  If not, see <http://www.gnu.org/licenses/>.
 ===============================================================================
 */
-#ifndef _COptions
-#define _COptions
-
+#ifndef _CConnectionManager
+#define _CConnectionManager
 #include "CGame.h"
-
 class CGame;
-
-class COptions
+class CConnectionManager
 {
 public:
-    COptions(CGame *game);
-    ~COptions();
-
-    HWND hWnd;
-
-    void ShowOptionsDialog();
-
-    char music;
-    char sound;
-    char tanksound;
-    char fullscreen;
-    char newbietips;
-    char sleep;
-    char debug;
-    char names;
-    char limitfps;
-    char resolution1024;
-
+    CConnectionManager(CGame *game);
+    ~CConnectionManager();
+    void showConnectionManager();
     string gameServerAddress;
-
-    void LoadOptions();
-    void SaveOptions();
 private:
     CGame *p;
 protected:
 
 };
-
 #endif

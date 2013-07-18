@@ -42,7 +42,7 @@ using namespace std;
 #include "resource.h"
 
 #include "CConstants.h"
-
+#include "CConnectionManager.h"
 #include "CLogin.h"
 #include "CNew.h"
 #include "CPersonality.h"
@@ -78,7 +78,7 @@ using namespace std;
 #include "NetMessages.h"
 
 #include "SHA1.h"
-
+class CConnectionManager;
 class CLogin;
 class CNew;
 class CPersonality;
@@ -139,7 +139,7 @@ public:
     
     CGame();
     ~CGame();
-
+    CConnectionManager *ConnectionManager;
     CLogin *Login;
     CNew *NewAccount;
     CPersonality *Personality;
