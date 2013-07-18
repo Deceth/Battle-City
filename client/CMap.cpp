@@ -21,19 +21,23 @@
 ===============================================================================
 */
 #include "CMap.h"
-
+/// <summary>   Constructor. </summary>
+///
+/// <param name="Game"> [in,out] If non-null, the game. </param>
 CMap::CMap(CGame *Game)
 {
 	p = Game;
 }
-
+/// <summary>   Destructor. </summary>
 CMap::~CMap()
 {
 
 }
-
+/// <summary>   Loads the map. </summary>
 void CMap::LoadMap()
 {
+    //  Loop to generate zeros for entire map. Map size is set to 512x512
+    //  stored in a char array.
 	for (int i = 0; i < 512; i++)
 	{
 		for (int j = 0; j < 512; j++)
@@ -41,50 +45,71 @@ void CMap::LoadMap()
 			this->map[i][j] = 0;
 		}
 	}
-
+    //  Initialize file handler for reading map.dat
 	FILE *file;
+    //  Open map.dat through file handler
 	file = fopen("map.dat","r");
-
+    //  Upon verifying that file handler opened file
+    //  continue with reading the file
 	if (file)
 	{
+        //  Populate this->map with file contents
+        //  http://msdn.microsoft.com/en-us/library/kt0etdcs(v=vs.100).aspx
 		fread(this->map,512,512,file);
+        //  Processes this->map to generate city centers, rock tiles, and lava tiles
 		CalculateTiles();
 	}
-
+    //  Close the file handler
 	fclose(file);
 	
 }
 
+/// <summary>   Calculates the tiles. </summary>
 void CMap::CalculateTiles()
 {
 	/*Calculate ONCE which tiles should be drawn on the map. Since the map is static we only have to do
 	this every time the game is started. This determines which tile is drawn based on surrounding tiles.
 	copy the X value of the tile to blit to the tiles array. map[][] and tiles[][] can be used in 
 	conjunction	with each other to effectivly draw the correct image: Check surrounding 4 Directional tiles*/
+    //  Default starting city index passed to newBuilding method 
 	int citIndex = 63;
-	for (int j = 0; j <= 511; j++)//y, starting at top of map.
+    //  Loop through y-axis, top of the map
+	for (int j = 0; j <= 511; j++)
 	{
-		for (int i = 0; i <= 511; i++)//X, starting at left of map.
+        //  Loop through x axis, left of the map
+		for (int i = 0; i <= 511; i++)
 		{
+            //  Upon verifying that map location is a city initialize a newBuilding
 			if (this->map[i][j] == 3)
 			{
+                //  Initialize a building at the current coordinates
 				p->Build->newBuilding(i, j, citIndex, -1, 0); //place City centers
+                //  Subtract from the city index
 				citIndex--;
 			}
-				
-			if ((this->map[i][j] == 1) || (this->map[i][j] == 2)) //Only check rock or lava tiles
+			//  Upon verifying that current map location is rock or lava proceed with populating this->tiles
+			//  1 - Rock
+			//  2 - Lava
+			if ((this->map[i][j] == 1) || (this->map[i][j] == 2))
 			{
-				int currTile = this->map[i][j]; //Variable for the current tile value 
-				if (currTile == 1 || currTile == 2) //Only check rock or lava tiles
+                //  Populate variable with value from this->map
+				int currTile = this->map[i][j];
+                //  Upon verifying variable is rock or lava proceed with populating surrounding tiles
+				if (currTile == 1 || currTile == 2)
 				{
-					/* Below checks each Direction by binary eXpressions, then evaluates the sum 
-					into decimal multiplied by the tile size to get an Index to start drawing from
-					in the tile file*/
+                    //  Verify i is at the end of map or the next tile is not the current tile
+                    //  1 - Verification passed
+                    //  0 - Verification failed                    
 					int left = (i == 511 || this->map[i+1][j] != currTile); 
+                    //  Verify i is at the end of the map or the next tile is not the current tile
 					int right = (i == 0 || this->map[i-1][j] != currTile); 
+                    //  Verify i is at the end of the map or the next tile is not the current tile
 					int up = (j == 511 || this->map[i][j+1] != currTile);
+                    //  Verify i is at the end of the map or the next tile is not the current tile
 					int down = (j == 0 || this->map[i][j-1] != currTile); 
-					this->tiles[i][j] = (left + right * 2 + down * 4 + up * 8) * 48; //Calculate 
+                    //  Perform calculations on above values in order to generate a tile value
+                    //  Need more documentation on how these values are used
+					this->tiles[i][j] = (left + right * 2 + down * 4 + up * 8) * 48;
 				}
 			}
 		}

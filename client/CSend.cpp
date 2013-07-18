@@ -52,15 +52,22 @@ void CSend::SendLogin(int NewAccount) {
 		p->Winsock->SendData(cmNewAccount, (char *)&NewAccount, sizeof(NewAccount));
 	}
 }
-
+/// <summary>   Sends the version. </summary>
 void CSend::SendVersion() {
+    //  Set vers to use sCMVersion structure
 	sCMVersion vers;
+    //  Populate Version with 10 zeros
 	memset(vers.Version, 0, 10);
+    //  Populate UniqID with 50 zeros
 	memset(vers.UniqID, 0, 50);
-
+    //  Copy VERSION value to Version
 	strcpy(vers.Version, VERSION);
+    //  Set UniqID as String and populate with ReturnUniqID
+    //  UniqID helps avoid user collision
 	string UniqID = p->ReturnUniqID();
+    //  Copy UniqID to structure
 	strcpy(vers.UniqID, UniqID.c_str());
+    //  Send version structure to game server
 	p->Winsock->SendData(cmVersion, (char *)&vers, sizeof(vers));
 }
 

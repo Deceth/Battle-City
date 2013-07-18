@@ -21,98 +21,106 @@
 ===============================================================================
 */
 
-/** @file Main.cpp Functions related to start bcserver.exe */
-
 #include "CServer.h"
 #include <exception> 
 
+/// <summary>
+/// Construct CServer object
+/// </summary>
 CServer Server;
 
-/***************************************************************
- * Function:	main
- *
- * @param argc
- * @param argv
- **************************************************************/
+/// <summary>
+/// Command-line application
+/// </summary>
+/// <param name="argc">Argument Count</param>
+/// <param name="argv">Argument Vector</param>
+/// <returns></returns>
 int main(int argc, char *argv[]) {
+    //  Last bullet time interval
 	float LastBulletTick = 0;
+    //  Item time interval
 	float ItemTick = 0;
+    //  Building time interval
 	float BuildingTick = 0;
+    //  Bullet time interval
 	float BulletTick = 0;
+    //  Respawn time interval
 	float RespawnTick = 0;
+    //  Top 20 time interval
 	float Top20Tick = 0;
+    //  City time interval
 	float CityTick = 0;
+    //  Indicate whether server information has been printed
 	bool printServerInfo = false;
+    //  Store crash message
 	stringstream crashMessage;
-	
-	// Initalize the server
+    //  Initialize the CServer object
 	Server.Init();
-
+    //  Try launching the Server
 	try {
-
-		// While the server is running,
+        //  Loop while Server is running
 		while (Server.running == 1) {
-
-			// Increment the timer values
+            //  Update last time interval with current time interval
 			Server.lastTick = Server.Tick;
+            //  Refresh current time interval
 			Server.Tick = Server.Timer->GetTime();
-
-			// Tell the server to run its cycle
+            //  Perform winsock cycle for network connectivity
 			Server.Winsock->Cycle();
-
-			// If the Item timer is up, tell the server to run its Item cycle
+            //  Verify current time interval is greater than item time interval
 			if (Server.Tick > ItemTick) {
+                //  Perform item cycle
 				Server.Item->cycle();
+                //  Refresh item time interval
 				ItemTick = Server.Tick + 100;
 			}
-
-			// If the Building timer is up, tell the server to run its Building cycle
+            //  Verify current time interval is greater than building time interval
 			if (Server.Tick > BuildingTick) {
+                //  Perform build cycle
 				Server.Build->cycle();
+                //  Refresh build time internval
 				BuildingTick = BuildingTick + 50;
 			}
-
-			// If the Bullet timer is up, tell the server to run its Bullet cycle
+            //  Verify current time interval is greater than bullet time interval
 			if (Server.Tick > BulletTick) {
+                //  Calculate time lapsed between current time interval and last bullet time interval
 				Server.TimePassed = Server.Tick - LastBulletTick;
+                //  Perform bullet cycle
 				Server.Bullet->cycle();
+                //  Update last bullet time interval with curren time interval
 				LastBulletTick = Server.Tick;
+                //  Refresh bullet time interval
 				BulletTick = Server.Tick + 12;
 			}
-
-			// If the Top20 timer is up, tell the server to run its Top20 cycle
+            //  Verify current time interval is greater than top 20 time interval
 			if (Server.Tick > Top20Tick) {
+                //  Perform top 20 generation
 				Server.Account->GenerateTop20();
+                //  Refresh top 20 time interval
 				Top20Tick = Server.Tick + 300000;
 			}
-
-			// If the City timer is up, 
+            //  Verify current time interval is greater than city time interval
 			if (Server.Tick > CityTick) {
-
-				// For each possible city,
+                //  Loop through all cities
 				for (int i = 0; i < MAX_CITIES; i++) {
-
-					// Run the City cycle
+                    //  Perform cycle on each city
 					Server.City[i]->cycle();
 				}
+                //  Refresh city time interval
 				CityTick = Server.Tick + 1000;
 			}
-
-			// If the Respawn timer is up,
+            //  Verify current time interval is greater than respawn time interval
 			if (Server.Tick > RespawnTick) {
-
-				// Check for players to respawn, reset the Respawn timer
+                //  Perform player respawn
 				Server.respawnPlayers();
+                //  Refresh respawn time interval
 				RespawnTick = Server.Tick + 1000;
 			}
-
-			// Sleep
+            //  Perform a sleep
 			Server.PlatformSleep(1);
 		}
-	}
-
-	// Catch basic exceptions
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
+        //  Upon a standard exception the exception
+        //  message will be stored in crashMessage variable
 		crashMessage << endl << endl;
 		crashMessage << "------------------------------" << endl;
 		crashMessage << "SERVER CRASH: EXCEPTION CAUGHT" << endl;
@@ -120,20 +128,19 @@ int main(int argc, char *argv[]) {
 		crashMessage << "Exception details:" << endl;
 		crashMessage << e.what() << endl;
 		crashMessage << "------------------------------" << endl;
-
+        //  Indiciate printed server information as true
 		printServerInfo = true;
-	}
-
-	// Catch everything else
-	catch (...) {
+	} catch (...) {
+        //  Upon any other exception, report unknown crash
 		crashMessage << endl << endl;
 		crashMessage << "------------------------------" << endl;
 		crashMessage << "SERVER CRASH: no exception :(" << endl;
 		crashMessage << "------------------------------" << endl;
+        //  Indiciate printed server information as true
 		printServerInfo = true;
 	}
-
-	// If an exception occurred,
+	//  Upon verifying printServerInfo as true append time interval information
+    //  to the crashMessage variable then save variable to log
 	if (printServerInfo) {
 		crashMessage << "Server.lastTick: " << Server.lastTick << "\n";
 		crashMessage << "Server.Tick: " << Server.Tick << "\n";
@@ -144,29 +151,25 @@ int main(int argc, char *argv[]) {
 		crashMessage << "RespawnTick: " << RespawnTick << "\n";
 		crashMessage << "Top20Tick: " << Top20Tick << "\n";
 		crashMessage << "CityTick: " << CityTick << "\n";
-
+        //  Append crashMessage to the log file
 		Server.Log->logServerError(crashMessage.str());
 	}
-
-	// If we left the while loop, close the server
+    //  Print to the console
 	cout << "Server::Close" << endl;
-
-	// For each possible player,
+    //  Loop through available players
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-
-		// If the player is not disconnected,
+        //  Verify player is not disconnected
 		if (Server.Player[i]->State > State_Disconnected) {
-
-			// Disconnect the player
+            //  Perform player disconnect
 			Server.Player[i]->Clear();
 		}
 	}
-	
+	//  Print to console that the server has safely shutdown
 	cout << endl << endl << endl << "The server has been safely shutdown.  Press any key to exit" << endl;
-
+    //  Wait for user to press any key
 #ifdef WIN32
 	getchar();
 #endif
-
+    //  Perform application exit
 	return EXIT_SUCCESS;
 }
