@@ -21,6 +21,9 @@
 ===============================================================================
 */
 #include "CConnectionManager.h"
+#include <string>
+
+
 HBRUSH g_hbrBackgroundConnectionManager;
 HDC hdcStaticConnectionManager;
 
@@ -39,17 +42,40 @@ CConnectionManager::~CConnectionManager()
 {
 }
 
+/// <summary>   Connection manager dialog procedure. </summary>
+///
+/// <param name="hwnd">     Window handler. </param>
+/// <param name="Message">  Incoming message. </param>
+/// <param name="wParam">   wParam </param>
+/// <param name="lParam">   lParam </param>
+///
+/// <returns>   . </returns>
 int CALLBACK ConnectionManagerDialogProcedure(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
+    //  Initialize the local game object pointer
     CGame *p = (CGame *)CConnectionPointer;
+    //  Observe the incoming message
     switch(Message)
     {
+        //  Initializing dialog box
         case WM_INITDIALOG:
+            //  Set limit text for game address to 255 characters
             SendDlgItemMessage(hwnd,ID_GameServerAddress,EM_LIMITTEXT,255,0);
+            //  Populate edit box with value received from Options
             SetDlgItemText(hwnd,ID_GameServerAddress,p->Options->gameServerAddress.c_str());
+            //  Populate the combobox with past game servers
+            p->ConnectionManager->loadPastGameServers(hwnd);
             return 1;
             break;
         case WM_COMMAND:
+            switch(HIWORD(wParam)) 
+            {
+                case CBN_SELCHANGE:
+                    //  Populate edit box with combobox selection
+                    p->ConnectionManager->updateGameServerAddress(hwnd);
+                    return 1;
+                break;
+            }
             switch(LOWORD(wParam))
             {
                 case ID_Connect:
@@ -70,6 +96,28 @@ int CALLBACK ConnectionManagerDialogProcedure(HWND hwnd, UINT Message, WPARAM wP
             break;
     }
     return 1;
+}
+
+/// <summary>   Load past game servers from flat file then populate combo box </summary>
+///
+/// <param name="hwnd"> Window handler linking to the opened dialog box </param>
+void CConnectionManager::loadPastGameServers(HWND hwnd)
+{
+    HWND CB_pastGameServers = GetDlgItem(hwnd,ID_PastGameServers);
+    for(std::vector<std::string>::iterator i = p->Options->pastGameServers.begin(); i != p->Options->pastGameServers.end(); ++i)
+    {
+        SendMessage(CB_pastGameServers,CB_ADDSTRING,0,(LPARAM)(LPWSTR(i[0].c_str())));
+    }
+    SendMessage(CB_pastGameServers,CB_SETCURSEL,(WPARAM) 0, 0);
+}
+
+void CConnectionManager::updateGameServerAddress(HWND hwnd)
+{
+    HWND CB_pastGameServers = GetDlgItem(hwnd,ID_PastGameServers);
+    int currentIndex = SendMessage(CB_pastGameServers,CB_GETCURSEL,0,0);
+    char selectedValue[255];
+    SendMessage(CB_pastGameServers,CB_GETLBTEXT,currentIndex,(LPARAM)selectedValue);
+    SetDlgItemText(hwnd,ID_GameServerAddress,selectedValue);
 }
 
 /// <summary>   Shows the connection manager. </summary>

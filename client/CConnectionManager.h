@@ -31,6 +31,8 @@ public:
     ~CConnectionManager();
     void showConnectionManager();
     string gameServerAddress;
+    void loadPastGameServers(HWND hwnd);
+    void updateGameServerAddress(HWND hwnd);
 private:
     CGame *p;
 protected:

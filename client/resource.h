@@ -80,6 +80,7 @@
 #define IDC_RAINBOW2                    1055
 #define IDC_RAINBOW                     1055
 #define IDC_COMBO1                      1055
+#define ID_PastGameServers              1055
 #define ID_Connect                      1056
 #define IDBLUE                          1057
 #define ID_Exit                         1057

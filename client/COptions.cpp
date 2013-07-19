@@ -21,6 +21,7 @@
 ===============================================================================
 */
 #include "COptions.h"
+#include <algorithm>
 
 void *COptionsPointer;
 
@@ -148,6 +149,35 @@ void COptions::LoadOptions()
         //  Write to the options.ini file
 		SaveOptions();
 	}
+    //  File handler for reading past game servers
+    ifstream file("gameServerHistory.log");
+    //  Initialize line variable
+    string line;
+
+    if(file)
+    {
+       while(getline(file, line))
+       {
+            if(find(p->Options->pastGameServers.begin(),p->Options->pastGameServers.end(),line) == p->Options->pastGameServers.end() && strlen(line.c_str()) > 0) {
+                p->Options->pastGameServers.push_back(line.c_str());
+            }
+       }
+    } else {
+        ofstream writeFile("gameServerHistory.log");
+        writeFile << "deceth.no-ip.org" << "\r\n";
+        writeFile.close();
+    }
+
+}
+
+void COptions::addGameServerToHistory(char *gameServerAddress)
+{
+    if(find(p->Options->pastGameServers.begin(),p->Options->pastGameServers.end(),gameServerAddress) == p->Options->pastGameServers.end() && strlen(gameServerAddress) > 0) {
+        ofstream writeFile;
+        writeFile.open("gameServerHistory.log",std::ios::app);
+        writeFile << gameServerAddress << "\r\n";
+        writeFile.close();
+    }
 }
 
 /// <summary>   Saves the options. </summary>
