@@ -164,7 +164,7 @@ void COptions::LoadOptions()
        }
     } else {
         ofstream writeFile("gameServerHistory.log");
-        writeFile << "deceth.no-ip.org" << "\r\n";
+        writeFile << "deceth.no-ip.org" << endl;
         writeFile.close();
     }
 
@@ -175,7 +175,7 @@ void COptions::addGameServerToHistory(char *gameServerAddress)
     if(find(p->Options->pastGameServers.begin(),p->Options->pastGameServers.end(),gameServerAddress) == p->Options->pastGameServers.end() && strlen(gameServerAddress) > 0) {
         ofstream writeFile;
         writeFile.open("gameServerHistory.log",std::ios::app);
-        writeFile << gameServerAddress << "\r\n";
+        writeFile << gameServerAddress << endl;
         writeFile.close();
     }
 }

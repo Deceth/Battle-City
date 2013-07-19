@@ -48,7 +48,11 @@ void CWinsock::StartTCP() {
     //  Establish host entry structure
 	struct hostent *host_entry;
     //  Populate host_entry with ip address
-	host_entry = gethostbyname(ServerIP);
+    host_entry = gethostbyname(ServerIP);
+	if(host_entry==NULL)
+    {
+        MessageBox(p->hWnd,ServerIP,0,0);
+    }
     //  Establish socket address object
     //  http://msdn.microsoft.com/en-us/library/aa917469.aspx
 	sockaddr_in sockAddr;
@@ -61,10 +65,15 @@ void CWinsock::StartTCP() {
 	sockAddr.sin_addr.s_addr = *(unsigned long*) host_entry->h_addr;
     //  Initialize socket 
 	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    //  Non-blocking socket
+    ioctlsocket(Socket,FIONBIO,(u_long *) 1);
+
     //  Upon verifying Socket connection failed display message box with an error message
 	if (Socket == -1) {
 		MessageBox(p->hWnd, "Invalid Socket!", 0, 0);
 	} 
+
     //  Upon verifying a connection error close the connection and process the event
     //  ;Otherwise, set Connected as true and process the event
     //  1 - Error connecting    
