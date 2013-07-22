@@ -26,7 +26,7 @@
 // Name: DDLoadBitmap()
 // Desc: Create a DirectDrawSurface from a bitmap resource.
 //-----------------------------------------------------------------------------
-extern "C" IDirectDrawSurface7* 
+extern "C" IDirectDrawSurface7*		
 DDLoadBitmap( IDirectDraw7* pdd, LPCSTR szBitmap, int dX, int dY)
 {
     HBITMAP                 hbm;

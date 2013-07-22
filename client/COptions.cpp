@@ -21,6 +21,7 @@
 ===============================================================================
 */
 #include "COptions.h"
+#include <algorithm>
 
 void *COptionsPointer;
 
@@ -91,25 +92,34 @@ void COptions::ShowOptionsDialog()
 	p->Dialog->DialogProcessor = &OptionsDlgProc;
 
 }
-
+/// <summary>   Load options from a local file </summary>
 void COptions::LoadOptions()
 {
+    //  Initialize character buffer with 1024 bytes
 	char buffer[1024];
-
+    //  Retrieves the current directory for the current process, and populate the buffer variable
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/aa364934(v=vs.85).aspx
 	GetCurrentDirectory(1024,buffer);
+    //  Append buffer with \options.ini
 	strcat(buffer, "\\options.ini");
-
+    //  Set flag to false
 	int flag = 0;
+    //  Initialize file handler
 	fstream fin;
+    //  Opens a disk file and attaches it to the stream's file buffer object
+    //  http://msdn.microsoft.com/en-us/library/aa243824(v=vs.60).aspx
 	fin.open(buffer,ios::in);
-	if( fin.is_open() )
-	{
-		flag = 1;
-	}
+    //  Upon verifying that file handler opened disk file set flag to true
+    //  Otherwise, set to false
+	flag = (fin.is_open() ? 1 : 0);
+    //  Close the file handler
 	fin.close();
-
+    //  Upon verifying that flag is true
 	if (flag == 1)
 	{
+        //  Populate Options with values from options.ini
+        //  Fetch Integer from buffer
+        //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms724345(v=vs.85).aspx
 		this->music = GetPrivateProfileInt("Options", "Music", 1, buffer);
 		this->sound = GetPrivateProfileInt("Options", "Sound", 1, buffer);
 		this->tanksound = GetPrivateProfileInt("Options", "TankSound", 1, buffer);
@@ -120,9 +130,11 @@ void COptions::LoadOptions()
 		this->names = GetPrivateProfileInt("Options", "Names", 1, buffer);
 		this->limitfps = GetPrivateProfileInt("Options", "LimitFPS", 1, buffer);
 		this->resolution1024 = GetPrivateProfileInt("Options", "Resolution1024", 1, buffer);
-	}
-	else
-	{
+        char _gameServerAddress[255];
+        GetPrivateProfileString("GameServer", "Address","deceth.no-ip.org",_gameServerAddress,255,buffer);
+        this->gameServerAddress = _gameServerAddress;
+	} else {
+        //  Otherwise; load the default values
 		this->music = 1;
 		this->sound = 1;
 		this->tanksound = 1;
@@ -133,46 +145,76 @@ void COptions::LoadOptions()
 		this->names = 1;
 		this->limitfps = 1;
 		this->resolution1024 = 1;
+        this->gameServerAddress = "deceth.no-ip.org";
+        //  Write to the options.ini file
 		SaveOptions();
 	}
+    //  File handler for reading past game servers
+    ifstream file("gameServerHistory.log");
+    //  Initialize line variable
+    string line;
+
+    if(file)
+    {
+       while(getline(file, line))
+       {
+            if(find(p->Options->pastGameServers.begin(),p->Options->pastGameServers.end(),line) == p->Options->pastGameServers.end() && strlen(line.c_str()) > 0) {
+                p->Options->pastGameServers.push_back(line.c_str());
+            }
+       }
+    } else {
+        ofstream writeFile("gameServerHistory.log");
+        writeFile << "deceth.no-ip.org" << endl;
+        writeFile.close();
+    }
+
 }
 
+void COptions::addGameServerToHistory(char *gameServerAddress)
+{
+    if(find(p->Options->pastGameServers.begin(),p->Options->pastGameServers.end(),gameServerAddress) == p->Options->pastGameServers.end() && strlen(gameServerAddress) > 0) {
+        ofstream writeFile;
+        writeFile.open("gameServerHistory.log",std::ios::app);
+        writeFile << gameServerAddress << endl;
+        writeFile.close();
+    }
+}
+
+/// <summary>   Saves the options. </summary>
 void COptions::SaveOptions()
 {
+    //  Initialize character buffer with 1024 characters
 	char buffer[1024];
-
+    //  Retrieves the current directory for the current process, and populate the buffer variable
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/aa364934(v=vs.85).aspx
 	GetCurrentDirectory(1024,buffer);
+    //  Append \options.ini to the buffer variable
 	strcat(buffer, "\\options.ini");
-
+    //  Initialize variable with two bytes
 	char sdf[2];
+    //  Populate variable with zeros
 	memset(sdf, 0, 2);
+    //  Convert this->music to integer and store in sdf variable
 	itoa(this->music, sdf, 10);
+    //  Write sdf to buffer using initialization format
 	WritePrivateProfileString("Options", "Music", sdf, buffer);
-
-	itoa(this->sound, sdf, 10);
+    itoa(this->sound, sdf, 10);
 	WritePrivateProfileString("Options", "Sound", sdf, buffer);
-
-	itoa(this->tanksound, sdf, 10);
+    itoa(this->tanksound, sdf, 10);
 	WritePrivateProfileString("Options", "TankSound", sdf, buffer);
-
-	itoa(this->fullscreen, sdf, 10);
+    itoa(this->fullscreen, sdf, 10);
 	WritePrivateProfileString("Options", "Fullscreen", sdf, buffer);
-
-	itoa(this->newbietips, sdf, 10);
+    itoa(this->newbietips, sdf, 10);
 	WritePrivateProfileString("Options", "NewbieTips", sdf, buffer);
-
-	itoa(this->sleep, sdf, 10);
+    itoa(this->sleep, sdf, 10);
 	WritePrivateProfileString("Options", "Sleep", sdf, buffer);
-
-	itoa(this->debug, sdf, 10);
+    itoa(this->debug, sdf, 10);
 	WritePrivateProfileString("Options", "Debug", sdf, buffer);
-
-	itoa(this->names, sdf, 10);
+    itoa(this->names, sdf, 10);
 	WritePrivateProfileString("Options", "Names", sdf, buffer);
-
-	itoa(this->limitfps, sdf, 10);
+    itoa(this->limitfps, sdf, 10);
 	WritePrivateProfileString("Options", "LimitFPS", sdf, buffer);
-
-	itoa(this->resolution1024, sdf, 10);
+    itoa(this->resolution1024, sdf, 10);
 	WritePrivateProfileString("Options", "Resolution1024", sdf, buffer);
+    WritePrivateProfileString("GameServer","Address",this->gameServerAddress.c_str(),buffer);
 }

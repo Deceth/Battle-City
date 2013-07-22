@@ -202,21 +202,34 @@ void CDDraw::Draw(IDirectDrawSurface7* Surface, int X, int Y, int width, int hei
 
 	hr = Back->BltFast(X, Y, Surface, &rct, DDBLTFAST_WAIT || DDBLTFAST_SRCCOLORKEY);
 }
-
+/// <summary>	Initializes surfaces for direct draw</summary>
 void CDDraw::LoadSurfaces()
 { 
+	//	Initialize text metric, basic structure for a physical font
+	//	http://msdn.microsoft.com/en-us/library/windows/desktop/dd145132(v=vs.85).aspx
 	TEXTMETRIC tm;
+	//	Initialize device context handler
 	HDC surfDC;
+	//	Populate surfDC with GDI-compatible handle of device context for the surface
 	Back->GetDC(&surfDC);
-	GetTextMetrics(surfDC, &tm); 
+	//	Populate tm structure with text metrics from device context
+	//	http://msdn.microsoft.com/en-us/library/windows/desktop/dd144941(v=vs.85).aspx
+	GetTextMetrics(surfDC, &tm);
+	//	Set TextWidth to average character width value
 	TextWidth = tm.tmAveCharWidth;
+	//	Release the surfDC device context
 	Back->ReleaseDC(surfDC);
-
+	//
+	//	Loading resources into surface objects
+	//	
+	//	Load imgArrowsRed.bmp as surface
 	imgArrowsRed = DDLoadBitmap(DirectDraw, "imgArrowsRed.bmp", 0, 0);
+	//	Set the color key to be transparent
 	DDSetColorKey(imgArrowsRed, COLOR_TRANSPARENCY);
 	imgArrows = DDLoadBitmap(DirectDraw, "imgArrows.bmp", 0, 0);
 	DDSetColorKey(imgArrows, COLOR_TRANSPARENCY);
 	imgBCLogo = DDLoadBitmap(DirectDraw, "imgBCLogo.bmp", 0, 0);
+	//	Set the color key to black
 	DDSetColorKey(imgBCLogo, 0);
 	imgBlackNumbers = DDLoadBitmap(DirectDraw, "imgBlackNumbers.bmp", 0, 0);
 	DDSetColorKey(imgBlackNumbers, COLOR_TRANSPARENCY);
@@ -248,10 +261,8 @@ void CDDraw::LoadSurfaces()
 	DDSetColorKey(imgItems, COLOR_TRANSPARENCY);
 	imgLava = DDLoadBitmap(DirectDraw, "imgLava.bmp", 0, 0);
 	DDSetColorKey(imgLava, COLOR_TRANSPARENCY);
-
 	imgLoading = DDLoadBitmap(DirectDraw, "imgLoading.bmp", 0, 0);
 	DDSetColorKey(imgLoading, COLOR_TRANSPARENCY);
-
 	imgLExplosion = DDLoadBitmap(DirectDraw, "imgLExplosion.bmp", 0, 0);
 	DDSetColorKey(imgLExplosion, COLOR_TRANSPARENCY);
 	imgMiniMapColors = DDLoadBitmap(DirectDraw, "imgMiniMapColors.bmp", 0, 0);

@@ -32,7 +32,7 @@ class CInput {
     public:
         CInput(CGame *game);
         ~CInput();
-
+        void ReleaseDInput();
         void StartDInput();
         void Cycle();
         void InfoButton();

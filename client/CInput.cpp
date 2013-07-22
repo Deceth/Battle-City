@@ -24,11 +24,9 @@
 
 #define KEYDOWN(Name,keY) (Name[keY] & 0X80)
 
-/***************************************************************
- * Constructor
- *
- * @param Game
- **************************************************************/
+/// <summary>   CInput handles all incoming input and triggers </summary>
+///
+/// <param name="Game"> [in,out] If non-null, the game. </param>
 CInput::CInput(CGame *Game) {
 	this->p = Game;
 	this->LastMouseX = 0;
@@ -43,24 +41,31 @@ CInput::CInput(CGame *Game) {
 	this->lastRefresh = 0;
 }
 
-/***************************************************************
- * Destructor
- *
- **************************************************************/
+/// <summary>   Demolishes CInput </summary>
 CInput::~CInput() {
-	// Tell DirectInput to release input devices 
-	if(lpDI != NULL) {
-		if(m_Keyboard != NULL) {
-			m_Keyboard->Unacquire();
-			m_Keyboard->Release();
-		}
-		if(m_Mouse != NULL) {
-			m_Mouse->Unacquire();
-			m_Mouse->Release();
-		}
-		lpDI->Release();
-	}
+
 }
+
+/// <summary>   Release DirectInput devices </summary>
+void CInput::ReleaseDInput() 
+{
+    if(lpDI != NULL)
+    {
+        lpDI->Release();
+    }
+    if(m_Keyboard != NULL)
+    {
+        m_Keyboard->Unacquire();
+        m_Keyboard->Release();
+    }
+    if(m_Mouse != NULL)
+    {
+        m_Mouse->Unacquire();
+        m_Mouse->Release();
+    }
+    return;
+}
+
 
 /***************************************************************
  * Function: ProcessKeys
@@ -900,22 +905,30 @@ void CInput::endMouseDown(DIMOUSESTATE mouse_state, bool setNeedRelease) {
 	}
 }
 
-/***************************************************************
- * Function: StartDInput
- *
- * Uses DirectInput to acquire input devices
- **************************************************************/
+/// <summary>   Binds input devices using DirectInput </summary>
 void CInput::StartDInput() {
+    //  Creates a DirectInput object interface at lpDI
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.reference.directinput8create(v=vs.85).aspx
 	DirectInput8Create(p->hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&lpDI, NULL);
-
+    //  Creates and initializes the keyboard at m_Keyboard
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.idirectinput8.idirectinput8.createdevice(v=vs.85).aspx
 	lpDI->CreateDevice(GUID_SysKeyboard, &m_Keyboard, NULL);
+    //  Sets the data format for the DirectInput device
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.idirectinputdevice8.idirectinputdevice8.setdataformat(v=vs.85).aspx
 	m_Keyboard->SetDataFormat(&c_dfDIKeyboard);
+    //  Establishes the cooperative level for the instance of the device.
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.idirectinputdevice8.idirectinputdevice8.setcooperativelevel(v=vs.85).aspx
 	m_Keyboard->SetCooperativeLevel(p->hWnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
+    //  Obtains access to the input device
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.idirectinputdevice8.idirectinputdevice8.acquire(v=vs.85).aspx
 	m_Keyboard->Acquire();
-
+    //  Create and initialize mouse input device
 	lpDI->CreateDevice(GUID_SysMouse, &m_Mouse, NULL);
+    //  Set the data format for mouse
 	m_Mouse->SetDataFormat(&c_dfDIMouse);
+    //  Establishes the cooperative level for the mouse
 	m_Mouse->SetCooperativeLevel(p->hWnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
+    //  Obtain access to the mouse
 	m_Mouse->Acquire();
 }
 

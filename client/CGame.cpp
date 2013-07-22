@@ -24,7 +24,7 @@
 #include "NetMessages.h"
 
 CGame::CGame() {
-	
+	ConnectionManager = new CConnectionManager(this);
 	Login = new CLogin(this);
 	NewAccount = new CNew(this);
 	Personality = new CPersonality(this);
@@ -81,9 +81,13 @@ CGame::CGame() {
 	}
 }
 
+/// <summary>   Destructor. </summary>
 CGame::~CGame() {
+    //  Set running state to zero
 	running = 0;
-
+    //  Deallocate memory blocks
+    //  http://msdn.microsoft.com/en-us/library/h6227113.aspx
+    delete ConnectionManager;
 	delete Login;
 	delete NewAccount;
 	delete Personality;
@@ -97,7 +101,6 @@ CGame::~CGame() {
 	delete Recover;
 	delete Admin;
 	delete AdminEdit;
-
 	delete Dialog;
 	delete Winsock;
 	delete Process;
@@ -114,29 +117,39 @@ CGame::~CGame() {
 	delete Explode;
 	delete Draw;
 	delete DDraw;
-
 	delete Timer;
-
+    //  Deallocate each player memory block
 	for (int i = 0; i < MAX_PLAYERS; i++) {
 		delete Player[i];
 	}
-
+    //  Clears previously set minimum timer resolution
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/dd757626(v=vs.85).aspx
 	timeEndPeriod(1);
+    //  Destruct the DirectDraw object
 	DDraw->~CDDraw();
 }
 
+/// <summary>   Initialize CGame object </summary>
+///
+/// <param name="hWnd">     Window handler </param>
+/// <param name="hInst">    Instance handler </param>
 void CGame::Init(HWND hWnd, HINSTANCE hInst) {
+    //  Set up dereference pointer to file
 	FILE *file;
+    //  Define kicked enumerated variable
 	sKicked kicked;
+    //  Define map hash
 	CSHA1 mapHash;
+    //  @todo document
 	char szReport[96];
-
+    //  Set window handler
 	this->hWnd = hWnd;
+    //  Set instance handler
 	this->hInst = hInst;
-
+    //  Move files to parent directory
 	Restructure();
 
-	// If any image files are missing,
+	// Verify files have been moved to the appropriate directory
 	if (
 		(CheckFile("imgArrows.bmp") == 0) ||
 		(CheckFile("imgArrowsRed.bmp") == 0) ||
@@ -175,82 +188,91 @@ void CGame::Init(HWND hWnd, HINSTANCE hInst) {
 		(CheckFile("imgTurretBase.bmp") == 0) ||
 		(CheckFile("imgTurretHead.bmp") == 0) 
 	) {
-			
-		// Error and return
+		//  Close game upon verifying an image failed to load
 		SendMessage(hWnd, WM_CLOSE, 0, 0);
 		return;
 	}
-
-	// Initialize the timer
+	//  Initialize the time interval object
 	this->Timer->Initialize();
+    //  Initialize the Winsock object
+    if(!Options->gameServerAddress.empty()) {
+	    Winsock->Init(&Options->gameServerAddress[0]);
+    }
 
-	#ifndef _DEBUG
-		Winsock->Init("deceth.no-ip.org");
-//		Winsock->Init("localhost");
-	#else
-		Winsock->Init("deceth.no-ip.org");
-//		Winsock->Init("localhost");	
-	#endif
-
-	// If fullscreen is not on, open in Windowed mode
+    //  Upon verifying windowed mode initialize direct draw for windowed mode
+    //  Otherwise, initialize direct draw for full screen mode
+    //  Pass the window handler to this function
 	if (Options->fullscreen == 0) {
 		this->DDraw->InitWindowed(hWnd);
-	}
-
-	// Else (fullscreen is on), open in Fullscreen mode
-	else {
+	} else {
 		this->DDraw->InitFullscreen(hWnd);
 	}
-
-	// Clear the screen, add Logos
+    //  Clear the Direct Draw rendering target
 	this->DDraw->Clear();
+    //  Draw the imgCompany resource at the specified location using the specified size
 	this->DDraw->Draw(this->DDraw->imgCompany, (this->ResolutionX/2), (this->ResolutionY/2)-240, 320, 240);
+    //  Draw the imgCompany resource at the specified location using the specified size
 	this->DDraw->Draw(this->DDraw->imgCompany, (this->ResolutionX/2)-320, (this->ResolutionY/2), 320, 240);
+    //  Draw the imgCompany resource at the specified location using the specified size
 	this->DDraw->Draw(this->DDraw->imgBCLogo, (this->ResolutionX/2)-320, (this->ResolutionY/2)-240, 320, 240);
+    //  Draw the imgCompany resource at the specified location using the specified size
 	this->DDraw->Draw(this->DDraw->imgBCLogo, (this->ResolutionX/2), (this->ResolutionY/2), 320, 240);
+    // Perform bit block transfer
 	this->DDraw->Flip();
-
-	// Start the login dialog, load the map, sound, DirectInput, winsock, engine, etc
+    //  Initialize the dialog box engine
 	this->Dialog->Start();
+    //  Populates this->map and this->tiles with map.dat file
 	this->Map->LoadMap();
+    //  Initialize the sound engine
 	this->Sound->Init();
+    //  Initialize DirectInput, acquire devices
 	this->Input->StartDInput();
+    //  Initialize connection with game server
 	this->Winsock->StartTCP();
+    //  Initialize the game engine
 	this->Engine->Init();
-
-	// Check whether the user got kicked within the last 10 minutes
+    //  Set kicked time interval to zero
 	kicked.tick = 0;
+    //  Populate file with file handler for imgHealthy.bmp
 	file = fopen("imgHealthy.bmp","r");
-
-	// If imgHealthy was found,
+	//  Upon verifying file exists confirm user has been kicked
 	if (file) {
+        //  Populate kicked with file contents
 		fread(&kicked, sizeof(kicked), 1, file);
+        //  Close file handler
 		fclose(file);
-
-		// If the Kick timer is up, remove the image
+		// Upon verifying current time interval is less than kicked time interval or current time interval is greater than kicked time interval plus 600000
+		// remove imgHealth.bmp; otherwise, user is still kicked from game server; therefore, cannot log into game server
 		if (GetTickCount() < kicked.tick || GetTickCount() > kicked.tick + 600000) {
 			remove("imgHealthy.bmp");
-		}
-
-		// Else (Kick timer still going), tell the player he can't log in yet
-		else {
+		} else {
+            //  Close socket to game server
 			Winsock->Socket = 0;
+            //  Display message box to user informing that they have been kicked.
 			MessageBox(hWnd, "You have been kicked within 10 minutes ago.  You must wait before logging on again.", "BattleCity", 0);
+            //  Send WM_CLOSE message to window handler
 			SendMessage(hWnd, WM_CLOSE, 0, 0);
+            //  Break from logic
 			return;
 		}
 	}
+    //  Perform 
 
-	// Hash the map.dat file
+	// Hashes file contents into the current state
 	mapHash.HashFile("map.dat");
+    // Computes the final SHA1 message digest
 	mapHash.Final();
+    //  Populate szReport with zeros
 	memset(szReport, 0, sizeof(szReport));
+    //  Populate szReport with message digest in hex
 	mapHash.ReportHash(szReport, CSHA1::REPORT_HEX);
-
-	// If the hash doesn't match the string below, tell the user the file is corrupted
+    //  Upon verifying szReport matches string is not identical disconnect from game server reporting the map.dat file is corrupt
 	if (strcmp(szReport, "74 2E 00 1A 48 05 AD A1 A8 8B E1 5E 1E 0F 75 1A 82 B6 E8 B7") != 0) {
+        //  Disconnect from game server
 		this->Winsock->Socket = 0;
+        //  Display message box that map.dat is corrupt
 		MessageBox(hWnd, "Your map.dat is corrupted.  Please redownload the client at battlecity.org!", "BattleCity", 0);
+        //  Send WM_CLOSE to window handler
 		SendMessage(hWnd, WM_CLOSE, 0, 0);
 	}
 }
@@ -301,73 +323,90 @@ string CGame::ReturnUniqID() {
 	return UniqIDStr;
 }
 
+/// <summary>   Verify existence of file </summary>
+///
+/// <param name="file"> File to verify </param>
+///
+/// <returns>  True or false file exists </returns>
 int CGame::CheckFile(string file)
 {
+    //  Set existence indicator to false
 	int flag = 0;
+    //  Set file stream
 	fstream fin;
+    //  Open file stream using file argument with read-only attribute
 	fin.open(file.c_str(),ios::in);
+    //  Verify file is open
 	if( fin.is_open() )
 	{
 		flag = 1;
 	}
 	fin.close();
-
-	if (flag == 1) return 1;
-
+    if(flag) return 1;
+    //  Define error string for message box
 	string ErrorString;
-	ErrorString = "File " + file + " not found.  Please visit battlecity.org and download the latest client to fix this problem!";
-
+    //  Set error string
+	ErrorString = "Unable to load resource, " + file + ".  Please visit battlecity.org and download the latest client to fix this problem!";
+    //  Open message box reporting the error message.
 	MessageBox(hWnd, ErrorString.c_str(), "Error", 0);
 	return 0;
 }
 
+/// <summary>   Verifies that a file exists </summary>
+///
+/// <param name="file"> File to verify existence </param>
+///
+/// <returns>   false/true </returns>
 int CGame::SilentCheckFile(string file)
 {
+    //  Set existence indicator to false
 	int flag = 0;
+    //  Set file stream
 	fstream fin;
+    //  Open file stream using file argument with read-only attribute
 	fin.open(file.c_str(),ios::in);
+    //  Verify file is open
 	if( fin.is_open() )
 	{
 		flag = 1;
 	}
+    //  Close file stream
 	fin.close();
 
-	if (flag == 1) return 1;
-
-	return 0;
+    return flag;
 }
-
+/// <summary>   Method will go through all assets and rename files accordingly </summary>
 void CGame::Restructure()
 {
-	if (SilentCheckFile("img//imgArrows.bmp") == 1) rename("img//imgArrows.bmp", "imgArrows.bmp");
-	if (SilentCheckFile("img//imgArrowsRed.bmp") == 1) rename("img//imgArrowsRed.bmp", "imgArrowsRed.bmp");
-	if (SilentCheckFile("img//imgBCLogo.bmp") == 1) rename("img//imgBCLogo.bmp", "imgBCLogo.bmp");
-	if (SilentCheckFile("img//imgBlackNumbers.bmp") == 1) rename("img//imgBlackNumbers.bmp", "imgBlackNumbers.bmp");
-	if (SilentCheckFile("img//imgBtnStaff.bmp") == 1) rename("img//imgBtnStaff.bmp", "imgBtnStaff.bmp");
-	if (SilentCheckFile("img//imgBuildIcons.bmp") == 1) rename("img//imgBuildIcons.bmp", "imgBuildIcons.bmp");
-	if (SilentCheckFile("img//imgBuildings.bmp") == 1) rename("img//imgBuildings.bmp", "imgBuildings.bmp");
-	if (SilentCheckFile("img//imgBullets.bmp") == 1) rename("img//imgBullets.bmp", "imgBullets.bmp");
-	if (SilentCheckFile("img//imgCompany.bmp") == 1) rename("img//imgCompany.bmp", "imgCompany.bmp");
-	if (SilentCheckFile("img//imgCursor.bmp") == 1) rename("img//imgCursor.bmp", "imgCursor.bmp");
-	if (SilentCheckFile("img//imgDemolish.bmp") == 1) rename("img//imgDemolish.bmp", "imgDemolish.bmp");
-	if (SilentCheckFile("img//imgGround.bmp") == 1) rename("img//imgGround.bmp", "imgGround.bmp");
-	if (SilentCheckFile("img//imgHealth.bmp") == 1) rename("img//imgHealth.bmp", "imgHealth.bmp");
-	if (SilentCheckFile("img//imgInterface.bmp") == 1) rename("img//imgInterface.bmp", "imgInterface.bmp");
-	if (SilentCheckFile("img//imgInterfaceBottom.bmp") == 1) rename("img//imgInterfaceBottom.bmp", "imgInterfaceBottom.bmp");
-	if (SilentCheckFile("img//imgInventorySelection.bmp") == 1) rename("img//imgInventorySelection.bmp", "imgInventorySelection.bmp");
-	if (SilentCheckFile("img//imgItems.bmp") == 1) rename("img//imgItems.bmp", "imgItems.bmp");
-	if (SilentCheckFile("img//imgLava.bmp") == 1) rename("img//imgLava.bmp", "imgLava.bmp");
-	if (SilentCheckFile("img//imgLExplosion.bmp") == 1) rename("img//imgLExplosion.bmp", "imgLExplosion.bmp");
-	if (SilentCheckFile("img//imgLoading.bmp") == 1) rename("img//imgLoading.bmp", "imgLoading.bmp");
-	if (SilentCheckFile("img//imgMiniMapColors.bmp") == 1) rename("img//imgMiniMapColors.bmp", "imgMiniMapColors.bmp");
-	if (SilentCheckFile("img//imgMuzzleFlash.bmp") == 1) rename("img//imgMuzzleFlash.bmp", "imgMuzzleFlash.bmp");
-	if (SilentCheckFile("img//imgPopulation.bmp") == 1) rename("img//imgPopulation.bmp", "imgPopulation.bmp");
-	if (SilentCheckFile("img//imgRadarColors.bmp") == 1) rename("img//imgRadarColors.bmp", "imgRadarColors.bmp");
-	if (SilentCheckFile("img//imgRocks.bmp") == 1) rename("img//imgRocks.bmp", "imgRocks.bmp");
-	if (SilentCheckFile("img//imgSExplosion.bmp") == 1) rename("img//imgSExplosion.bmp", "imgSExplosion.bmp");
-	if (SilentCheckFile("img//imgSmoke.bmp") == 1) rename("img//imgSmoke.bmp", "imgSmoke.bmp");
-	if (SilentCheckFile("img//imgTurretBase.bmp") == 1) rename("img//imgTurretBase.bmp", "imgTurretBase.bmp");
-	if (SilentCheckFile("img//imgTurretHead.bmp") == 1) rename("img//imgTurretHead.bmp", "imgTurretHead.bmp");
+	if (SilentCheckFile("data//imgArrows.bmp") == 1) rename("data//imgArrows.bmp", "imgArrows.bmp");
+	if (SilentCheckFile("data//imgArrowsRed.bmp") == 1) rename("data//imgArrowsRed.bmp", "imgArrowsRed.bmp");
+	if (SilentCheckFile("data//imgBCLogo.bmp") == 1) rename("data//imgBCLogo.bmp", "imgBCLogo.bmp");
+	if (SilentCheckFile("data//imgBlackNumbers.bmp") == 1) rename("data//imgBlackNumbers.bmp", "imgBlackNumbers.bmp");
+	if (SilentCheckFile("data//imgBtnStaff.bmp") == 1) rename("data//imgBtnStaff.bmp", "imgBtnStaff.bmp");
+	if (SilentCheckFile("data//imgBuildIcons.bmp") == 1) rename("data//imgBuildIcons.bmp", "imgBuildIcons.bmp");
+	if (SilentCheckFile("data//imgBuildings.bmp") == 1) rename("data//imgBuildings.bmp", "imgBuildings.bmp");
+	if (SilentCheckFile("data//imgBullets.bmp") == 1) rename("data//imgBullets.bmp", "imgBullets.bmp");
+	if (SilentCheckFile("data//imgCompany.bmp") == 1) rename("data//imgCompany.bmp", "imgCompany.bmp");
+	if (SilentCheckFile("data//imgCursor.bmp") == 1) rename("data//imgCursor.bmp", "imgCursor.bmp");
+	if (SilentCheckFile("data//imgDemolish.bmp") == 1) rename("data//imgDemolish.bmp", "imgDemolish.bmp");
+	if (SilentCheckFile("data//imgGround.bmp") == 1) rename("data//imgGround.bmp", "imgGround.bmp");
+	if (SilentCheckFile("data//imgHealth.bmp") == 1) rename("data//imgHealth.bmp", "imgHealth.bmp");
+	if (SilentCheckFile("data//imgInterface.bmp") == 1) rename("data//imgInterface.bmp", "imgInterface.bmp");
+	if (SilentCheckFile("data//imgInterfaceBottom.bmp") == 1) rename("data//imgInterfaceBottom.bmp", "imgInterfaceBottom.bmp");
+	if (SilentCheckFile("data//imgInventorySelection.bmp") == 1) rename("data//imgInventorySelection.bmp", "imgInventorySelection.bmp");
+	if (SilentCheckFile("data//imgItems.bmp") == 1) rename("data//imgItems.bmp", "imgItems.bmp");
+	if (SilentCheckFile("data//imgLava.bmp") == 1) rename("data//imgLava.bmp", "imgLava.bmp");
+	if (SilentCheckFile("data//imgLExplosion.bmp") == 1) rename("data//imgLExplosion.bmp", "imgLExplosion.bmp");
+	if (SilentCheckFile("data//imgLoading.bmp") == 1) rename("data//imgLoading.bmp", "imgLoading.bmp");
+	if (SilentCheckFile("data//imgMiniMapColors.bmp") == 1) rename("data//imgMiniMapColors.bmp", "imgMiniMapColors.bmp");
+	if (SilentCheckFile("data//imgMuzzleFlash.bmp") == 1) rename("data//imgMuzzleFlash.bmp", "imgMuzzleFlash.bmp");
+	if (SilentCheckFile("data//imgPopulation.bmp") == 1) rename("data//imgPopulation.bmp", "imgPopulation.bmp");
+	if (SilentCheckFile("data//imgRadarColors.bmp") == 1) rename("data//imgRadarColors.bmp", "imgRadarColors.bmp");
+	if (SilentCheckFile("data//imgRocks.bmp") == 1) rename("data//imgRocks.bmp", "imgRocks.bmp");
+	if (SilentCheckFile("data//imgSExplosion.bmp") == 1) rename("data//imgSExplosion.bmp", "imgSExplosion.bmp");
+	if (SilentCheckFile("data//imgSmoke.bmp") == 1) rename("data//imgSmoke.bmp", "imgSmoke.bmp");
+	if (SilentCheckFile("data//imgTurretBase.bmp") == 1) rename("data//imgTurretBase.bmp", "imgTurretBase.bmp");
+	if (SilentCheckFile("data//imgTurretHead.bmp") == 1) rename("data//imgTurretHead.bmp", "imgTurretHead.bmp");
 }
 
 /***************************************************************

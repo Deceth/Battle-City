@@ -22,365 +22,385 @@
 */
 #include "CServer.h"
 
-/***************************************************************
- * Constructor
- *
- * @param Server
- **************************************************************/
+/// <summary>
+/// Initializes a new instance of the <see cref="CSocket" /> class.
+/// </summary>
+/// <param name="Server">The server.</param>
 CSocket::CSocket(CServer *Server) {
-	this->p = Server;
-	
-	FD_ZERO(&master);
+    //  Dereferenced pointer associated to this->p
+    this->p = Server;
+    //  File descriptor set to zero for master
+    FD_ZERO(&master);
+    //  File descripter set to zero for read_dfs
     FD_ZERO(&read_fds);
-
-	this->listener = 0;
-	this->timev.tv_sec = 0;
-	this->timev.tv_usec = 0;
-
-	this->addrlen = sizeof(this->remoteaddr);
-
+    //  Listener set to 0
+    this->listener = 0;
+    //  Time intervals
+    this->timev.tv_sec = 0;
+    this->timev.tv_usec = 0;
+    //  Address length for remote address
+    this->addrlen = sizeof(this->remoteaddr);
 #ifdef WIN32
-	WSADATA WsaDat;
-	if (WSAStartup(MAKEWORD(2, 2), &WsaDat) != 0) {
-		cout << "Winsock startup failed" << endl;
-	}
+    // Method must be tested in order to initialize
+    WSADATA WsaDat;
+    if (WSAStartup(MAKEWORD(2, 2), &WsaDat) != 0) {
+        cout << "Winsock startup failed" << endl;
+    } else {
+        cout << "Winsock initialization finished" << endl;
+    }
 #endif
 }
 
-/***************************************************************
- * Destructor
- * 
- **************************************************************/
+
+/// <summary>
+/// Finalizes an instance of the <see cref="CSocket" /> class by
+/// terminating Winsock 2 DLL
+/// </summary>
 CSocket::~CSocket() {
 #ifdef WIN32
-	WSACleanup();
+    WSACleanup();
 #endif
 }
 
-/***************************************************************
- * Function:	InitWinsock
- *
- **************************************************************/
+/// <summary>
+/// Initializes the Winsock 2 DLL
+/// </summary>
 void CSocket::InitWinsock() {
-	this->InitTCP();
+    this->InitTCP();
 }
 
-/***************************************************************
- * Function:	InitTCP
- *
- **************************************************************/
+/// <summary>
+/// Set up listener socket
+/// </summary>
 void CSocket::InitTCP() {
-
-	// Get a new socket to listen on.  Error on fail.
+    //  Set listener to obtained socket; otherwise, print error message
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740506(v=vs.85).aspx
     if ((this->listener = (int)socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("socket");
+        perror("Unable to obtain socket.");
         exit(1);
     }
-
-	// Set socket options.  Error on fail.
+    //  Set options on listener; otherwise, print error message
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740476(v=vs.85).aspx
     if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, "1", sizeof(int)) == -1) {
-        perror("setsockopt");
+        perror("Unable to set socket options on listener.");
         exit(1);
     }
-
-	// Set the socket properties
+    //  Set "myaddr" sockaddr_in properties
     this->myaddr.sin_family = AF_INET;
     this->myaddr.sin_addr.s_addr = INADDR_ANY;
+    //  TCPPORT defined in CSocket.h
     this->myaddr.sin_port = htons(TCPPORT);
-    memset(&(this->myaddr.sin_zero), '\0', 8);
-
-	// Bind to the socket.  Error on fail.
+    //  Padding to match size of SOCKADDR structure
+    //  http://msdn.microsoft.com/en-us/library/1fdeehz6(v=vs.100).aspx
+    memset(&(this->myaddr.sin_zero), '\0', sizeof(this->myaddr.sin_zero));
+    //  Bind listener to "myaddr"; otherwise, print error message
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms737550(v=vs.85).aspx
     if (bind(listener, (struct sockaddr *)&myaddr, sizeof(myaddr)) == -1) {
-        perror("bind");
+        perror("Unable to bind listener with system.");
         exit(1);
     }
-
-	// Listen on the socket.  Error on fail.
+    //  Change listener to the LISTEN state; otherwise, print error message
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms739168(v=vs.85).aspx
     if (listen(listener, 10) == -1) {
-        perror("listen");
+        perror("Unable to change listener to LISTEN state.");
         exit(1);
     }
-
+    //  Set listener to &master file descriptor set
     FD_SET(listener, &master);
 }
 
-/***************************************************************
- * Function:	SendData
- *
- * @param i
- * @param PacketID
- * @param TheData
- * @param len
- **************************************************************/
-void CSocket::SendData(int i, unsigned char PacketID, char TheData[255], int len) {
-	char SendString[256];
-	memset(SendString, 0, 256);
-	int length = 0;
-	int checksum = 0;
-
-	// If the length wasn't passed in, set length to strlen(TheData), then add 2
-	if (len == -1) {
-		length = (int)(strlen(TheData) + 2);
-	}
-	// Else (length was passed in), add 2
-	else  {
-		length = len + 2;
-	}
-
-	// Handle checksum for the packet
-	// ???
-	for (int j = 0; j < (length - 2); j++) {
-		checksum += TheData[j];
-	}
-	checksum += 3412;
-	checksum = checksum % 71;
-
-	// Set the length on the first byte
-	SendString[0] = (unsigned char)length;
-	// Set the checksum on the second byte
-	SendString[1] = (unsigned char)checksum;
-	// Set the packet type on the third byte
-	SendString[2] = (unsigned char)PacketID;
-	// Set the data on bytes 3 to length
-	memcpy(&SendString[3], TheData, length);
-
-	// Send the data
-	this->SendAll(p->Player[i]->Socket, SendString, length + 1);
+/// <summary>
+/// Generates data packet and sends to player UID
+/// </summary>
+/// <param name="playerId">Player UID</param>
+/// <param name="packetId">Packet UID</param>
+/// <param name="payload">Data payload</param>
+/// <param name="payloadLength">Data payload length</param>
+void CSocket::SendData(int playerId, unsigned char packetId, char payload[255], int payloadLength) {
+    //  Set empty variable with 256 length
+    char SendString[256];
+    //  Populate SendString with zeros
+    memset(SendString, 0, 256);
+    //  Set temporary variables
+    int length = 0;
+    int checksum = 0;
+    //  Verify that "payloadLength" is defined; if not, calculate
+    //  "payload" string length then add two
+    //  if set; add two to "payloadLength" value
+    //  Length extended by two in order to compensate for the header data
+    length = (payloadLength == -1) ? (int)(strlen(payload)+2) : (payloadLength +2);
+    //  Generate checksum for "payload" by looping through each character in "payload"
+    //  and adding each ASCII character value to checksum then adding 3412 finally
+    //  dividing the value by 71;
+    for (int j = 0; j < (length - 2); j++) {
+        checksum += payload[j];
+    }
+    checksum += 3412;
+    checksum = checksum % 71;
+    //  Constructing SendString by setting the first byte to length
+    //  then setting second byte to checksum finally setting third
+    //  byte with PacketID.
+    SendString[0] = (unsigned char)length;
+    SendString[1] = (unsigned char)checksum;
+    SendString[2] = (unsigned char)packetId;
+    //  Starting at the third byte on SendString pointer populate
+    //  with "payload" for the entire lenth.
+    memcpy(&SendString[3], payload, length);
+    //  Finally submit generated data to player UID
+    this->SendAll(p->Player[playerId]->Socket, SendString, length + 1);
 }
 
-/***************************************************************
- * Function:	SendRaw
- *
- * @param i
- * @param TheDate
- * @param len
- **************************************************************/
-void CSocket::SendRaw(int i, char TheData[255], int len) {
-	// Send the data
-	this->SendAll(p->Player[i]->Socket, TheData, len);
+/// <summary>
+/// Sends a raw packet to player UID
+/// </summary>
+/// <param name="playerId">Player UID</param>
+/// <param name="payload">Data payload</param>
+/// <param name="payloadLength">Data payload length</param>
+void CSocket::SendRaw(int playerId, char payload[255], int payloadLength) {
+    this->SendAll(p->Player[playerId]->Socket, payload, payloadLength);
 }
 
-/***************************************************************
- * Function:	Cycle
- *
- **************************************************************/
+/// <summary>
+/// Perform network cycle
+/// </summary>
 void CSocket::Cycle() {
-	this->TCPCycle();
-	this->ProcessData();
+    //  Handle incoming connections and receive data from existing connections
+    this->TCPCycle();
+    this->ProcessData();
 }
 
-/***************************************************************
- * Function:	TCPCycle
- *
- **************************************************************/
+/// <summary>
+/// Handle incoming connections and receive data from existing connections
+/// </summary>
 void CSocket::TCPCycle() {
-	int freeplayer;
-	int nBytes = 0;
-	CPlayer* player;
+    //
+    //  Incoming connections
+    //
 
+    //  Set temporary variables
+    int freeplayer;
+    int nBytes = 0;
+    //  Create dereferenced pointer to CPlayer object
+    CPlayer* player;
+    //  Copy master file descriptor set (listener) to read file descriptor set   
     read_fds = master;
-
-	// Select.  Error on fail.
+    //  Determines status for available file descriptor sets; otherwise, print error message
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
     if (select(0, &read_fds, 0, 0, &timev) == -1)  {
-        perror("select");
+        perror("Unable to monitor file descriptor set");
         exit(1);
     }
-
-	// If we can listen on the packet,	
-	if (FD_ISSET(listener, &read_fds))  {
-		int newfd = 0;
-
-		// Accept incoming connections.  Error on fail.
-	#ifndef WIN32
+    //  Confirms that listener is a member of the file descriptor set
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740141(v=vs.85).aspx
+    if (FD_ISSET(listener, &read_fds))  {
+        //  Set temporary variable to indicate new file descriptor
+        int newfd = 0;
+        //  Generate socket for incoming connection and populate "remoteaddr"
+        //  and "addrlen" with incoming connection values; Test return value for failure
+        //  then print error message
+        //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms737526(v=vs.85).aspx
+#ifndef WIN32
         if ((newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen)) == -1) { 
-	#else
-		if ((newfd = (int)accept(listener, (struct sockaddr *)&remoteaddr, &addrlen)) == -1)  { 
-	#endif
-            perror("accept");
-			cout << "Connection Accepting error";
-        }
-
-		// Else (successful new connection),
-		else  {
-
-			// Add the user to the next open slot
-			freeplayer = this->p->FreePlayer();
-			player = this->p->Player[freeplayer];
-			player->Socket = newfd;
-			player->IPAddress = inet_ntoa(remoteaddr.sin_addr);
-			player->State = State_Connected;
+#else
+        if ((newfd = (int)accept(listener, (struct sockaddr *)&remoteaddr, &addrlen)) == -1)  { 
+#endif
+            perror("Unable to accept incoming connection.");
+            cout << "CSocket @ TCPCycle was unable to accept incoming connection.";
+        } else  {
+            //  Allocate incoming connection to a player UID
+            freeplayer = this->p->FreePlayer();
+            //  Generate a CPlayer object for incoming connection
+            player = this->p->Player[freeplayer];
+            //  Associate generated socket to CPlayer object
+            player->Socket = newfd;
+            //  Cleanse incoming connection's ip address then save to CPlayer object
+            player->IPAddress = inet_ntoa(remoteaddr.sin_addr);
+            //  Set CPlayer to enum:State_Connected
+            player->State = State_Connected;
+            //  Set blocking mode to non-blocking
+            //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms738573(v=vs.85).aspx
             u_long nNoBlock = 1;
             ioctlsocket(newfd, FIONBIO, &nNoBlock);
-			cout << "Connect::" << player->IPAddress << " " << "Index: " << freeplayer << endl;
+            cout << "CSocket @ TCPCycle [ Player connected @ " << player->IPAddress << " " << " Allocated Index: " << freeplayer << " ]" << endl;
         }
     }
 
-	// For each possible player,
-	for (int i = 0; i < MAX_PLAYERS; i++) {
-		player = this->p->Player[i];
-
-		// If the player is connected, and we have data on the player's socket,
-		if (player->isConnected() && this->p->Winsock->hasData(player->Socket)) {
-
-			// Receive the data.  If nBytes <= 0,
-			if ((nBytes = recv(player->Socket, player->Buffer + player->BufferLength, 2048 - player->BufferLength, 0)) <= 0) {
-
-				// If nByes != 0, error.  Log packet error and close the socket.
-				if (nBytes != 0) {
-					#ifndef WIN32
-						perror("Recv");
-					#else
-						int TheError = WSAGetLastError();
-						// WSAEWOULDBLOCK
-						if (TheError != 10035)  {
-							cerr << "Recv Error: " << TheError << endl;
-						}
-					#endif
-				}
-
-				// In any case, log close and clear player
-				//cout << "Close::" << player->IPAddress << endl;
-				player->Clear();
-			}
-
-			// Else (nBytes > 0),
-			else  {
-				// Increase the size of the player's buffer
-				player->BufferLength += nBytes;
-			}
-		}
-	}
+    //
+    //  Receive data from existing connections
+    //
+    
+    //  Loop through each player slot
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        //  Initiate CPlayer object
+        player = this->p->Player[i];
+        //  Verify player is connected and player's socket has data to be received
+        if (player->isConnected() && this->p->Winsock->hasData(player->Socket)) {
+            //  Receives data from the player's socket
+            //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740121(v=vs.85).aspx
+            if ((nBytes = recv(player->Socket, player->Buffer + player->BufferLength, 2048 - player->BufferLength, 0)) <= 0) {
+                //  Print error message and close connection upon detecting that received bytes is less than zero 
+                if (nBytes != 0) {
+#ifndef WIN32
+                        perror("Unable to receive data due to bytes received is less than 0");
+#else
+                        int TheError = WSAGetLastError();
+                        //  Error message codes available at
+                        //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms741580(v=vs.85).aspx
+                        if (TheError != 10035)  {
+                            cerr << "Unable to receive data due to bytes received is less than 0: " << TheError << endl;
+                        }
+#endif
+                }
+                //  Handle closing player connection
+                player->Clear();
+            } else {
+                //  Player bufferLength expanded to include incoming byte size
+                player->BufferLength += nBytes;
+            }
+        }
+    }
 }
 
-/***************************************************************
- * Function:	ProcessData
- *
- **************************************************************/
+/// <summary>
+/// Handle processing data for all players
+/// </summary>
 void CSocket::ProcessData() {
-
-	// For each possible player,
-	for (int i = 0; i < MAX_PLAYERS; i++) {
-
-		// If there is data in the player's buffer,
-		if (this->p->Player[i]->BufferLength > 0) {
-
-			// Process the data
-			this->ProcessBuffer(i);
-		}
-	}
+    //  Loop through each player slot
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        //  Verify BufferLength is greater than zero bytes
+        if (this->p->Player[i]->BufferLength > 0) {
+            //  Pass player UID to process buffer method
+            this->ProcessBuffer(i);
+        }
+    }
 }
 
-/***************************************************************
- * Function:	ProcessBuffer
- *
- * @param i
- **************************************************************/
-void CSocket::ProcessBuffer(int i) {
-	int packetlength;
-	char ValidPacket[256];
-	int checksum;
-	int checksum2;
-	CPlayer* player = this->p->Player[i];
+/// <summary>
+/// Process playerId's buffer
+/// </summary>
+/// <param name="playerId">Player UID</param>
+void CSocket::ProcessBuffer(int playerId) {
+    //  Set temporary variables
+    int packetlength;
+    char ValidPacket[256];
+    int checksum;
+    int checksum2;
+    //  Initiate CPlayer object
+    CPlayer* player = this->p->Player[playerId];
+    //  Loop through BufferLength
+    while (player->BufferLength > 0) {
+        //  Calculate length of buffer plus 1
+        packetlength = (unsigned char)player->Buffer[0] + 1;
+        //  Break loop upon verifying that packetlength is greater
+        //  than BufferLength or less than 3
+        if ((packetlength > player->BufferLength) || (packetlength < 3)) {
+            break;
+        }
+        //  Populate ValidPacket with zeros
+        //  http://msdn.microsoft.com/en-us/library/1fdeehz6(v=vs.80).aspx
+        memset(ValidPacket, 0, 256);
+        //  Load player buffer to packet
+        //  http://msdn.microsoft.com/en-us/library/wes2t00f(v=vs.80).aspx
+        memcpy_s(ValidPacket,256,player->Buffer,packetlength);
+        //  Clear buffer upon verifying that BufferLength equals packetlength
+        if (player->BufferLength == packetlength)  {
+            //  Clear buffer by populating with zeros
+            memset(player->Buffer, 0, 2048);
+            //  Define BufferLength as zero
+            player->BufferLength = 0;
+        } else {
+            //  Buffer has more data to be processed; therefore,
+            //  remove "processed" data by copying "unprocessed" data
+            //  to the beginning of the variable
+            memcpy_s(player->Buffer, 2048, &player->Buffer[packetlength], player->BufferLength - packetlength);
+            player->BufferLength -= packetlength;
+        }
+        //
+        //  Confirm sent checksum equals checksum for received data
+        //
 
-	// While there is data left to process,
-	while (player->BufferLength > 0) {
-		packetlength = (unsigned char)player->Buffer[0] + 1;
-
-		// If there is too much or too little data to process, break
-		if ((packetlength > player->BufferLength) || (packetlength < 3)) {
-			break;
-		}
-
-		// Clear the packet, load the packet
-		memset(ValidPacket, 0, 256);
-		memcpy(ValidPacket, player->Buffer, packetlength);
-
-		// If the packet comprises the full buffer,
-		if (player->BufferLength == packetlength)  {
-			
-			// Clear the buffer
-			memset(player->Buffer, 0, 2048);
-			player->BufferLength = 0;
-		}
-
-		// Else (more data in buffer),
-		else {
-
-			// Clear the packet data from the buffer, leave the rest
-			memcpy(player->Buffer, &player->Buffer[packetlength], player->BufferLength - packetlength);
-			player->BufferLength -= packetlength;
-		}
-		
-		// Handle the checksum for the packet
-		// ???
-		checksum = (unsigned char)ValidPacket[1];
-		checksum2 = 0;
-		for (int j = 0; j < (packetlength - 2); j++) {
-			checksum2 += ValidPacket[3 + j];
-		}
-		checksum2 += 3412;
-		checksum2 = checksum2 % 71;
-		if (checksum == checksum2) {
-			this->p->Process->ProcessData(&ValidPacket[2], i);
-		}
-		else {
-			this->p->Log->logClientError("Packet Dropped TCP - Invalid Checksum", i);
-		}
-	}
+        //  Retrieve "checksum" from ValidPacket[1]
+        checksum = (unsigned char)ValidPacket[1];
+        //  Generate "checksum2" by defining variable as zero
+        checksum2 = 0;
+        //  Loop through "ValidPacket" excluding the header bytes then
+        //  add each byte to "checksum2"
+        for (int j = 0; j < (packetlength - 2); j++) {
+            checksum2 += ValidPacket[3 + j];
+        }
+        //  Add 3412 to "checksum2"
+        checksum2 += 3412;
+        //  Divide "checksum2" by 71
+        checksum2 = checksum2 % 71;
+        //  Verify both checksums to determine validity; Matching then process valid packet
+        //  Otherwise, drop packet and log client error
+        if (checksum == checksum2) {
+            this->p->Process->ProcessData(&ValidPacket[2], playerId);
+        } else {
+            this->p->Log->logClientError("Packet Dropped TCP - Invalid Checksum", playerId);
+        }
+    }
 }
 
-/***************************************************************
- * Function:	SendAll
- *
- * @param Socket
- * @param SendString
- * @param SendLength
- **************************************************************/
+/// <summary>
+/// Sends all.
+/// </summary>
+/// <param name="Socket">The socket.</param>
+/// <param name="SendString">The send string.</param>
+/// <param name="SendLength">Length of the send.</param>
+/// <returns></returns>
 int CSocket::SendAll(int Socket, char *SendString, int SendLength) {
+    //  Stores the total bytes sent
     int TotalSent = 0;
+    //  Stores the bytes remaining to be sent
     int BytesLeft = SendLength;
+    //  Stores the amount sent
     int SendReturn;
-
-	// While there is more data left to send,
+    //  Loop while sent amount is less than send amount 
     while(TotalSent < SendLength) {
-
-		// Send the data
+        //  Sends data to the Socket argument
+        //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740149(v=vs.85).aspx
         SendReturn = send(Socket, SendString+TotalSent, BytesLeft, 0);
-
-		// If the send failed, break
+        //  Break upon verifying send failed
         if (SendReturn == -1) {
-			break;
-		}
+            break;
+        }
+        //  Increment total bytes sent by total number of bytes sent in this iteration
         TotalSent += SendReturn;
+        //  Decrement bytes remaining by total number of bytes sent in this iteration
         BytesLeft -= SendReturn;
     }
-
-	// Return -1 if send failed, 0 otherwise
+    //  Return success or failure
     return (SendReturn==-1?-1:0);
 } 
 
-/***************************************************************
- * Function:	hasData
- *
- * @param sock
- **************************************************************/
+
+/// <summary>
+/// Determines whether the specified sock has data.
+/// </summary>
+/// <param name="sock">The sock.</param>
+/// <returns></returns>
 bool CSocket::hasData(int sock) {
-	timeval timev;
-
-	timev.tv_sec = 0;
-	timev.tv_usec = 0;
-	fd_set dta;
-	FD_ZERO(&dta);
-	FD_SET(sock,&dta);
-
-	// Load the socket
-	select((int)sock+1,&dta,0,0,&timev);
-
-	// If there is data on the socket, return true
-	if (FD_ISSET(sock, &dta)) {
-		return true;
-	}
-
-	// Else (no data), return false
-	return false;
+    //  Stores the time interval
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms740560(v=vs.85).aspx
+    timeval timev;
+    //  Specify time interval in seconds
+    timev.tv_sec = 0;
+    //  Specify time interval in microseconds
+    timev.tv_usec = 0;
+    //  Set up file descriptor set
+    fd_set dta;
+    //  Initializes file descriptor set to null
+    FD_ZERO(&dta);
+    //  Add sock to file descriptor set
+    FD_SET(sock,&dta);
+    //  Determine socket status
+    select((int)sock+1,&dta,0,0,&timev);
+    //  Return true upon verifying that the socket has data set;
+    //  otherwise, return false
+    if (FD_ISSET(sock, &dta)) {
+        return true;
+    } else {
+        return false;
+    }
 }
