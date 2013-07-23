@@ -24,6 +24,7 @@
 #define _COptions
 
 #include "CGame.h"
+#include <vector>
 
 class CGame;
 
@@ -32,11 +33,8 @@ class COptions
 public:
     COptions(CGame *game);
     ~COptions();
-
     HWND hWnd;
-
     void ShowOptionsDialog();
-
     char music;
     char sound;
     char tanksound;
@@ -47,7 +45,9 @@ public:
     char names;
     char limitfps;
     char resolution1024;
-
+    string gameServerAddress;
+    std::vector<string> pastGameServers;
+    void addGameServerToHistory(char *gameServerAddress);
     void LoadOptions();
     void SaveOptions();
 private:

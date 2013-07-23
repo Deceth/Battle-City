@@ -63,7 +63,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;ddraw.lib;dinput8.lib;ws2_32.lib;fmodvc.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)bc.exe</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)Updater.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -100,6 +100,7 @@ xcopy /sy "$(SolutionDir)data" "$(OutDir)"</Command>
     <ClCompile Include="CBuilding.cpp" />
     <ClCompile Include="CBullet.cpp" />
     <ClCompile Include="CCollision.cpp" />
+    <ClCompile Include="CConnectionManager.cpp" />
     <ClCompile Include="CDDraw.cpp" />
     <ClCompile Include="CDialog.cpp" />
     <ClCompile Include="CDrawing.cpp" />
@@ -137,6 +138,7 @@ xcopy /sy "$(SolutionDir)data" "$(OutDir)"</Command>
     <ClInclude Include="CBuilding.h" />
     <ClInclude Include="CBullet.h" />
     <ClInclude Include="CCollision.h" />
+    <ClInclude Include="CConnectionManager.h" />
     <ClInclude Include="CDDraw.h" />
     <ClInclude Include="CDialog.h" />
     <ClInclude Include="CDrawing.h" />

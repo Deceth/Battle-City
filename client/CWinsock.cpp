@@ -39,33 +39,51 @@ CWinsock::~CWinsock() {
 void CWinsock::Init(char *IP) {
 	ServerIP = IP;
 }
-
+/// <summary>   Establishes a TCP connection with the game server. </summary>
 void CWinsock::StartTCP() {
+    //  Close existing connections
 	this->CloseWinsock();
+    //  Start connection
 	this->StartWinsock();
-
+    //  Establish host entry structure
 	struct hostent *host_entry;
-	host_entry = gethostbyname(ServerIP);
+    //  Populate host_entry with ip address
+    host_entry = gethostbyname(ServerIP);
+	if(host_entry==NULL)
+    {
+        MessageBox(p->hWnd,ServerIP,0,0);
+    }
+    //  Establish socket address object
+    //  http://msdn.microsoft.com/en-us/library/aa917469.aspx
 	sockaddr_in sockAddr;
+    //  Populate sin_family with AF_INET
 	sockAddr.sin_family = AF_INET;
-
+    //  Converts a u_short from host to TCP/IP network byte order and assigns to sin_port
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms738557(v=vs.85).aspx
 	sockAddr.sin_port = htons(TCPPORT);
-
+    //  Sets IP address to sin_addr in network byte order
 	sockAddr.sin_addr.s_addr = *(unsigned long*) host_entry->h_addr;
-
+    //  Initialize socket 
 	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
+    //  Non-blocking socket
+    ioctlsocket(Socket,FIONBIO,(u_long *) 1);
+
+    //  Upon verifying Socket connection failed display message box with an error message
 	if (Socket == -1) {
 		MessageBox(p->hWnd, "Invalid Socket!", 0, 0);
 	} 
 
+    //  Upon verifying a connection error close the connection and process the event
+    //  ;Otherwise, set Connected as true and process the event
+    //  1 - Error connecting    
+    //  2 - Connected
 	if (connect(Socket, (sockaddr*)(&sockAddr), sizeof(sockaddr_in)) != 0) {
 		this->CloseWinsock();
-		p->Process->ProcessEvent(1); //Error connecting
-	}
-	else {
+		p->Process->ProcessEvent(1);
+	} else {
 		this->Connected = true;
-		p->Process->ProcessEvent(2); //Connected
+		p->Process->ProcessEvent(2);
 	}
 }
 

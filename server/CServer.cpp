@@ -22,13 +22,11 @@
 */
 #include "CServer.h"
 
-/***************************************************************
- * Constructor
- *
- **************************************************************/
+/// <summary>
+/// Initializes <see cref="CServer"/> class.
+/// </summary>
 CServer::CServer() {
-
-	// Print startup messages
+    //  License information
     cout << endl;
     cout << "Battle City Copyright (C) 2005-2013  battlecity.org" << endl;
     cout << "===========================================================" << endl;
@@ -41,9 +39,9 @@ CServer::CServer() {
     cout << endl;
 	cout << "Battle City Server Version " << VERSION << endl;
 	cout << endl;
-
-	// Create objects
+    //  Socket abstraction
 	Winsock = new CSocket(this);
+    //  Process abstraction
 	Process = new CProcess(this);
 	Account = new CAccount(this);
 	Send = new CSend(this);
@@ -109,61 +107,60 @@ CServer::~CServer() {
 	#endif
 }
 
-/***************************************************************
- * Function:	Init
- *
- **************************************************************/
+/// <summary>
+/// Initializes CServer object
+/// </summary>
 void CServer::Init() {
-
-	cout << "Server::Start" << endl;
-
-	// Start the timer, start listening on the socket
-	cout << " - Initializing Timer" << endl;
+    //  Output to the console
+	cout << "CServer::Init()" << endl;
+	cout << "+ CServer::Init() @ Timer->Initialize" << endl;
+    //  Initialize Timer object
 	this->Timer->Initialize();
-	cout << " - Initializing Winsock" << endl;
+    cout << "+ CServer::Init() @ Winsock->InitWinsock" << endl;
+    //  Initialize Winsock object
 	this->Winsock->InitWinsock();
-
-	// Load the database, files, and news
-	cout << " - Checking Files" << endl;
+    cout << "+ CServer::Init() @ Check files and paths" << endl;
+    //  Verify files and paths
 	this->CheckFilesAndPaths();
-	cout << " - Loading Database" << endl;
+	cout << "+ CServer::Init() @ Database->LoadDatabase" << endl;
+    //  Load database into object
 	this->Database->LoadDatabase();
-	cout << " - Loading News" << endl;
+    cout << "+ CServer::Init() @ Loading news" << endl;
+    //  Load news into Server object
 	this->LoadNews();
-
+    //  Initiate minimum resolution for periodic timers
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/dd757624(v=vs.85).aspx
 	#ifdef WIN32
 		timeBeginPeriod(1);
 	#endif
-
-	cout << "Server::Start::Success" << endl << endl;
+	cout << "CServer::Init() @ Finish" << endl;
 }
 
-/***************************************************************
- * Function:	FreePlayer
- *
- **************************************************************/
+/// <summary>
+/// Locates an empty player slot
+/// </summary>
+/// <returns></returns>
 int CServer::FreePlayer() {
-
-	// For each possible player,
+    //  Loop through available player slots
 	for (int i = 0; i < MAX_PLAYERS; i++) {
-
+        //  Upon verifying player slot is empty return slot id
 		// If no player is connected in that slot,
 		if (Player[i]->State == State_Disconnected) {
-
-			// Return that index
 			return i;
 		}
 	}
-
+    //  Return zero meaning no available slots
 	return 0;
 }
 
-/***************************************************************
- * Function:	PlatformSleep
- *
- * @param ms
- **************************************************************/
+
+/// <summary>
+/// Process goes to sleep for defined time
+/// </summary>
+/// <param name="ms">Milliseconds</param>
 void CServer::PlatformSleep(int ms) {
+    //  Suspends the execution of the current thread until the time-out interval elapses
+    //  http://msdn.microsoft.com/en-us/library/windows/desktop/ms686298(v=vs.85).aspx
 	#ifdef WIN32
 		Sleep(ms);
 	#else
@@ -171,59 +168,55 @@ void CServer::PlatformSleep(int ms) {
 	#endif
 }
 
-/***************************************************************
- * Function:	PlatformCaseCompare
- *
- * @param String1
- * @param String2
- **************************************************************/
+/// <summary>
+/// Performs a lowercase comparison of strings
+/// </summary>
+/// <param name="String1">The string1.</param>
+/// <param name="String2">The string2.</param>
+/// <returns></returns>
 int CServer::PlatformCaseCompare(string String1, string String2) {
 	#ifdef WIN32
-		return stricmp(String1.c_str(), String2.c_str());
+		return _stricmp(String1.c_str(), String2.c_str());
 	#else
 		return strcasecmp(String1.c_str(), String2.c_str());
 	#endif
 }
 
-/***************************************************************
- * Function:	LoadNews
- *
- **************************************************************/
+/// <summary>
+/// Load news into Server object
+/// </summary>
 void CServer::LoadNews() {
 	char buffer[1024];
-
-	cout << "News::Load" << endl << endl;
-
-	// No news is bad news
+	cout << "CServer::LoadNews() @ Loading" << endl << endl;
+    //  Upon verifying news file does not exist create a empty news object
 	if (Exists("news.txt") == 0) {
-		running = 0;
-		cout << "News::Load::News.txt does not exist" << endl;
-		return;
-	}
-
-	// If you can't open the file, exit
-	ifstream NewsFile ("news.txt");
-	if (! NewsFile.is_open()) {
-		cout << "Error opening file";
-		exit (1);
-	}
-
-	// Read the file, appending the contents to News
-	while (! NewsFile.eof() ) {
-		NewsFile.getline (buffer,1024);
-		News += buffer;
-		News += "\r\n";
-	}
+		cout << "CServer::LoadNews() @ news.txt does not exist" << endl << endl;
+        //  Set news to empty string
+        News = "";
+	} else {
+        //  Verify news file can be opened
+	    ifstream NewsFile ("news.txt");
+	    if (! NewsFile.is_open()) {
+		    cout << "CServer::LoadNews() @ Failed to open news.txt" << endl << endl;
+		    News = "";
+	    } else {
+	        //  Loop through news file and populate News variable
+	        while (! NewsFile.eof() ) {
+		        NewsFile.getline (buffer,1024);
+		        News += buffer;
+		        News += "\r\n";
+	        }
+        }
+    }
 
 	// Log
 	cout << News;
-	cout << "News::Load::Success" << endl << endl;
+	cout << "CServer::LoadNews() @ Finish" << endl << endl;
 }
 
-/***************************************************************
- * Function:	CheckFilesAndPaths
- *
- **************************************************************/
+/// <summary>
+/// Create directories and files for dat and log
+/// </summary>
 void CServer::CheckFilesAndPaths() {
 	#ifndef WIN32
 		mkdir("dat", 777);
@@ -244,56 +237,52 @@ void CServer::CheckFilesAndPaths() {
 	#endif
 }
 
-/***************************************************************
- * Function:	Exists
- *
- * @param Path
- **************************************************************/
+
+/// <summary>
+/// Verify the specified path exists
+/// </summary>
+/// <param name="Path">File path</param>
+/// <returns></returns>
 int CServer::Exists(string Path) {
 	int Exists = 0;
+    //  Set file stream variable
 	fstream fin;
-
-	// If we can open the file, set Exists to 1
+    //  Verify that path can be opened using fstream.open
 	fin.open(Path.c_str(),ios::in);
-	if( fin.is_open() ) {
-		Exists = 1;
-	}
+	Exists = (fin.is_open() ? 1 : 0);
 	fin.close();
-
 	return Exists;
 }
 
-/***************************************************************
- * Function:	TotalPlayers
- *
- **************************************************************/
+/// <summary>
+/// Calculate the total number of players online
+/// </summary>
+/// <returns></returns>
 int CServer::TotalPlayers() {
+    //  Set total player counter
 	int totalPlayers = 0;
-
-	// For every possible player,
+    //  Loop through available player slots
 	for (int j = 0; j < MAX_PLAYERS; j++) {
-
-		// If the player is in Chat, Game, or Apply, increment the count
+        //  Verify player is in-game, applying, or chatting
 		if ( Player[j]->isInGameApplyOrChat() ) {
+            //  Increment total player value
 			totalPlayers++;
 		}
 	}
-
 	return totalPlayers;
 }
 
-/***************************************************************
- * Function:	ChangeNews
- *
- * @param NewNews
- **************************************************************/
+/// <summary>
+/// Update the news file
+/// </summary>
+/// <param name="NewNews">Updated news string</param>
 void CServer::ChangeNews(string NewNews) {
-	// Change the news on the server
+    //  Store newNews as News and add end line characters
 	News = NewNews;
 	News += "\r\n";
-
-	// Change the news int he file
+    //  Open output file stream handler to news.txt
 	ofstream NewsFile ("news.txt");
+    //  
 	NewsFile.write(News.c_str(), (int)News.length());
 	NewsFile.close();
 

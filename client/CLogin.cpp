@@ -96,10 +96,13 @@ CLogin::~CLogin()
 {
 
 }
-
+/// <summary>   Shows the login dialog. </summary>
 void CLogin::ShowLoginDlg()
 {
+    //  Set game state to STATE_LOGIN
 	p->State = STATE_LOGIN;
+    //  Initialize the ID_LOGIN dialog
 	p->Dialog->StartDialog = ID_LOGIN;
+    //  Initialize the dialog processor
 	p->Dialog->DialogProcessor = &LoginDlgProc;
 }

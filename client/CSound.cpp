@@ -21,46 +21,72 @@
 ===============================================================================
 */
 #include "CSound.h"
+/// <summary>   Thread to handle sound </summary>
+///
+/// <param name="pParam">   [in,out] If non-null, the parameter. </param>
 void _cdecl thrSound(void * pParam);
-
+/// <summary>   Constructor. </summary>
+///
+/// <param name="game"> [in,out] If non-null, the game. </param>
 CSound::CSound(CGame *game)
 {
+    //  Reference CGame
 	p = game;
+    //  Set MIDIndex to zero
 	MIDIndex = 0;
 }
-
+/// <summary>   Destructor. </summary>
 CSound::~CSound()
 {
+    //  Safely close FSound
 	FSOUND_Close();
 }
-
+/// <summary>   Initializes this object. </summary>
 void CSound::Init()
 {
+    //  Upon verifying FSOUND is not initialized using 44100 mix rate, 32 channels, and zero flags; do nothing
+    //  Otherwise, proceed with loading sounds and music into memory
 	if (!FSOUND_Init(44100,32,0))
 	{
 
 	}
 	else
 	{
+        //  Upon verifying that sounds did not load report an error message and indicate sound has not loaded
 		if (!LoadSounds())
 		{
+            //  Display message box informing user that sounds did not load
 			MessageBox(p->hWnd, "Failed to load sounds!", 0, 0); 
+            //  Set sound indicator to zero
 			p->Options->sound = 0;
+            //  Save options
 			p->Options->SaveOptions();
 		}
+        //  Upon verifying that music did not load report an error message and indicate music has not loaded
 		if (!LoadMusic())
 		{
+            //  Display message box informing user that music did not load
 			MessageBox(p->hWnd, "Failed to load music!", 0, 0); 
+            //  Set music indicator to zero
 			p->Options->music = 0;
+            //  Save options
 			p->Options->SaveOptions();
 		}
 	}
+    //  Set random starting point based upon current game time interval
+    //  http://msdn.microsoft.com/en-us/library/f0d4wb4t(v=vs.71).aspx
 	srand((unsigned int)p->Tick);
+    //  Set the index to be zero plus the remainder of rand() divided by six
 	this->MIDIndex = 0 + (rand()%6);
+    //  Play the music associated to the index
 	PlaYMID(MIDIndex);
+    //  Start the Sound thread
 	_beginthread(thrSound,0,p);
 }
 
+/// <summary>   Loads the sounds. </summary>
+///
+/// <returns>   The sounds. </returns>
 int CSound::LoadSounds()
 {
 	s_engine = FSOUND_Sample_Load(FSOUND_FREE, "wav/engine.wav", FSOUND_LOOP_NORMAL,0,0);
@@ -83,6 +109,9 @@ int CSound::LoadSounds()
 	return 1;
 }
 
+/// <summary>   Loads the music. </summary>
+///
+/// <returns>   The music. </returns>
 int CSound::LoadMusic()
 {
 	m_BC1 = FMUSIC_LoadSong("midi/BC1.mid");
@@ -97,6 +126,10 @@ int CSound::LoadMusic()
 	return 1;
 }
 
+/// <summary>   Play WAV. </summary>
+///
+/// <param name="Index">    Zero-based index of the. </param>
+/// <param name="channel">  The channel. </param>
 void CSound::PlayWav(int Index, int channel)
 {
 	try
@@ -160,14 +193,21 @@ void CSound::PlayWav(int Index, int channel)
 	catch (...) {p->Options->sound = 0; p->Options->SaveOptions(); p->Engine->logerror("Crashed playing sound!");}
 }
 
+/// <summary>   Plays music </summary>
+///
+/// <param name="Index">    Music index </param>
 void CSound::PlaYMID(int Index)
 {
+    //  Upon verifying the user has music enabled start playing song
 	if (p->Options->music == 1)
 	{
+        //  Select the music based upon index
 		switch(Index)
 		{
 		case 0:
+            //  Sets a songs master volume
 			FMUSIC_SetMasterVolume(m_BC1, 75);
+            //  Starts a song playing
 			FMUSIC_PlaySong(m_BC1);
 			break;
 		case 1:
